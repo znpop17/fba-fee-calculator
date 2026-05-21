@@ -696,6 +696,50 @@
       return "extra_large_150_plus";
     }
 
+    function describeSizeTierDecision(sizeTier, longestIn, medianIn, shortestIn, unitWeightLb, standardDimensionalWeightLb, bulkyDimensionalWeightLb, lengthPlusGirthIn) {
+      const tiers = POLICY.size_tiers;
+      const largeStandardWeightLb = Math.max(unitWeightLb, standardDimensionalWeightLb);
+      const bulkyWeightLb = Math.max(unitWeightLb, bulkyDimensionalWeightLb);
+      const checks = {
+        small_standard: [
+          ["unit_weight_lb", unitWeightLb, tiers.small_standard.max_shipping_weight_lb],
+          ["longest_in", longestIn, tiers.small_standard.max_longest_in],
+          ["median_in", medianIn, tiers.small_standard.max_median_in],
+          ["shortest_in", shortestIn, tiers.small_standard.max_shortest_in]
+        ],
+        large_standard: [
+          ["large_standard_weight_lb", largeStandardWeightLb, tiers.large_standard.max_shipping_weight_lb],
+          ["longest_in", longestIn, tiers.large_standard.max_longest_in],
+          ["median_in", medianIn, tiers.large_standard.max_median_in],
+          ["shortest_in", shortestIn, tiers.large_standard.max_shortest_in]
+        ],
+        small_bulky: [
+          ["bulky_weight_lb", bulkyWeightLb, tiers.small_bulky.max_shipping_weight_lb],
+          ["longest_in", longestIn, tiers.small_bulky.max_longest_in],
+          ["median_in", medianIn, tiers.small_bulky.max_median_in],
+          ["shortest_in", shortestIn, tiers.small_bulky.max_shortest_in],
+          ["length_plus_girth_in", lengthPlusGirthIn, tiers.small_bulky.max_length_plus_girth_in]
+        ],
+        large_bulky: [
+          ["bulky_weight_lb", bulkyWeightLb, tiers.large_bulky.max_shipping_weight_lb],
+          ["longest_in", longestIn, tiers.large_bulky.max_longest_in],
+          ["median_in", medianIn, tiers.large_bulky.max_median_in],
+          ["shortest_in", shortestIn, tiers.large_bulky.max_shortest_in],
+          ["length_plus_girth_in", lengthPlusGirthIn, tiers.large_bulky.max_length_plus_girth_in]
+        ]
+      };
+
+      const matched = checks[sizeTier];
+      if (matched) {
+        return `${sizeTier} matched: ` + matched.map(([name, value, limit]) => `${name} ${round4(value)} <= ${limit}`).join(", ");
+      }
+
+      const failedLargeBulky = checks.large_bulky
+        .filter(([, value, limit]) => value > limit + 1e-9)
+        .map(([name, value, limit]) => `${name} ${round4(value)} > ${limit}`);
+      return `${sizeTier} matched because it exceeds large_bulky thresholds: ${failedLargeBulky.join(", ") || `bulky_weight_lb ${round4(bulkyWeightLb)}`}`;
+    }
+
     function computeDimensionalWeights(longestIn, medianIn, shortestIn) {
       return {
         standardDimensionalWeightLb: (longestIn * medianIn * shortestIn) / 139,
@@ -901,6 +945,16 @@
           dimensionalWeights.bulkyDimensionalWeightLb,
           lengthPlusGirthIn
         );
+        const sizeTierReason = describeSizeTierDecision(
+          sizeTier,
+          longestIn,
+          medianIn,
+          shortestIn,
+          unitWeightLb,
+          dimensionalWeights.standardDimensionalWeightLb,
+          dimensionalWeights.bulkyDimensionalWeightLb,
+          lengthPlusGirthIn
+        );
         const shippingWeightLb = computeShippingWeight(
           sizeTier,
           unitWeightLb,
@@ -926,6 +980,15 @@
           category: row.category,
           status: "ok",
           size_tier: sizeTier,
+          size_tier_reason: sizeTierReason,
+          length_cm: row.lengthCm,
+          width_cm: row.widthCm,
+          height_cm: row.heightCm,
+          weight_kg: row.weightKg,
+          longest_in: round4(longestIn),
+          median_in: round4(medianIn),
+          shortest_in: round4(shortestIn),
+          unit_weight_lb: round4(unitWeightLb),
           sale_price_usd: row.salePriceUsd ?? "",
           is_apparel: row.isApparel ? "Y" : "N",
           sipp_eligible_input: row.sippEligible === null ? "" : (row.sippEligible ? "Y" : "N"),
@@ -1048,6 +1111,9 @@
         renderStats(state.results, state.scenarios);
         renderTable("resultsTable", state.results, [
           "row_number", "country", "sku", "product_name", "category", "status", "size_tier",
+          "size_tier_reason", "length_cm", "width_cm", "height_cm", "weight_kg",
+          "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
+          "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb",
           "price_band", "standard_fba_fee_usd", "low_price_fba_fee_usd", "high_price_fba_fee_usd", "sipp_discount_supported_usd",
           "fuel_logistics_surcharge_rate", "includes_fuel_logistics_surcharge", "low_inventory_fee_bands_usd",
           "scenario_count", "min_final_fee_usd", "max_final_fee_usd", "cheapest_scenario", "highest_scenario", "notes"
