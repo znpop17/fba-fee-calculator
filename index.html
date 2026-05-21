@@ -569,6 +569,10 @@
       return Math.round(value * 10000) / 10000;
     }
 
+    function formatPercent(value) {
+      return `${round2(value * 100).toFixed(2).replace(/\.?0+$/, "")}%`;
+    }
+
     function parseCsv(text) {
       const rows = [];
       let row = [];
@@ -897,6 +901,8 @@
               sipp_discount_usd: sippOption.discount,
               fulfillment_fee_after_sipp_usd: fulfillmentFeeAfterSipp,
               fuel_logistics_surcharge_usd: fuelSurcharge,
+              fuel_logistics_surcharge_rate: round4(POLICY.fuel_logistics_surcharge.rate),
+              fuel_logistics_surcharge_percent: formatPercent(POLICY.fuel_logistics_surcharge.rate),
               low_inventory_band: lowInventoryOption.band_code,
               low_inventory_fee_usd: lowInventoryOption.fee,
               final_fee_usd: finalFee,
@@ -1010,7 +1016,8 @@
           price_band: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "<$10" : (row.salePriceUsd > 50 ? ">$50" : "$10-$50")),
           low_price_eligible: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "Y" : "N"),
           includes_fuel_logistics_surcharge: POLICY.fuel_logistics_surcharge.enabled ? "Y" : "N",
-          fuel_logistics_surcharge_rate: POLICY.fuel_logistics_surcharge.rate,
+          fuel_logistics_surcharge_rate: round4(POLICY.fuel_logistics_surcharge.rate),
+          fuel_logistics_surcharge_percent: formatPercent(POLICY.fuel_logistics_surcharge.rate),
           scenario_count: scenarioRows.length,
           min_final_fee_usd: cheapest.final_fee_usd,
           max_final_fee_usd: highest.final_fee_usd,
@@ -1038,7 +1045,7 @@
         { label: "场景总数", value: scenarios.length },
         { label: "最低可能费", value: results.length ? `${Math.min(...results.filter(r => r.status === "ok").map(r => r.min_final_fee_usd)) || 0} USD` : "-" },
         { label: "最高可能费", value: results.length ? `${Math.max(...results.filter(r => r.status === "ok").map(r => r.max_final_fee_usd)) || 0} USD` : "-" },
-        { label: "燃油附加费", value: POLICY.fuel_logistics_surcharge.enabled ? `${POLICY.fuel_logistics_surcharge.rate * 100}%` : "未启用" }
+        { label: "燃油附加费", value: POLICY.fuel_logistics_surcharge.enabled ? formatPercent(POLICY.fuel_logistics_surcharge.rate) : "未启用" }
       ];
       const container = document.getElementById("stats");
       container.innerHTML = stats.map(item => `<div class="stat"><strong>${item.value}</strong><span>${item.label}</span></div>`).join("");
@@ -1125,13 +1132,13 @@
           "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
           "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb",
           "price_band", "standard_fba_fee_usd", "low_price_fba_fee_usd", "high_price_fba_fee_usd", "sipp_discount_supported_usd",
-          "fuel_logistics_surcharge_rate", "includes_fuel_logistics_surcharge", "low_inventory_fee_bands_usd",
+          "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate", "includes_fuel_logistics_surcharge", "low_inventory_fee_bands_usd",
           "scenario_count", "min_final_fee_usd", "max_final_fee_usd", "cheapest_scenario", "highest_scenario", "notes"
         ]);
         renderTable("scenariosTable", state.scenarios, [
           "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "base_fee_type",
           "base_fee_usd", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_after_sipp_usd",
-          "fuel_logistics_surcharge_usd", "low_inventory_band", "low_inventory_fee_usd", "final_fee_usd", "conditions"
+          "fuel_logistics_surcharge_usd", "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate", "low_inventory_band", "low_inventory_fee_usd", "final_fee_usd", "conditions"
         ]);
         document.getElementById("exportResults").disabled = false;
         document.getElementById("exportScenarios").disabled = false;
