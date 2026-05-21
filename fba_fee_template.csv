@@ -1,0 +1,3 @@
+country,sku,product_name,category,length_cm,width_cm,height_cm,weight_kg,sale_price_usd,is_apparel,sipp_eligible,days_of_supply_30,days_of_supply_90
+US,SKU-001,示例普通品,,22,13,2,0.18,9.99,N,,,
+US,SKU-002,示例服饰品,,30,25,4,0.62,18.99,Y,N,,
