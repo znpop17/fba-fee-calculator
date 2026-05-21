@@ -552,6 +552,10 @@
       return value / 2.54;
     }
 
+    function ceil2(value) {
+      return Math.ceil(value * 100 - 1e-9) / 100;
+    }
+
     function ceilIntervals(excess, interval) {
       if (excess <= 0) return 0;
       return Math.ceil(excess / interval - 1e-9);
@@ -742,16 +746,16 @@
 
     function computeDimensionalWeights(longestIn, medianIn, shortestIn) {
       return {
-        standardDimensionalWeightLb: (longestIn * medianIn * shortestIn) / 139,
-        bulkyDimensionalWeightLb: (longestIn * Math.max(medianIn, 2) * Math.max(shortestIn, 2)) / 139
+        standardDimensionalWeightLb: ceil2((longestIn * medianIn * shortestIn) / 139),
+        bulkyDimensionalWeightLb: ceil2((longestIn * Math.max(medianIn, 2) * Math.max(shortestIn, 2)) / 139)
       };
     }
 
     function computeShippingWeight(sizeTier, unitWeightLb, standardDimensionalWeightLb, bulkyDimensionalWeightLb) {
-      if (sizeTier === "small_standard") return unitWeightLb;
-      if (sizeTier === "large_standard") return Math.max(unitWeightLb, standardDimensionalWeightLb);
-      if (sizeTier === "extra_large_150_plus") return unitWeightLb;
-      return Math.max(unitWeightLb, bulkyDimensionalWeightLb);
+      if (sizeTier === "small_standard") return ceil2(unitWeightLb);
+      if (sizeTier === "large_standard") return ceil2(Math.max(unitWeightLb, standardDimensionalWeightLb));
+      if (sizeTier === "extra_large_150_plus") return ceil2(unitWeightLb);
+      return ceil2(Math.max(unitWeightLb, bulkyDimensionalWeightLb));
     }
 
     function computeBaseFee(sizeTier, shippingWeightLb, isApparel, priceBand) {
@@ -886,7 +890,7 @@
               sku: row.sku,
               product_name: row.productName,
               size_tier: sizeTier,
-              shipping_weight_lb: round4(shippingWeightLb),
+              shipping_weight_lb: round2(shippingWeightLb),
               base_fee_type: baseOption.base_fee_type,
               base_fee_usd: baseOption.base_fee,
               sipp_applied: sippOption.applied ? "Y" : "N",
@@ -931,9 +935,10 @@
           return;
         }
 
-        const dimsIn = [inchesFromCm(row.lengthCm), inchesFromCm(row.widthCm), inchesFromCm(row.heightCm)].sort((a, b) => b - a);
+        const rawDimsIn = [inchesFromCm(row.lengthCm), inchesFromCm(row.widthCm), inchesFromCm(row.heightCm)].sort((a, b) => b - a);
+        const dimsIn = rawDimsIn.map(ceil2);
         const [longestIn, medianIn, shortestIn] = dimsIn;
-        const unitWeightLb = poundsFromKg(row.weightKg);
+        const unitWeightLb = ceil2(poundsFromKg(row.weightKg));
         const dimensionalWeights = computeDimensionalWeights(longestIn, medianIn, shortestIn);
         const lengthPlusGirthIn = longestIn + 2 * (medianIn + shortestIn);
         const sizeTier = determineSizeTier(
@@ -981,14 +986,18 @@
           status: "ok",
           size_tier: sizeTier,
           size_tier_reason: sizeTierReason,
+          measurement_rounding_rule: "尺寸/重量/材积重/计费重均向上取到 2 位小数",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
           weight_kg: row.weightKg,
-          longest_in: round4(longestIn),
-          median_in: round4(medianIn),
-          shortest_in: round4(shortestIn),
-          unit_weight_lb: round4(unitWeightLb),
+          raw_longest_in: round4(rawDimsIn[0]),
+          raw_median_in: round4(rawDimsIn[1]),
+          raw_shortest_in: round4(rawDimsIn[2]),
+          longest_in: round2(longestIn),
+          median_in: round2(medianIn),
+          shortest_in: round2(shortestIn),
+          unit_weight_lb: round2(unitWeightLb),
           sale_price_usd: row.salePriceUsd ?? "",
           is_apparel: row.isApparel ? "Y" : "N",
           sipp_eligible_input: row.sippEligible === null ? "" : (row.sippEligible ? "Y" : "N"),
@@ -1007,9 +1016,9 @@
           max_final_fee_usd: highest.final_fee_usd,
           cheapest_scenario: cheapest.scenario_name,
           highest_scenario: highest.scenario_name,
-          shipping_weight_lb: round4(shippingWeightLb),
-          standard_dimensional_weight_lb: round4(dimensionalWeights.standardDimensionalWeightLb),
-          bulky_dimensional_weight_lb: round4(dimensionalWeights.bulkyDimensionalWeightLb),
+          shipping_weight_lb: round2(shippingWeightLb),
+          standard_dimensional_weight_lb: round2(dimensionalWeights.standardDimensionalWeightLb),
+          bulky_dimensional_weight_lb: round2(dimensionalWeights.bulkyDimensionalWeightLb),
           notes: [
             `已穷举 ${scenarioRows.length} 个费用场景`,
             lowPriceFee !== null ? "存在 Low-Price FBA 场景" : "",
@@ -1111,7 +1120,8 @@
         renderStats(state.results, state.scenarios);
         renderTable("resultsTable", state.results, [
           "row_number", "country", "sku", "product_name", "category", "status", "size_tier",
-          "size_tier_reason", "length_cm", "width_cm", "height_cm", "weight_kg",
+          "size_tier_reason", "measurement_rounding_rule", "length_cm", "width_cm", "height_cm", "weight_kg",
+          "raw_longest_in", "raw_median_in", "raw_shortest_in",
           "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
           "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb",
           "price_band", "standard_fba_fee_usd", "low_price_fba_fee_usd", "high_price_fba_fee_usd", "sipp_discount_supported_usd",
