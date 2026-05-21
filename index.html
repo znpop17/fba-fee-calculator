@@ -659,26 +659,32 @@
       return 0;
     }
 
-    function determineSizeTier(longestIn, medianIn, shortestIn, shippingWeightLb, lengthPlusGirthIn) {
+    function determineSizeTier(longestIn, medianIn, shortestIn, unitWeightLb, standardDimensionalWeightLb, bulkyDimensionalWeightLb, lengthPlusGirthIn) {
       const tiers = POLICY.size_tiers;
-      if (shippingWeightLb <= tiers.small_standard.max_shipping_weight_lb && longestIn <= tiers.small_standard.max_longest_in && medianIn <= tiers.small_standard.max_median_in && shortestIn <= tiers.small_standard.max_shortest_in) return "small_standard";
-      if (shippingWeightLb <= tiers.large_standard.max_shipping_weight_lb && longestIn <= tiers.large_standard.max_longest_in && medianIn <= tiers.large_standard.max_median_in && shortestIn <= tiers.large_standard.max_shortest_in) return "large_standard";
-      if (shippingWeightLb <= tiers.small_bulky.max_shipping_weight_lb && longestIn <= tiers.small_bulky.max_longest_in && medianIn <= tiers.small_bulky.max_median_in && shortestIn <= tiers.small_bulky.max_shortest_in && lengthPlusGirthIn <= tiers.small_bulky.max_length_plus_girth_in) return "small_bulky";
-      if (shippingWeightLb <= tiers.large_bulky.max_shipping_weight_lb && longestIn <= tiers.large_bulky.max_longest_in && medianIn <= tiers.large_bulky.max_median_in && shortestIn <= tiers.large_bulky.max_shortest_in && lengthPlusGirthIn <= tiers.large_bulky.max_length_plus_girth_in) return "large_bulky";
-      if (shippingWeightLb <= 50) return "extra_large_0_50";
-      if (shippingWeightLb <= 70) return "extra_large_50_70";
-      if (shippingWeightLb <= 150) return "extra_large_70_150";
+      if (unitWeightLb <= tiers.small_standard.max_shipping_weight_lb && longestIn <= tiers.small_standard.max_longest_in && medianIn <= tiers.small_standard.max_median_in && shortestIn <= tiers.small_standard.max_shortest_in) return "small_standard";
+      const largeStandardWeightLb = Math.max(unitWeightLb, standardDimensionalWeightLb);
+      if (largeStandardWeightLb <= tiers.large_standard.max_shipping_weight_lb && longestIn <= tiers.large_standard.max_longest_in && medianIn <= tiers.large_standard.max_median_in && shortestIn <= tiers.large_standard.max_shortest_in) return "large_standard";
+      const bulkyWeightLb = Math.max(unitWeightLb, bulkyDimensionalWeightLb);
+      if (bulkyWeightLb <= tiers.small_bulky.max_shipping_weight_lb && longestIn <= tiers.small_bulky.max_longest_in && medianIn <= tiers.small_bulky.max_median_in && shortestIn <= tiers.small_bulky.max_shortest_in && lengthPlusGirthIn <= tiers.small_bulky.max_length_plus_girth_in) return "small_bulky";
+      if (bulkyWeightLb <= tiers.large_bulky.max_shipping_weight_lb && longestIn <= tiers.large_bulky.max_longest_in && medianIn <= tiers.large_bulky.max_median_in && shortestIn <= tiers.large_bulky.max_shortest_in && lengthPlusGirthIn <= tiers.large_bulky.max_length_plus_girth_in) return "large_bulky";
+      if (bulkyWeightLb <= 50) return "extra_large_0_50";
+      if (bulkyWeightLb <= 70) return "extra_large_50_70";
+      if (bulkyWeightLb <= 150) return "extra_large_70_150";
       return "extra_large_150_plus";
     }
 
-    function computeShippingWeight(longestIn, medianIn, shortestIn, unitWeightLb) {
-      const adjustedMedian = Math.max(medianIn, 2);
-      const adjustedShortest = Math.max(shortestIn, 2);
-      const dimensionalWeightLb = (longestIn * adjustedMedian * adjustedShortest) / 139;
+    function computeDimensionalWeights(longestIn, medianIn, shortestIn) {
       return {
-        shippingWeightLb: Math.max(unitWeightLb, dimensionalWeightLb),
-        dimensionalWeightLb
+        standardDimensionalWeightLb: (longestIn * medianIn * shortestIn) / 139,
+        bulkyDimensionalWeightLb: (longestIn * Math.max(medianIn, 2) * Math.max(shortestIn, 2)) / 139
       };
+    }
+
+    function computeShippingWeight(sizeTier, unitWeightLb, standardDimensionalWeightLb, bulkyDimensionalWeightLb) {
+      if (sizeTier === "small_standard") return unitWeightLb;
+      if (sizeTier === "large_standard") return Math.max(unitWeightLb, standardDimensionalWeightLb);
+      if (sizeTier === "extra_large_150_plus") return unitWeightLb;
+      return Math.max(unitWeightLb, bulkyDimensionalWeightLb);
     }
 
     function computeBaseFee(sizeTier, shippingWeightLb, isApparel, lowPrice) {
@@ -846,15 +852,29 @@
         const dimsIn = [inchesFromCm(row.lengthCm), inchesFromCm(row.widthCm), inchesFromCm(row.heightCm)].sort((a, b) => b - a);
         const [longestIn, medianIn, shortestIn] = dimsIn;
         const unitWeightLb = poundsFromKg(row.weightKg);
-        const shipping = computeShippingWeight(longestIn, medianIn, shortestIn, unitWeightLb);
+        const dimensionalWeights = computeDimensionalWeights(longestIn, medianIn, shortestIn);
         const lengthPlusGirthIn = longestIn + 2 * (medianIn + shortestIn);
-        const sizeTier = determineSizeTier(longestIn, medianIn, shortestIn, shipping.shippingWeightLb, lengthPlusGirthIn);
+        const sizeTier = determineSizeTier(
+          longestIn,
+          medianIn,
+          shortestIn,
+          unitWeightLb,
+          dimensionalWeights.standardDimensionalWeightLb,
+          dimensionalWeights.bulkyDimensionalWeightLb,
+          lengthPlusGirthIn
+        );
+        const shippingWeightLb = computeShippingWeight(
+          sizeTier,
+          unitWeightLb,
+          dimensionalWeights.standardDimensionalWeightLb,
+          dimensionalWeights.bulkyDimensionalWeightLb
+        );
         const lowPriceSupported = true;
-        const standardFee = computeBaseFee(sizeTier, shipping.shippingWeightLb, row.isApparel, false);
-        const lowPriceFee = lowPriceSupported ? computeBaseFee(sizeTier, shipping.shippingWeightLb, row.isApparel, true) : null;
-        const sippOptions = getSippOptions(sizeTier, shipping.shippingWeightLb, row.sippEligible);
-        const lowInventoryOptions = getLowInventoryBands(sizeTier, shipping.shippingWeightLb);
-        const scenarioRows = buildFeeScenarios(row, sizeTier, shipping.shippingWeightLb, standardFee, lowPriceFee);
+        const standardFee = computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, false);
+        const lowPriceFee = lowPriceSupported ? computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, true) : null;
+        const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.sippEligible);
+        const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb);
+        const scenarioRows = buildFeeScenarios(row, sizeTier, shippingWeightLb, standardFee, lowPriceFee);
         scenarios.push(...scenarioRows);
         const cheapest = scenarioRows.reduce((best, item) => item.final_fee_usd < best.final_fee_usd ? item : best, scenarioRows[0]);
         const highest = scenarioRows.reduce((best, item) => item.final_fee_usd > best.final_fee_usd ? item : best, scenarioRows[0]);
@@ -883,8 +903,9 @@
           max_final_fee_usd: highest.final_fee_usd,
           cheapest_scenario: cheapest.scenario_name,
           highest_scenario: highest.scenario_name,
-          shipping_weight_lb: round4(shipping.shippingWeightLb),
-          dimensional_weight_lb: round4(shipping.dimensionalWeightLb),
+          shipping_weight_lb: round4(shippingWeightLb),
+          standard_dimensional_weight_lb: round4(dimensionalWeights.standardDimensionalWeightLb),
+          bulky_dimensional_weight_lb: round4(dimensionalWeights.bulkyDimensionalWeightLb),
           notes: [
             `已穷举 ${scenarioRows.length} 个费用场景`,
             lowPriceFee !== null ? "存在 Low-Price FBA 场景" : "",
