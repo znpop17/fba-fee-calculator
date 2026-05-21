@@ -930,6 +930,25 @@
         .join(", ");
     }
 
+    const RESULTS_COLUMNS = [
+      "row_number", "country", "sku", "product_name", "category", "status", "size_tier",
+      "size_tier_reason", "measurement_rounding_rule", "length_cm", "width_cm", "height_cm", "weight_kg",
+      "raw_longest_in", "raw_median_in", "raw_shortest_in",
+      "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
+      "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb",
+      "price_band", "applied_base_fee_type", "all_fba_fee_results_usd", "all_scenario_fba_fees_usd",
+      "standard_fba_fee_usd", "low_price_fba_fee_usd", "high_price_fba_fee_usd", "sipp_discount_supported_usd",
+      "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate", "includes_fuel_logistics_surcharge", "low_inventory_fee_bands_usd",
+      "scenario_count", "min_final_fee_usd", "max_final_fee_usd", "cheapest_scenario", "highest_scenario", "notes"
+    ];
+
+    const SCENARIO_COLUMNS = [
+      "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "base_fee_type",
+      "base_fee_usd", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_after_sipp_usd",
+      "fuel_logistics_surcharge_usd", "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate",
+      "low_inventory_band", "low_inventory_fee_usd", "final_fee_usd", "conditions"
+    ];
+
     function calculateRows(rows) {
       const results = [];
       const scenarios = [];
@@ -1030,6 +1049,7 @@
           price_band: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "<$10" : (row.salePriceUsd > 50 ? ">$50" : "$10-$50")),
           low_price_eligible: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "Y" : "N"),
           applied_base_fee_type: getAppliedBaseFeeType(scenarioRows),
+          all_fba_fee_results_usd: formatScenarioFeeList(scenarioRows),
           all_scenario_fba_fees_usd: formatScenarioFeeList(scenarioRows),
           includes_fuel_logistics_surcharge: POLICY.fuel_logistics_surcharge.enabled ? "Y" : "N",
           fuel_logistics_surcharge_rate: round4(POLICY.fuel_logistics_surcharge.rate),
@@ -1104,9 +1124,10 @@
       return text;
     }
 
-    function exportCsv(filename, rows) {
+    function exportCsv(filename, rows, preferredOrder = []) {
       if (!rows.length) return;
       const headers = [];
+      preferredOrder.forEach(key => { if (!headers.includes(key)) headers.push(key); });
       rows.forEach(row => {
         Object.keys(row).forEach(key => {
           if (!headers.includes(key)) headers.push(key);
@@ -1141,22 +1162,8 @@
         state.results = computed.results;
         state.scenarios = computed.scenarios;
         renderStats(state.results, state.scenarios);
-        renderTable("resultsTable", state.results, [
-          "row_number", "country", "sku", "product_name", "category", "status", "size_tier",
-          "size_tier_reason", "measurement_rounding_rule", "length_cm", "width_cm", "height_cm", "weight_kg",
-          "raw_longest_in", "raw_median_in", "raw_shortest_in",
-          "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
-          "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb",
-          "price_band", "applied_base_fee_type", "all_scenario_fba_fees_usd",
-          "standard_fba_fee_usd", "low_price_fba_fee_usd", "high_price_fba_fee_usd", "sipp_discount_supported_usd",
-          "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate", "includes_fuel_logistics_surcharge", "low_inventory_fee_bands_usd",
-          "scenario_count", "min_final_fee_usd", "max_final_fee_usd", "cheapest_scenario", "highest_scenario", "notes"
-        ]);
-        renderTable("scenariosTable", state.scenarios, [
-          "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "base_fee_type",
-          "base_fee_usd", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_after_sipp_usd",
-          "fuel_logistics_surcharge_usd", "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate", "low_inventory_band", "low_inventory_fee_usd", "final_fee_usd", "conditions"
-        ]);
+        renderTable("resultsTable", state.results, RESULTS_COLUMNS);
+        renderTable("scenariosTable", state.scenarios, SCENARIO_COLUMNS);
         document.getElementById("exportResults").disabled = false;
         document.getElementById("exportScenarios").disabled = false;
         setStatus(`测算完成：${state.results.length} 行 SKU，${state.scenarios.length} 个场景。摘要结果已明确标注是否包含燃油附加费。`);
@@ -1177,8 +1184,8 @@
     document.getElementById("runButton").addEventListener("click", runCalculation);
     document.getElementById("downloadTemplate").addEventListener("click", downloadTemplate);
     document.getElementById("downloadTemplateTop").addEventListener("click", downloadTemplate);
-    document.getElementById("exportResults").addEventListener("click", () => exportCsv("fba_fee_results.csv", state.results));
-    document.getElementById("exportScenarios").addEventListener("click", () => exportCsv("fba_fee_scenarios.csv", state.scenarios));
+    document.getElementById("exportResults").addEventListener("click", () => exportCsv("fba_fee_results.csv", state.results, RESULTS_COLUMNS));
+    document.getElementById("exportScenarios").addEventListener("click", () => exportCsv("fba_fee_scenarios.csv", state.scenarios, SCENARIO_COLUMNS));
 
     renderStats([], []);
     renderTable("resultsTable", []);
