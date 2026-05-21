@@ -920,6 +920,16 @@
       return scenarios;
     }
 
+    function getAppliedBaseFeeType(scenarioRows) {
+      return [...new Set(scenarioRows.map(item => item.base_fee_type))].join(", ");
+    }
+
+    function formatScenarioFeeList(scenarioRows) {
+      return scenarioRows
+        .map(item => `${item.scenario_name}=${item.final_fee_usd}`)
+        .join(", ");
+    }
+
     function calculateRows(rows) {
       const results = [];
       const scenarios = [];
@@ -1019,6 +1029,8 @@
           low_price_supported: lowPriceSupported ? "Y" : "N",
           price_band: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "<$10" : (row.salePriceUsd > 50 ? ">$50" : "$10-$50")),
           low_price_eligible: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "Y" : "N"),
+          applied_base_fee_type: getAppliedBaseFeeType(scenarioRows),
+          all_scenario_fba_fees_usd: formatScenarioFeeList(scenarioRows),
           includes_fuel_logistics_surcharge: POLICY.fuel_logistics_surcharge.enabled ? "Y" : "N",
           fuel_logistics_surcharge_rate: round4(POLICY.fuel_logistics_surcharge.rate),
           fuel_logistics_surcharge_percent: formatPercent(POLICY.fuel_logistics_surcharge.rate),
@@ -1135,7 +1147,8 @@
           "raw_longest_in", "raw_median_in", "raw_shortest_in",
           "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
           "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb",
-          "price_band", "standard_fba_fee_usd", "low_price_fba_fee_usd", "high_price_fba_fee_usd", "sipp_discount_supported_usd",
+          "price_band", "applied_base_fee_type", "all_scenario_fba_fees_usd",
+          "standard_fba_fee_usd", "low_price_fba_fee_usd", "high_price_fba_fee_usd", "sipp_discount_supported_usd",
           "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate", "includes_fuel_logistics_surcharge", "low_inventory_fee_bands_usd",
           "scenario_count", "min_final_fee_usd", "max_final_fee_usd", "cheapest_scenario", "highest_scenario", "notes"
         ]);
