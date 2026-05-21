@@ -488,11 +488,15 @@
       ]
     };
 
-    const TEMPLATE_CSV = [
-      "country,sku,product_name,category,length_cm,width_cm,height_cm,weight_kg,sale_price_usd,is_apparel,sipp_eligible,days_of_supply_30,days_of_supply_90",
-      "US,SKU-001,示例普通品,,22,13,2,0.18,9.99,N,,,",
-      "US,SKU-002,示例服饰品,,30,25,4,0.62,,Y,N,,"
-    ].join("\\n");
+    const TEMPLATE_HEADERS = [
+      "country", "sku", "product_name", "category", "length_cm", "width_cm", "height_cm",
+      "weight_kg", "sale_price_usd", "is_apparel", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
+    ];
+    const TEMPLATE_ROWS = [
+      ["US", "SKU-001", "示例普通品", "", "22", "13", "2", "0.18", "9.99", "N", "", "", ""],
+      ["US", "SKU-002", "示例服饰品", "", "30", "25", "4", "0.62", "", "Y", "N", "", ""]
+    ];
+    const TEMPLATE_CSV = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
 
     const INPUT_ALIASES = {
       country: ["country", "国家", "站点", "marketplace", "market"],
@@ -1149,7 +1153,7 @@
     }
 
     function downloadTemplate() {
-      const blob = new Blob([TEMPLATE_CSV], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob(["\ufeff", TEMPLATE_CSV], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = "fba_fee_template.csv";
