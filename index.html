@@ -305,7 +305,7 @@
       <div class="hero-grid">
         <div>
           <h1>FBA 费成本批量测算器</h1>
-          <p>导入一份 SKU 尺寸重量表，直接穷举美国站 FBA 所有政策可能场景：标准 FBA、低价 FBA、SIPP 折扣、燃油物流附加费、低量库存费各档，并标注每种场景成立条件。</p>
+          <p>导入一份 SKU 包装后单件商品尺寸重量表，直接穷举美国站 FBA 所有政策可能场景：标准 FBA、低价 FBA、SIPP 折扣、燃油物流附加费、低量库存费各档，并标注每种场景成立条件。</p>
           <p class="hint">当前 HTML 版为纯本地运行，不依赖 Python。为了保证双击即用，这版支持 <span class="inline-code">CSV</span> 导入和导出。</p>
         </div>
         <div class="mini-card alt">
@@ -336,6 +336,7 @@
         <div class="mini-card">
           <h3>输入列</h3>
           <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">is_apparel</span></p>
+          <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
           <p class="hint"><span class="inline-code">category</span> 是可选展示字段；当前费率判断使用 <span class="inline-code">is_apparel</span>。价格列 <span class="inline-code">sale_price_usd</span> 可留空；留空时会按政策穷举低价/非低价分支。</p>
         </div>
       </div>
@@ -487,7 +488,8 @@
       sources: [
         {group:"US FBA 2026 three price-band update",kind:"official_announcement",title:"Update to U.S. Referral and Fulfillment by Amazon fees for 2026",url:"https://sellingpartners.aboutamazon.com/update-to-u-s-referral-and-fulfillment-by-amazon-fees-for-2026",note:"Official Amazon announcement. Confirms the 2026 FBA update and links sellers to the specific fee-change detail page; verified on 2026-05-25."},
         {group:"US FBA three price-band rate transcription",kind:"secondary_verification",title:"2026 Amazon FBA Fee Changes - Full Breakdown",url:"https://goatconsulting.com/blog/2026-amazon-fba-fee-changes-complete-breakdown",note:"Used to transcribe the detailed <$10, $10-$50, and >$50 tier values where the Amazon-linked detailed table is not publicly renderable in this browser. Confirm against Seller Central before production decisions."},
-        {group:"US size tiers and shipping-weight rules",kind:"official_public_proxy",title:"Buy with Prime pricing",url:"https://buywithprime.amazon.com/knowledge-center/pricing",note:"Official Amazon page. Used for 2026 product size-tier thresholds and shipping-weight guidance where public FBA page is brief."},
+        {group:"US FBA size tiers and shipping-weight rules",kind:"official_help",title:"商品尺寸分段",url:"https://sellercentral.amazon.com/help/hub/reference/external/GG5KW835AHDJCH8W",note:"Seller Central Help. Defines tiers using packaged single-item measurements; for large standard, small bulky, large bulky, and extra large (except over 150 lb), fees use the greater of product weight or dimensional weight. Small standard and extra large over 150 lb use product weight only."},
+        {group:"US FBA dimensional-weight formula",kind:"official_help",title:"体积重量",url:"https://sellercentral.amazon.com/help/hub/reference/external/G53Z9EKF8VVZVH29",note:"Seller Central Help. Dimensional weight is volume divided by 139; for large standard, small bulky, large bulky, oversize and extra-large products, minimum width and height are 2 inches."},
         {group:"SIPP overview",kind:"official_public",title:"Custom packaging / SIPP overview",url:"https://sell.amazon.com/programs/custom-packaging",note:"Public Amazon page. Confirms SIPP can lower fulfillment costs by up to $1.32."},
         {group:"SIPP discount table",kind:"official_public_proxy",title:"Ships in product packaging - Buy with Prime",url:"https://buywithprime.amazon.com/knowledge-center/ships-in-product-packaging",note:"Official Amazon page. Used as Amazon-owned proxy for SIPP discount brackets."},
         {group:"Low-inventory-level fee",kind:"official_forum_explainer",title:"Seller Forums: Low-inventory-level fee further explained",url:"https://sellercentral.amazon.com/seller-forums/discussions/t/aa9f98e5-fa91-4949-af8f-6cf918c86a77",note:"Official Amazon Seller Forums post. Used for historical-days-of-supply logic and fee tiers."},
@@ -760,9 +762,13 @@
     }
 
     function computeDimensionalWeights(longestIn, medianIn, shortestIn) {
+      const dimensionalWidthIn = Math.max(medianIn, 2);
+      const dimensionalHeightIn = Math.max(shortestIn, 2);
       return {
-        standardDimensionalWeightLb: ceil2((longestIn * medianIn * shortestIn) / 139),
-        bulkyDimensionalWeightLb: ceil2((longestIn * Math.max(medianIn, 2) * Math.max(shortestIn, 2)) / 139)
+        standardDimensionalWeightLb: ceil2((longestIn * dimensionalWidthIn * dimensionalHeightIn) / 139),
+        bulkyDimensionalWeightLb: ceil2((longestIn * dimensionalWidthIn * dimensionalHeightIn) / 139),
+        dimensionalWidthIn,
+        dimensionalHeightIn
       };
     }
 
@@ -771,6 +777,15 @@
       if (sizeTier === "large_standard") return ceil2(Math.max(unitWeightLb, standardDimensionalWeightLb));
       if (sizeTier === "extra_large_150_plus") return ceil2(unitWeightLb);
       return ceil2(Math.max(unitWeightLb, bulkyDimensionalWeightLb));
+    }
+
+    function describeShippingWeightBasis(sizeTier, unitWeightLb, standardDimensionalWeightLb, bulkyDimensionalWeightLb) {
+      if (sizeTier === "small_standard" || sizeTier === "extra_large_150_plus") {
+        return `仅商品重量：${round2(unitWeightLb)} lb`;
+      }
+      const dimensionalWeightLb = sizeTier === "large_standard" ? standardDimensionalWeightLb : bulkyDimensionalWeightLb;
+      const basis = unitWeightLb >= dimensionalWeightLb ? "商品重量" : "体积重量";
+      return `商品重量 ${round2(unitWeightLb)} lb 与体积重量 ${round2(dimensionalWeightLb)} lb 取较大值：${basis} ${round2(Math.max(unitWeightLb, dimensionalWeightLb))} lb（体积重量计算的宽和高最小按 2 in）`;
     }
 
     function getBaseFeeTable(isApparel, priceBand) {
@@ -1005,14 +1020,32 @@
         .join(", ");
     }
 
+    function getActualPriceBandCode(salePriceUsd) {
+      if (salePriceUsd === null) return "10_50";
+      if (salePriceUsd < POLICY.low_price_threshold) return "under_10";
+      if (salePriceUsd > 50) return "over_50";
+      return "10_50";
+    }
+
+    function getMandatorySurchargeOnlyFeeValues(scenarioRows) {
+      return scenarioRows
+        .filter(item => item.sipp_applied === "N" && item.low_inventory_band === "none")
+        .map(item => item.final_fee_usd)
+        .join(", ");
+    }
+
+    function getAppliedBaseFeeValues(scenarioRows) {
+      return [...new Set(scenarioRows.map(item => item.base_fee_usd))].join(", ");
+    }
+
     const RESULTS_COLUMNS = [
       "row_number", "country", "sku", "product_name", "category", "status", "size_tier",
       "size_tier_reason", "measurement_rounding_rule", "length_cm", "width_cm", "height_cm", "weight_kg",
       "raw_longest_in", "raw_median_in", "raw_shortest_in",
       "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
-      "shipping_weight_policy_unit", "shipping_weight_policy_value", "shipping_weight_band",
-      "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb",
-      "price_band", "applied_base_fee_type", "all_fba_fees_usd",
+      "shipping_weight_basis", "shipping_weight_policy_unit", "shipping_weight_policy_value", "shipping_weight_band",
+      "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb", "dimensional_weight_width_in", "dimensional_weight_height_in",
+      "price_band", "applied_base_fee_type", "applied_base_fee_usd", "applicable_fba_fee_including_fuel_usd", "all_fba_fees_usd",
       "standard_fba_fee_usd", "standard_fba_fee_match",
       "low_price_fba_fee_usd", "low_price_fba_fee_match",
       "high_price_fba_fee_usd", "high_price_fba_fee_match",
@@ -1088,7 +1121,8 @@
         const standardFee = computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, "10_50");
         const lowPriceFee = lowPriceSupported ? computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, "under_10") : null;
         const highPriceFee = computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, "over_50");
-        const standardPolicyInfo = getShippingWeightPolicyInfo(sizeTier, shippingWeightLb, row.isApparel, "10_50");
+        const appliedPriceBandCode = getActualPriceBandCode(row.salePriceUsd);
+        const appliedPolicyInfo = getShippingWeightPolicyInfo(sizeTier, shippingWeightLb, row.isApparel, appliedPriceBandCode);
         const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.sippEligible);
         const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb);
         const scenarioRows = buildFeeScenarios(row, sizeTier, shippingWeightLb, standardFee, lowPriceFee, highPriceFee);
@@ -1105,7 +1139,7 @@
           status: "ok",
           size_tier: sizeTier,
           size_tier_reason: sizeTierReason,
-          measurement_rounding_rule: "尺寸/重量/材积重/计费重均向上取到 2 位小数",
+          measurement_rounding_rule: "体积重量按 Seller Central 公式计算，宽和高最小按 2 in；当前测算将换算尺寸/重量/材积重/计费重向上取到 2 位小数",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
@@ -1117,9 +1151,10 @@
           median_in: round2(medianIn),
           shortest_in: round2(shortestIn),
           unit_weight_lb: round2(unitWeightLb),
-          shipping_weight_policy_unit: standardPolicyInfo.unit,
-          shipping_weight_policy_value: standardPolicyInfo.value,
-          shipping_weight_band: standardPolicyInfo.band,
+          shipping_weight_basis: describeShippingWeightBasis(sizeTier, unitWeightLb, dimensionalWeights.standardDimensionalWeightLb, dimensionalWeights.bulkyDimensionalWeightLb),
+          shipping_weight_policy_unit: appliedPolicyInfo.unit,
+          shipping_weight_policy_value: appliedPolicyInfo.value,
+          shipping_weight_band: appliedPolicyInfo.band,
           sale_price_usd: row.salePriceUsd ?? "",
           is_apparel: row.isApparel ? "Y" : "N",
           sipp_eligible_input: row.sippEligible === null ? "" : (row.sippEligible ? "Y" : "N"),
@@ -1135,6 +1170,8 @@
           price_band: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "<$10" : (row.salePriceUsd > 50 ? ">$50" : "$10-$50")),
           low_price_eligible: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "Y" : "N"),
           applied_base_fee_type: getAppliedBaseFeeType(scenarioRows),
+          applied_base_fee_usd: getAppliedBaseFeeValues(scenarioRows),
+          applicable_fba_fee_including_fuel_usd: getMandatorySurchargeOnlyFeeValues(scenarioRows),
           all_fba_fees_usd: formatScenarioFeeValues(scenarioRows),
           includes_fuel_logistics_surcharge: POLICY.fuel_logistics_surcharge.enabled ? "Y" : "N",
           fuel_logistics_surcharge_rate: round4(POLICY.fuel_logistics_surcharge.rate),
@@ -1147,6 +1184,8 @@
           shipping_weight_lb: round2(shippingWeightLb),
           standard_dimensional_weight_lb: round2(dimensionalWeights.standardDimensionalWeightLb),
           bulky_dimensional_weight_lb: round2(dimensionalWeights.bulkyDimensionalWeightLb),
+          dimensional_weight_width_in: round2(dimensionalWeights.dimensionalWidthIn),
+          dimensional_weight_height_in: round2(dimensionalWeights.dimensionalHeightIn),
           notes: [
             `已穷举 ${scenarioRows.length} 个费用场景`,
             lowPriceFee !== null ? "存在 Low-Price FBA 场景" : "",
