@@ -310,7 +310,7 @@
         </div>
         <div class="mini-card alt">
           <h3>这版包含</h3>
-          <p>美国站规则包版本 <span class="inline-code">2026-05-07</span></p>
+          <p>美国站规则包版本 <span class="inline-code">2026-01-15（核验于 2026-05-25）</span></p>
           <p>已包含 <span class="inline-code">2026-04-17</span> 生效的 <span class="inline-code">3.5%</span> 燃油/物流附加费。</p>
           <p>结果摘要里会直接标出“<strong>是否已含燃油附加费</strong>”。</p>
         </div>
@@ -392,7 +392,7 @@
   <script>
     const POLICY = {
       marketplace: "US",
-      version: "2026-05-07",
+      version: "2026-01-15_verified_2026-05-25",
       currency: "USD",
       low_price_threshold: 10.0,
       fuel_logistics_surcharge: {
@@ -408,47 +408,47 @@
         large_bulky: { label: "Large bulky", max_shipping_weight_lb: 50.0, max_longest_in: 59.0, max_median_in: 33.0, max_shortest_in: 33.0, max_length_plus_girth_in: 130.0 }
       },
       standard_non_apparel: {
-        small_standard: [{max_shipping_weight_lb:0.125,band_label:"2 oz or less",fee:3.06},{max_shipping_weight_lb:0.25,band_label:"2+ to 4 oz",fee:3.15},{max_shipping_weight_lb:0.375,band_label:"4+ to 6 oz",fee:3.24},{max_shipping_weight_lb:0.5,band_label:"6+ to 8 oz",fee:3.33},{max_shipping_weight_lb:0.625,band_label:"8+ to 10 oz",fee:3.43},{max_shipping_weight_lb:0.75,band_label:"10+ to 12 oz",fee:3.53},{max_shipping_weight_lb:0.875,band_label:"12+ to 14 oz",fee:3.60},{max_shipping_weight_lb:1.0,band_label:"14+ to 16 oz",fee:3.65}],
-        large_standard: [{max_shipping_weight_lb:0.25,band_label:"4 oz or less",fee:3.68},{max_shipping_weight_lb:0.5,band_label:"4+ to 8 oz",fee:3.90},{max_shipping_weight_lb:0.75,band_label:"8+ to 12 oz",fee:4.15},{max_shipping_weight_lb:1.0,band_label:"12+ to 16 oz",fee:4.55},{max_shipping_weight_lb:1.25,band_label:"1+ to 1.25 lb",fee:4.99},{max_shipping_weight_lb:1.5,band_label:"1.25+ to 1.5 lb",fee:5.37},{max_shipping_weight_lb:1.75,band_label:"1.5+ to 1.75 lb",fee:5.52},{max_shipping_weight_lb:2.0,band_label:"1.75+ to 2 lb",fee:5.77},{max_shipping_weight_lb:2.25,band_label:"2+ to 2.25 lb",fee:5.87},{max_shipping_weight_lb:2.5,band_label:"2.25+ to 2.5 lb",fee:6.05},{max_shipping_weight_lb:2.75,band_label:"2.5+ to 2.75 lb",fee:6.21},{max_shipping_weight_lb:3.0,band_label:"2.75+ to 3 lb",fee:6.62}],
-        large_standard_above_3lb: {base_fee:6.92,base_weight_lb:3.0,interval_lb:0.25,interval_label:"4 oz",increment_fee:0.08},
-        small_bulky: {base_fee:9.61,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
-        large_bulky: {base_fee:9.61,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
+        small_standard: [{max_shipping_weight_lb:0.125,band_label:"2 oz or less",fee:3.32},{max_shipping_weight_lb:0.25,band_label:"2+ to 4 oz",fee:3.42},{max_shipping_weight_lb:0.375,band_label:"4+ to 6 oz",fee:3.45},{max_shipping_weight_lb:0.5,band_label:"6+ to 8 oz",fee:3.54},{max_shipping_weight_lb:0.625,band_label:"8+ to 10 oz",fee:3.68},{max_shipping_weight_lb:0.75,band_label:"10+ to 12 oz",fee:3.78},{max_shipping_weight_lb:0.875,band_label:"12+ to 14 oz",fee:3.91},{max_shipping_weight_lb:1.0,band_label:"14+ to 16 oz",fee:3.96}],
+        large_standard: [{max_shipping_weight_lb:0.25,band_label:"4 oz or less",fee:3.73},{max_shipping_weight_lb:0.5,band_label:"4+ to 8 oz",fee:3.95},{max_shipping_weight_lb:0.75,band_label:"8+ to 12 oz",fee:4.20},{max_shipping_weight_lb:1.0,band_label:"12+ to 16 oz",fee:4.60},{max_shipping_weight_lb:1.25,band_label:"1+ to 1.25 lb",fee:5.04},{max_shipping_weight_lb:1.5,band_label:"1.25+ to 1.5 lb",fee:5.42},{max_shipping_weight_lb:1.75,band_label:"1.5+ to 1.75 lb",fee:5.57},{max_shipping_weight_lb:2.0,band_label:"1.75+ to 2 lb",fee:5.82},{max_shipping_weight_lb:2.25,band_label:"2+ to 2.25 lb",fee:5.92},{max_shipping_weight_lb:2.5,band_label:"2.25+ to 2.5 lb",fee:6.10},{max_shipping_weight_lb:2.75,band_label:"2.5+ to 2.75 lb",fee:6.26},{max_shipping_weight_lb:3.0,band_label:"2.75+ to 3 lb",fee:6.67}],
+        large_standard_above_3lb: {base_fee:6.97,base_weight_lb:3.0,interval_lb:0.25,interval_label:"4 oz",increment_fee:0.08},
+        small_bulky: {base_fee:7.55,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
+        large_bulky: {base_fee:9.35,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
         extra_large_0_50: {base_fee:26.33,base_weight_lb:1.0,interval_lb:1.0,increment_fee:0.38},
-        extra_large_50_70: {base_fee:40.12,threshold_lb:51.0,interval_lb:1.0,increment_fee:0.75},
-        extra_large_70_150: {base_fee:54.81,threshold_lb:71.0,interval_lb:1.0,increment_fee:0.75},
+        extra_large_50_70: {base_fee:37.32,threshold_lb:51.0,interval_lb:1.0,increment_fee:0.75},
+        extra_large_70_150: {base_fee:51.32,threshold_lb:71.0,interval_lb:1.0,increment_fee:0.75},
         extra_large_150_plus: {base_fee:194.95,threshold_lb:151.0,interval_lb:1.0,increment_fee:0.19}
       },
       standard_apparel: {
-        small_standard: [{max_shipping_weight_lb:0.25,band_label:"4 oz or less",fee:3.27},{max_shipping_weight_lb:0.5,band_label:"4+ to 8 oz",fee:3.42},{max_shipping_weight_lb:0.75,band_label:"8+ to 12 oz",fee:3.72},{max_shipping_weight_lb:1.0,band_label:"12+ to 16 oz",fee:3.98}],
-        large_standard: [{max_shipping_weight_lb:0.25,band_label:"4 oz or less",fee:4.25},{max_shipping_weight_lb:0.5,band_label:"4+ to 8 oz",fee:4.45},{max_shipping_weight_lb:0.75,band_label:"8+ to 12 oz",fee:4.67},{max_shipping_weight_lb:1.0,band_label:"12+ to 16 oz",fee:5.12},{max_shipping_weight_lb:1.5,band_label:"1+ to 1.5 lb",fee:5.90},{max_shipping_weight_lb:2.0,band_label:"1.5+ to 2 lb",fee:6.14},{max_shipping_weight_lb:2.5,band_label:"2+ to 2.5 lb",fee:6.60},{max_shipping_weight_lb:3.0,band_label:"2.5+ to 3 lb",fee:6.81}],
-        large_standard_above_3lb: {base_fee:6.92,base_weight_lb:3.0,interval_lb:0.5,interval_label:"half-lb",increment_fee:0.16},
-        small_bulky: {base_fee:9.61,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
-        large_bulky: {base_fee:9.61,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
+        small_standard: [{max_shipping_weight_lb:0.125,band_label:"2 oz or less",fee:3.51},{max_shipping_weight_lb:0.25,band_label:"2+ to 4 oz",fee:3.54},{max_shipping_weight_lb:0.375,band_label:"4+ to 6 oz",fee:3.59},{max_shipping_weight_lb:0.5,band_label:"6+ to 8 oz",fee:3.69},{max_shipping_weight_lb:0.625,band_label:"8+ to 10 oz",fee:3.91},{max_shipping_weight_lb:0.75,band_label:"10+ to 12 oz",fee:4.09},{max_shipping_weight_lb:0.875,band_label:"12+ to 14 oz",fee:4.20},{max_shipping_weight_lb:1.0,band_label:"14+ to 16 oz",fee:4.25}],
+        large_standard: [{max_shipping_weight_lb:0.25,band_label:"4 oz or less",fee:4.30},{max_shipping_weight_lb:0.5,band_label:"4+ to 8 oz",fee:4.50},{max_shipping_weight_lb:0.75,band_label:"8+ to 12 oz",fee:4.72},{max_shipping_weight_lb:1.0,band_label:"12+ to 16 oz",fee:5.17},{max_shipping_weight_lb:1.25,band_label:"1+ to 1.25 lb",fee:5.87},{max_shipping_weight_lb:1.5,band_label:"1.25+ to 1.5 lb",fee:6.04},{max_shipping_weight_lb:1.75,band_label:"1.5+ to 1.75 lb",fee:6.14},{max_shipping_weight_lb:2.0,band_label:"1.75+ to 2 lb",fee:6.25},{max_shipping_weight_lb:2.25,band_label:"2+ to 2.25 lb",fee:6.60},{max_shipping_weight_lb:2.5,band_label:"2.25+ to 2.5 lb",fee:6.72},{max_shipping_weight_lb:2.75,band_label:"2.5+ to 2.75 lb",fee:6.77},{max_shipping_weight_lb:3.0,band_label:"2.75+ to 3 lb",fee:6.90}],
+        large_standard_above_3lb: {base_fee:6.97,base_weight_lb:3.0,interval_lb:0.5,interval_label:"half-lb",increment_fee:0.16},
+        small_bulky: {base_fee:7.55,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
+        large_bulky: {base_fee:9.35,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
         extra_large_0_50: {base_fee:26.33,base_weight_lb:1.0,interval_lb:1.0,increment_fee:0.38},
-        extra_large_50_70: {base_fee:40.12,threshold_lb:51.0,interval_lb:1.0,increment_fee:0.75},
-        extra_large_70_150: {base_fee:54.81,threshold_lb:71.0,interval_lb:1.0,increment_fee:0.75},
+        extra_large_50_70: {base_fee:37.32,threshold_lb:51.0,interval_lb:1.0,increment_fee:0.75},
+        extra_large_70_150: {base_fee:51.32,threshold_lb:71.0,interval_lb:1.0,increment_fee:0.75},
         extra_large_150_plus: {base_fee:194.95,threshold_lb:151.0,interval_lb:1.0,increment_fee:0.19}
       },
       low_price_non_apparel: {
-        small_standard: [{max_shipping_weight_lb:0.125,band_label:"2 oz or less",fee:2.29},{max_shipping_weight_lb:0.25,band_label:"2+ to 4 oz",fee:2.38},{max_shipping_weight_lb:0.375,band_label:"4+ to 6 oz",fee:2.47},{max_shipping_weight_lb:0.5,band_label:"6+ to 8 oz",fee:2.56},{max_shipping_weight_lb:0.625,band_label:"8+ to 10 oz",fee:2.66},{max_shipping_weight_lb:0.75,band_label:"10+ to 12 oz",fee:2.76},{max_shipping_weight_lb:0.875,band_label:"12+ to 14 oz",fee:2.83},{max_shipping_weight_lb:1.0,band_label:"14+ to 16 oz",fee:2.88}],
+        small_standard: [{max_shipping_weight_lb:0.125,band_label:"2 oz or less",fee:2.43},{max_shipping_weight_lb:0.25,band_label:"2+ to 4 oz",fee:2.49},{max_shipping_weight_lb:0.375,band_label:"4+ to 6 oz",fee:2.56},{max_shipping_weight_lb:0.5,band_label:"6+ to 8 oz",fee:2.66},{max_shipping_weight_lb:0.625,band_label:"8+ to 10 oz",fee:2.77},{max_shipping_weight_lb:0.75,band_label:"10+ to 12 oz",fee:2.82},{max_shipping_weight_lb:0.875,band_label:"12+ to 14 oz",fee:2.92},{max_shipping_weight_lb:1.0,band_label:"14+ to 16 oz",fee:2.95}],
         large_standard: [{max_shipping_weight_lb:0.25,band_label:"4 oz or less",fee:2.91},{max_shipping_weight_lb:0.5,band_label:"4+ to 8 oz",fee:3.13},{max_shipping_weight_lb:0.75,band_label:"8+ to 12 oz",fee:3.38},{max_shipping_weight_lb:1.0,band_label:"12+ to 16 oz",fee:3.78},{max_shipping_weight_lb:1.25,band_label:"1+ to 1.25 lb",fee:4.22},{max_shipping_weight_lb:1.5,band_label:"1.25+ to 1.5 lb",fee:4.60},{max_shipping_weight_lb:1.75,band_label:"1.5+ to 1.75 lb",fee:4.75},{max_shipping_weight_lb:2.0,band_label:"1.75+ to 2 lb",fee:5.00},{max_shipping_weight_lb:2.25,band_label:"2+ to 2.25 lb",fee:5.10},{max_shipping_weight_lb:2.5,band_label:"2.25+ to 2.5 lb",fee:5.28},{max_shipping_weight_lb:2.75,band_label:"2.5+ to 2.75 lb",fee:5.44},{max_shipping_weight_lb:3.0,band_label:"2.75+ to 3 lb",fee:5.85}],
         large_standard_above_3lb: {base_fee:6.15,base_weight_lb:3.0,interval_lb:0.25,interval_label:"4 oz",increment_fee:0.08},
-        small_bulky: {base_fee:8.84,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
-        large_bulky: {base_fee:8.84,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
+        small_bulky: {base_fee:6.78,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
+        large_bulky: {base_fee:8.58,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
         extra_large_0_50: {base_fee:25.56,base_weight_lb:1.0,interval_lb:1.0,increment_fee:0.38},
-        extra_large_50_70: {base_fee:39.35,threshold_lb:51.0,interval_lb:1.0,increment_fee:0.75},
-        extra_large_70_150: {base_fee:54.04,threshold_lb:71.0,interval_lb:1.0,increment_fee:0.75},
+        extra_large_50_70: {base_fee:36.55,threshold_lb:51.0,interval_lb:1.0,increment_fee:0.75},
+        extra_large_70_150: {base_fee:50.55,threshold_lb:71.0,interval_lb:1.0,increment_fee:0.75},
         extra_large_150_plus: {base_fee:194.18,threshold_lb:151.0,interval_lb:1.0,increment_fee:0.19}
       },
       low_price_apparel: {
-        small_standard: [{max_shipping_weight_lb:0.25,band_label:"4 oz or less",fee:2.50},{max_shipping_weight_lb:0.5,band_label:"4+ to 8 oz",fee:2.65},{max_shipping_weight_lb:0.75,band_label:"8+ to 12 oz",fee:2.95},{max_shipping_weight_lb:1.0,band_label:"12+ to 16 oz",fee:3.21}],
-        large_standard: [{max_shipping_weight_lb:0.25,band_label:"4 oz or less",fee:3.48},{max_shipping_weight_lb:0.5,band_label:"4+ to 8 oz",fee:3.68},{max_shipping_weight_lb:0.75,band_label:"8+ to 12 oz",fee:3.90},{max_shipping_weight_lb:1.0,band_label:"12+ to 16 oz",fee:4.35},{max_shipping_weight_lb:1.5,band_label:"1+ to 1.5 lb",fee:5.13},{max_shipping_weight_lb:2.0,band_label:"1.5+ to 2 lb",fee:5.37},{max_shipping_weight_lb:2.5,band_label:"2+ to 2.5 lb",fee:5.83},{max_shipping_weight_lb:3.0,band_label:"2.5+ to 3 lb",fee:6.04}],
+        small_standard: [{max_shipping_weight_lb:0.125,band_label:"2 oz or less",fee:2.62},{max_shipping_weight_lb:0.25,band_label:"2+ to 4 oz",fee:2.64},{max_shipping_weight_lb:0.375,band_label:"4+ to 6 oz",fee:2.68},{max_shipping_weight_lb:0.5,band_label:"6+ to 8 oz",fee:2.81},{max_shipping_weight_lb:0.625,band_label:"8+ to 10 oz",fee:3.00},{max_shipping_weight_lb:0.75,band_label:"10+ to 12 oz",fee:3.10},{max_shipping_weight_lb:0.875,band_label:"12+ to 14 oz",fee:3.20},{max_shipping_weight_lb:1.0,band_label:"14+ to 16 oz",fee:3.30}],
+        large_standard: [{max_shipping_weight_lb:0.25,band_label:"4 oz or less",fee:3.48},{max_shipping_weight_lb:0.5,band_label:"4+ to 8 oz",fee:3.68},{max_shipping_weight_lb:0.75,band_label:"8+ to 12 oz",fee:3.90},{max_shipping_weight_lb:1.0,band_label:"12+ to 16 oz",fee:4.35},{max_shipping_weight_lb:1.25,band_label:"1+ to 1.25 lb",fee:5.05},{max_shipping_weight_lb:1.5,band_label:"1.25+ to 1.5 lb",fee:5.22},{max_shipping_weight_lb:1.75,band_label:"1.5+ to 1.75 lb",fee:5.32},{max_shipping_weight_lb:2.0,band_label:"1.75+ to 2 lb",fee:5.43},{max_shipping_weight_lb:2.25,band_label:"2+ to 2.25 lb",fee:5.78},{max_shipping_weight_lb:2.5,band_label:"2.25+ to 2.5 lb",fee:5.90},{max_shipping_weight_lb:2.75,band_label:"2.5+ to 2.75 lb",fee:5.95},{max_shipping_weight_lb:3.0,band_label:"2.75+ to 3 lb",fee:6.08}],
         large_standard_above_3lb: {base_fee:6.15,base_weight_lb:3.0,interval_lb:0.5,interval_label:"half-lb",increment_fee:0.16},
-        small_bulky: {base_fee:8.84,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
-        large_bulky: {base_fee:8.84,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
+        small_bulky: {base_fee:6.78,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
+        large_bulky: {base_fee:8.58,base_weight_lb:1.0,interval_lb:1.0,interval_label:"1 lb",increment_fee:0.38},
         extra_large_0_50: {base_fee:25.56,base_weight_lb:1.0,interval_lb:1.0,increment_fee:0.38},
-        extra_large_50_70: {base_fee:39.35,threshold_lb:51.0,interval_lb:1.0,increment_fee:0.75},
-        extra_large_70_150: {base_fee:54.04,threshold_lb:71.0,interval_lb:1.0,increment_fee:0.75},
+        extra_large_50_70: {base_fee:36.55,threshold_lb:51.0,interval_lb:1.0,increment_fee:0.75},
+        extra_large_70_150: {base_fee:50.55,threshold_lb:71.0,interval_lb:1.0,increment_fee:0.75},
         extra_large_150_plus: {base_fee:194.18,threshold_lb:151.0,interval_lb:1.0,increment_fee:0.19}
       },
       high_price_non_apparel: {
@@ -485,7 +485,8 @@
         large_standard_3_to_20lb: {"0_14":1.11,"14_21":0.87,"21_28":0.47}
       },
       sources: [
-        {group:"US FBA base fees and Low-Price FBA",kind:"official_public",title:"Amazon FBA (Sell on Amazon)",url:"https://sell.amazon.com/fulfillment-by-amazon",note:"Public Amazon page. Used for standard FBA and Low-Price FBA tables verified on 2026-05-21. The public page does not provide a complete >$50 table, so >$50 rows are marked unconfirmed rather than calculated from legacy data."},
+        {group:"US FBA 2026 three price-band update",kind:"official_announcement",title:"Update to U.S. Referral and Fulfillment by Amazon fees for 2026",url:"https://sellingpartners.aboutamazon.com/update-to-u-s-referral-and-fulfillment-by-amazon-fees-for-2026",note:"Official Amazon announcement. Confirms the 2026 FBA update and links sellers to the specific fee-change detail page; verified on 2026-05-25."},
+        {group:"US FBA three price-band rate transcription",kind:"secondary_verification",title:"2026 Amazon FBA Fee Changes - Full Breakdown",url:"https://goatconsulting.com/blog/2026-amazon-fba-fee-changes-complete-breakdown",note:"Used to transcribe the detailed <$10, $10-$50, and >$50 tier values where the Amazon-linked detailed table is not publicly renderable in this browser. Confirm against Seller Central before production decisions."},
         {group:"US size tiers and shipping-weight rules",kind:"official_public_proxy",title:"Buy with Prime pricing",url:"https://buywithprime.amazon.com/knowledge-center/pricing",note:"Official Amazon page. Used for 2026 product size-tier thresholds and shipping-weight guidance where public FBA page is brief."},
         {group:"SIPP overview",kind:"official_public",title:"Custom packaging / SIPP overview",url:"https://sell.amazon.com/programs/custom-packaging",note:"Public Amazon page. Confirms SIPP can lower fulfillment costs by up to $1.32."},
         {group:"SIPP discount table",kind:"official_public_proxy",title:"Ships in product packaging - Buy with Prime",url:"https://buywithprime.amazon.com/knowledge-center/ships-in-product-packaging",note:"Official Amazon page. Used as Amazon-owned proxy for SIPP discount brackets."},
@@ -776,7 +777,8 @@
       let table;
       if (priceBand === "under_10" && isApparel) table = POLICY.low_price_apparel;
       else if (priceBand === "under_10") table = POLICY.low_price_non_apparel;
-      else if (priceBand === "over_50") table = null;
+      else if (priceBand === "over_50" && isApparel) table = POLICY.high_price_apparel;
+      else if (priceBand === "over_50") table = POLICY.high_price_non_apparel;
       else if (isApparel) table = POLICY.standard_apparel;
       else table = POLICY.standard_non_apparel;
       return table;
@@ -784,8 +786,6 @@
 
     function computeBaseFee(sizeTier, shippingWeightLb, isApparel, priceBand) {
       const table = getBaseFeeTable(isApparel, priceBand);
-      if (!table) return null;
-
       if (sizeTier === "small_standard") return pickBand(table.small_standard, shippingWeightLb);
       if (sizeTier === "large_standard") {
         if (shippingWeightLb <= 3) return pickBand(table.large_standard, shippingWeightLb);
@@ -814,16 +814,14 @@
       const table = getBaseFeeTable(isApparel, priceBand);
       const priceLabel = priceBand === "under_10" ? "<$10 Low-Price" : (priceBand === "over_50" ? ">$50" : "$10-$50 standard");
       const apparelLabel = isApparel ? "apparel" : "non-apparel";
-      if (!table) return `${priceLabel}: 当前 Amazon 公开 FBA 页面未提供完整 >$50 费率表，本工具不再混用旧表计算。`;
-
       if (sizeTier === "small_standard") {
         const band = table.small_standard.find(item => shippingWeightLb <= item.max_shipping_weight_lb + 1e-9);
-        return `${priceLabel}, ${apparelLabel}, small_standard: ${round2(shippingWeightLb * 16)} oz => ${band.band_label || `${band.max_shipping_weight_lb} lb or less`} => ${band.fee}`;
+        return `${priceLabel}, ${apparelLabel}, small_standard: ${round2(shippingWeightLb * 16)} oz => ${getBandLabel(sizeTier, band)} => ${band.fee}`;
       }
       if (sizeTier === "large_standard") {
         if (shippingWeightLb <= 3) {
           const band = table.large_standard.find(item => shippingWeightLb <= item.max_shipping_weight_lb + 1e-9);
-          return `${priceLabel}, ${apparelLabel}, large_standard: ${round2(shippingWeightLb * 16)} oz => ${band.band_label || `${band.max_shipping_weight_lb} lb or less`} => ${band.fee}`;
+          return `${priceLabel}, ${apparelLabel}, large_standard: ${round2(shippingWeightLb * 16)} oz => ${getBandLabel(sizeTier, band)} => ${band.fee}`;
         }
         const formula = table.large_standard_above_3lb;
         const steps = ceilIntervals(shippingWeightLb - 3, formula.interval_lb);
@@ -845,18 +843,26 @@
       return `${priceLabel}, ${apparelLabel}, ${sizeTier}: ${formula.base_fee} + ${steps} * ${formula.increment_fee} => ${round2(formula.base_fee + steps * formula.increment_fee)}`;
     }
 
+    function getBandLabel(sizeTier, band) {
+      if (band.band_label) return band.band_label;
+      if (band.max_shipping_weight_lb <= 1) {
+        const maxOz = band.max_shipping_weight_lb * 16;
+        const previousOz = sizeTier === "small_standard" ? maxOz - 2 : maxOz - 4;
+        return previousOz <= 0 ? `${maxOz} oz or less` : `${previousOz}+ to ${maxOz} oz`;
+      }
+      return `${round2(band.max_shipping_weight_lb - 0.25)}+ to ${band.max_shipping_weight_lb} lb`;
+    }
+
     function getShippingWeightPolicyInfo(sizeTier, shippingWeightLb, isApparel, priceBand) {
       const table = getBaseFeeTable(isApparel, priceBand);
-      if (!table) {
-        return { unit: "", value: "", band: ">$50 费率表未在当前 Amazon 公开 FBA 页面确认" };
-      }
       if (sizeTier === "small_standard") {
         const band = table.small_standard.find(item => shippingWeightLb <= item.max_shipping_weight_lb + 1e-9);
-        return { unit: "oz", value: round2(shippingWeightLb * 16), band: band?.band_label || "" };
+        return { unit: "oz", value: round2(shippingWeightLb * 16), band: band ? getBandLabel(sizeTier, band) : "" };
       }
       if (sizeTier === "large_standard" && shippingWeightLb <= 3) {
         const band = table.large_standard.find(item => shippingWeightLb <= item.max_shipping_weight_lb + 1e-9);
-        return { unit: band?.band_label?.includes("oz") ? "oz" : "lb", value: band?.band_label?.includes("oz") ? round2(shippingWeightLb * 16) : round2(shippingWeightLb), band: band?.band_label || "" };
+        const bandLabel = band ? getBandLabel(sizeTier, band) : "";
+        return { unit: bandLabel.includes("oz") ? "oz" : "lb", value: bandLabel.includes("oz") ? round2(shippingWeightLb * 16) : round2(shippingWeightLb), band: bandLabel };
       }
       return { unit: "lb", value: round2(shippingWeightLb), band: `${round2(shippingWeightLb)} lb with ${sizeTier} formula` };
     }
@@ -1083,39 +1089,6 @@
         const lowPriceFee = lowPriceSupported ? computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, "under_10") : null;
         const highPriceFee = computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, "over_50");
         const standardPolicyInfo = getShippingWeightPolicyInfo(sizeTier, shippingWeightLb, row.isApparel, "10_50");
-        if (row.salePriceUsd !== null && row.salePriceUsd > 50 && highPriceFee === null) {
-          results.push({
-            row_number: row.rowNumber,
-            country: row.country,
-            sku: row.sku,
-            product_name: row.productName,
-            category: row.category,
-            status: "unsupported_high_price_fee_unconfirmed",
-            size_tier: sizeTier,
-            size_tier_reason: sizeTierReason,
-            measurement_rounding_rule: "尺寸/重量/材积重/计费重均向上取到 2 位小数；配送费按 Amazon 政策单位进入 oz/lb 档",
-            length_cm: row.lengthCm,
-            width_cm: row.widthCm,
-            height_cm: row.heightCm,
-            weight_kg: row.weightKg,
-            longest_in: round2(longestIn),
-            median_in: round2(medianIn),
-            shortest_in: round2(shortestIn),
-            unit_weight_lb: round2(unitWeightLb),
-            shipping_weight_lb: round2(shippingWeightLb),
-            shipping_weight_policy_unit: "",
-            shipping_weight_policy_value: "",
-            shipping_weight_band: ">$50 费率表未在当前 Amazon 公开 FBA 页面确认",
-            standard_dimensional_weight_lb: round2(dimensionalWeights.standardDimensionalWeightLb),
-            bulky_dimensional_weight_lb: round2(dimensionalWeights.bulkyDimensionalWeightLb),
-            sale_price_usd: row.salePriceUsd,
-            price_band: ">$50",
-            high_price_fba_fee_match: describeBaseFeeMatch(sizeTier, shippingWeightLb, row.isApparel, "over_50"),
-            scenario_count: 0,
-            notes: "当前 Amazon 公开 FBA 页面未提供完整 >$50 费率表；为避免混用旧表，本行不输出基础配送费场景。"
-          });
-          return;
-        }
         const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.sippEligible);
         const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb);
         const scenarioRows = buildFeeScenarios(row, sizeTier, shippingWeightLb, standardFee, lowPriceFee, highPriceFee);
