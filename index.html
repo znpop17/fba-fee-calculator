@@ -139,11 +139,11 @@
       color: var(--ink);
     }
 
-    input, button, textarea {
+    input, button, textarea, select {
       font: inherit;
     }
 
-    input[type="file"], textarea {
+    input[type="file"], textarea, select {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -153,6 +153,11 @@
 
     input[type="file"] {
       min-height: 48px;
+      padding: 9px 12px;
+    }
+
+    select {
+      min-height: 44px;
       padding: 9px 12px;
     }
 
@@ -269,6 +274,58 @@
     }
 
     td.wrap, th.wrap { white-space: normal; min-width: 280px; }
+    .rule-intro {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .rule-block {
+      margin-top: 20px;
+    }
+
+    .rule-block-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .rule-block-head h3,
+    .rule-block-head p {
+      margin-bottom: 0;
+    }
+
+    .rule-selectors {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: min(100%, 430px);
+    }
+
+    .rule-selectors label {
+      min-width: 180px;
+      flex: 1;
+    }
+
+    .rule-table td.wrap {
+      min-width: 240px;
+    }
+
+    .rule-note {
+      padding: 12px 14px;
+      background: var(--soft-2);
+      border: 1px solid rgba(13, 107, 107, 0.14);
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+      margin-top: 12px;
+    }
+
     .source-list { display: grid; gap: 10px; }
     .source-item {
       border: 1px solid rgba(36, 27, 20, 0.08);
@@ -354,6 +411,87 @@
     </section>
 
     <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h2>当前内置规则</h2>
+          <p>这里展示的规则直接读取本页面实际参与测算的规则包；修改计算数据后，本区域也会随之变化。</p>
+        </div>
+        <span class="pill">US · 2026-01-15 起</span>
+      </div>
+      <div class="rule-intro">
+        <div class="mini-card alt">
+          <h3>尺寸与重量口径</h3>
+          <p class="hint">尺寸和商品重量先按费用变量<strong>四舍五入取到 2 位小数</strong>。体积重量及计费重<strong>四舍五入取到 3 位小数</strong>后进入分段匹配。</p>
+        </div>
+        <div class="mini-card">
+          <h3>体积重量</h3>
+          <p class="hint">公式为 <span class="inline-code">长 x 宽 x 高 / 139</span>。除小号标准和超过 150 lb 的超大件外，适用体积重量的尺寸段在计算时将宽、高最小按 <span class="inline-code">2 in</span>。</p>
+        </div>
+        <div class="mini-card alt">
+          <h3>费用组合</h3>
+          <p class="hint">基础 FBA 费按 <span class="inline-code">&lt;$10</span>、<span class="inline-code">$10-$50</span>、<span class="inline-code">&gt;$50</span> 价格段匹配，再穷举 SIPP、低量库存费，并在场景最终金额中计入燃油附加费。</p>
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-head">
+          <div>
+            <h3>商品尺寸分段与计费重量</h3>
+            <p class="hint">尺寸为包装后单件商品尺寸；长度加围长 = 最长边 + 2 x（次长边 + 最短边）。</p>
+          </div>
+        </div>
+        <div class="table-wrap rule-table">
+          <table id="sizeTierRulesTable"></table>
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-head">
+          <div>
+            <h3>FBA 基础配送费率</h3>
+            <p class="hint">金额单位 USD；下表不含 SIPP 折扣、低量库存费与燃油附加费。</p>
+          </div>
+          <div class="rule-selectors">
+            <label>商品分类
+              <select id="ruleCategory">
+                <option value="non_apparel">非服饰</option>
+                <option value="apparel">服饰</option>
+              </select>
+            </label>
+            <label>尺寸分段
+              <select id="ruleSizeTier">
+                <option value="small_standard">小号标准尺寸</option>
+                <option value="large_standard">大号标准尺寸</option>
+                <option value="small_bulky">小号大件</option>
+                <option value="large_bulky">大号大件</option>
+                <option value="extra_large_0_50">超大件 0-50 lb</option>
+                <option value="extra_large_50_70">超大件 >50-70 lb</option>
+                <option value="extra_large_70_150">超大件 >70-150 lb</option>
+                <option value="extra_large_150_plus">超大件 >150 lb</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="table-wrap rule-table">
+          <table id="baseFeeRulesTable"></table>
+        </div>
+        <div class="rule-note">提示：页面内置的三价格段明细费率已用于测算；费率来源与需人工复核的说明请见下方“政策来源”。</div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-head">
+          <div>
+            <h3>折扣与附加费规则</h3>
+            <p class="hint">这些规则会与基础配送费组合，形成场景明细中的最终可能费用。</p>
+          </div>
+        </div>
+        <div class="table-wrap rule-table">
+          <table id="adjustmentRulesTable"></table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>结果概览</h2>
       <div id="stats" class="stats"></div>
     </section>
@@ -406,7 +544,11 @@
         small_standard: { label: "Small standard", max_shipping_weight_lb: 1.0, max_longest_in: 15.0, max_median_in: 12.0, max_shortest_in: 0.75 },
         large_standard: { label: "Large standard", max_shipping_weight_lb: 20.0, max_longest_in: 18.0, max_median_in: 14.0, max_shortest_in: 8.0 },
         small_bulky: { label: "Small bulky", max_shipping_weight_lb: 50.0, max_longest_in: 37.0, max_median_in: 28.0, max_shortest_in: 20.0, max_length_plus_girth_in: 130.0 },
-        large_bulky: { label: "Large bulky", max_shipping_weight_lb: 50.0, max_longest_in: 59.0, max_median_in: 33.0, max_shortest_in: 33.0, max_length_plus_girth_in: 130.0 }
+        large_bulky: { label: "Large bulky", max_shipping_weight_lb: 50.0, max_longest_in: 59.0, max_median_in: 33.0, max_shortest_in: 33.0, max_length_plus_girth_in: 130.0 },
+        extra_large_0_50: { label: "Extra-large (0-50 lb)", max_shipping_weight_lb: 50.0 },
+        extra_large_50_70: { label: "Extra-large (>50-70 lb)", max_shipping_weight_lb: 70.0 },
+        extra_large_70_150: { label: "Extra-large (>70-150 lb)", max_shipping_weight_lb: 150.0 },
+        extra_large_150_plus: { label: "Extra-large (>150 lb)" }
       },
       standard_non_apparel: {
         small_standard: [{max_shipping_weight_lb:0.125,band_label:"2 oz or less",fee:3.32},{max_shipping_weight_lb:0.25,band_label:"2+ to 4 oz",fee:3.42},{max_shipping_weight_lb:0.375,band_label:"4+ to 6 oz",fee:3.45},{max_shipping_weight_lb:0.5,band_label:"6+ to 8 oz",fee:3.54},{max_shipping_weight_lb:0.625,band_label:"8+ to 10 oz",fee:3.68},{max_shipping_weight_lb:0.75,band_label:"10+ to 12 oz",fee:3.78},{max_shipping_weight_lb:0.875,band_label:"12+ to 14 oz",fee:3.91},{max_shipping_weight_lb:1.0,band_label:"14+ to 16 oz",fee:3.96}],
@@ -1223,9 +1365,133 @@
         });
       });
 
-      const thead = `<thead><tr>${keys.map(key => `<th class="${key.includes("conditions") || key.includes("notes") ? "wrap" : ""}">${key}</th>`).join("")}</tr></thead>`;
-      const tbody = `<tbody>${rows.map(row => `<tr>${keys.map(key => `<td class="${key.includes("conditions") || key.includes("notes") ? "wrap" : ""}">${row[key] ?? ""}</td>`).join("")}</tr>`).join("")}</tbody>`;
+      const isWrapColumn = key => key.includes("conditions") || key.includes("notes") || key.includes("说明") || key.includes("计费重量") || key.includes("尺寸上限");
+      const thead = `<thead><tr>${keys.map(key => `<th class="${isWrapColumn(key) ? "wrap" : ""}">${key}</th>`).join("")}</tr></thead>`;
+      const tbody = `<tbody>${rows.map(row => `<tr>${keys.map(key => `<td class="${isWrapColumn(key) ? "wrap" : ""}">${row[key] ?? ""}</td>`).join("")}</tr>`).join("")}</tbody>`;
       table.innerHTML = thead + tbody;
+    }
+
+    function formatMoney(value) {
+      return value === null || value === undefined ? "-" : `$${Number(value).toFixed(2)}`;
+    }
+
+    function renderSizeTierRules() {
+      const tier = POLICY.size_tiers;
+      const rows = [
+        {
+          "尺寸分段": "小号标准尺寸",
+          "计费重量上限": `<= ${tier.small_standard.max_shipping_weight_lb * 16} oz`,
+          "尺寸上限": `<= ${tier.small_standard.max_longest_in} x ${tier.small_standard.max_median_in} x ${tier.small_standard.max_shortest_in} in`,
+          "计费重量规则": "仅商品重量；不使用体积重量"
+        },
+        {
+          "尺寸分段": "大号标准尺寸",
+          "计费重量上限": `<= ${tier.large_standard.max_shipping_weight_lb} lb`,
+          "尺寸上限": `<= ${tier.large_standard.max_longest_in} x ${tier.large_standard.max_median_in} x ${tier.large_standard.max_shortest_in} in`,
+          "计费重量规则": "商品重量与体积重量取较大值；体积重量计算时宽、高最小 2 in"
+        },
+        {
+          "尺寸分段": "小号大件",
+          "计费重量上限": `<= ${tier.small_bulky.max_shipping_weight_lb} lb`,
+          "尺寸上限": `<= ${tier.small_bulky.max_longest_in} x ${tier.small_bulky.max_median_in} x ${tier.small_bulky.max_shortest_in} in；长度加围长 <= ${tier.small_bulky.max_length_plus_girth_in} in`,
+          "计费重量规则": "商品重量与体积重量取较大值；体积重量计算时宽、高最小 2 in"
+        },
+        {
+          "尺寸分段": "大号大件",
+          "计费重量上限": `<= ${tier.large_bulky.max_shipping_weight_lb} lb`,
+          "尺寸上限": `<= ${tier.large_bulky.max_longest_in} x ${tier.large_bulky.max_median_in} x ${tier.large_bulky.max_shortest_in} in；长度加围长 <= ${tier.large_bulky.max_length_plus_girth_in} in`,
+          "计费重量规则": "商品重量与体积重量取较大值；体积重量计算时宽、高最小 2 in"
+        },
+        {
+          "尺寸分段": "超大件 0-50 lb",
+          "计费重量上限": `<= ${tier.extra_large_0_50.max_shipping_weight_lb} lb`,
+          "尺寸上限": "超出大号大件的尺寸或长度加围长限制",
+          "计费重量规则": "商品重量与体积重量取较大值；体积重量计算时宽、高最小 2 in"
+        },
+        {
+          "尺寸分段": "超大件 >50-70 lb",
+          "计费重量上限": `<= ${tier.extra_large_50_70.max_shipping_weight_lb} lb`,
+          "尺寸上限": "超大件分段",
+          "计费重量规则": "商品重量与体积重量取较大值；体积重量计算时宽、高最小 2 in"
+        },
+        {
+          "尺寸分段": "超大件 >70-150 lb",
+          "计费重量上限": `<= ${tier.extra_large_70_150.max_shipping_weight_lb} lb`,
+          "尺寸上限": "超大件分段",
+          "计费重量规则": "商品重量与体积重量取较大值；体积重量计算时宽、高最小 2 in"
+        },
+        {
+          "尺寸分段": "超大件 >150 lb",
+          "计费重量上限": "> 150 lb",
+          "尺寸上限": "超大件分段",
+          "计费重量规则": "仅商品重量；不使用体积重量"
+        }
+      ];
+      renderTable("sizeTierRulesTable", rows);
+    }
+
+    function describeFormulaRule(formula, tierKey) {
+      if (!formula) return "-";
+      const startWeight = tierKey === "large_standard" ? 3 : (formula.base_weight_lb ?? formula.threshold_lb);
+      const interval = formula.interval_label || `${formula.interval_lb} lb`;
+      const startText = tierKey === "large_standard" ? "> 3 lb" : `基准 ${startWeight} lb`;
+      return `${formatMoney(formula.base_fee)} + ceil((计费重 - ${startWeight} lb) / ${interval}) x ${formatMoney(formula.increment_fee)}（${startText}）`;
+    }
+
+    function renderBaseFeeRules() {
+      const isApparel = document.getElementById("ruleCategory").value === "apparel";
+      const tierKey = document.getElementById("ruleSizeTier").value;
+      const lowTable = getBaseFeeTable(isApparel, "under_10");
+      const standardTable = getBaseFeeTable(isApparel, "standard");
+      const highTable = getBaseFeeTable(isApparel, "over_50");
+      const rows = [];
+
+      if (tierKey === "small_standard" || tierKey === "large_standard") {
+        lowTable[tierKey].forEach((band, index) => {
+          rows.push({
+            "计费重量档": getBandLabel(tierKey, band),
+            "<$10 Low-Price": formatMoney(band.fee),
+            "$10-$50": formatMoney(standardTable[tierKey][index].fee),
+            ">$50": formatMoney(highTable[tierKey][index].fee)
+          });
+        });
+      }
+
+      const formulaKey = tierKey === "large_standard" ? "large_standard_above_3lb" : tierKey;
+      if (!["small_standard"].includes(tierKey)) {
+        rows.push({
+          "计费重量档": tierKey === "large_standard" ? "> 3 lb 公式" : "公式计费",
+          "<$10 Low-Price": describeFormulaRule(lowTable[formulaKey], tierKey),
+          "$10-$50": describeFormulaRule(standardTable[formulaKey], tierKey),
+          ">$50": describeFormulaRule(highTable[formulaKey], tierKey)
+        });
+      }
+
+      renderTable("baseFeeRulesTable", rows);
+    }
+
+    function renderAdjustmentRules() {
+      const sipp = POLICY.sipp_discount;
+      const lowInventory = POLICY.low_inventory_fee;
+      const sippSmall = sipp.small_standard.map(item => `<= ${item.max_shipping_weight_lb * 16} oz: -${formatMoney(item.discount)}`).join("；");
+      const sippLarge = sipp.large_standard.map(item => `<= ${item.max_shipping_weight_lb <= 1 ? `${item.max_shipping_weight_lb * 16} oz` : `${item.max_shipping_weight_lb} lb`}: -${formatMoney(item.discount)}`).join("；");
+      const lowInventoryText = table => `0-14 天: +${formatMoney(table["0_14"])}；14-21 天: +${formatMoney(table["14_21"])}；21-28 天: +${formatMoney(table["21_28"])}`;
+      const rows = [
+        { "规则类型": "SIPP 折扣", "适用范围": "小号标准尺寸", "规则说明": sippSmall },
+        { "规则类型": "SIPP 折扣", "适用范围": "大号标准尺寸", "规则说明": sippLarge },
+        { "规则类型": "SIPP 折扣", "适用范围": "小号大件 / 大号大件", "规则说明": `认证且适配时 -${formatMoney(sipp.small_bulky.discount)}` },
+        { "规则类型": "低量库存费", "适用范围": "小号标准尺寸", "规则说明": lowInventoryText(lowInventory.small_standard) },
+        { "规则类型": "低量库存费", "适用范围": "大号标准尺寸 <= 3 lb", "规则说明": lowInventoryText(lowInventory.large_standard_upto_3lb) },
+        { "规则类型": "低量库存费", "适用范围": "大号标准尺寸 > 3 至 20 lb", "规则说明": lowInventoryText(lowInventory.large_standard_3_to_20lb) },
+        { "规则类型": "燃油/物流附加费", "适用范围": "FBA 配送费（SIPP 折扣后）", "规则说明": `${formatPercent(POLICY.fuel_logistics_surcharge.rate)}；自 ${POLICY.fuel_logistics_surcharge.effective_date} 生效；计入场景最终费用` }
+      ];
+      renderTable("adjustmentRulesTable", rows);
+    }
+
+    function renderEmbeddedRules() {
+      renderSizeTierRules();
+      renderBaseFeeRules();
+      renderAdjustmentRules();
     }
 
     function renderSources() {
@@ -1308,10 +1574,13 @@
     document.getElementById("downloadTemplateTop").addEventListener("click", downloadTemplate);
     document.getElementById("exportResults").addEventListener("click", () => exportCsv("fba_fee_results.csv", state.results, RESULTS_COLUMNS));
     document.getElementById("exportScenarios").addEventListener("click", () => exportCsv("fba_fee_scenarios.csv", state.scenarios, SCENARIO_COLUMNS));
+    document.getElementById("ruleCategory").addEventListener("change", renderBaseFeeRules);
+    document.getElementById("ruleSizeTier").addEventListener("change", renderBaseFeeRules);
 
     renderStats([], []);
     renderTable("resultsTable", []);
     renderTable("scenariosTable", []);
+    renderEmbeddedRules();
     renderSources();
   </script>
 </body>
