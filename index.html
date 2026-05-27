@@ -448,7 +448,7 @@
       <div class="hero-grid">
         <div>
           <h1>FBA 费成本批量测算器</h1>
-          <p>导入一份 SKU 包装后单件商品尺寸重量表，直接穷举美国站 FBA 所有政策可能场景：标准 FBA、低价 FBA、SIPP 折扣、燃油物流附加费、低量库存费各档，并标注每种场景成立条件。</p>
+          <p>导入一份 SKU 包装后单件商品尺寸重量表，直接穷举美国站 FBA 所有政策可能场景：标准 FBA、低价 FBA、标准尺寸 SIPP 折扣、大件非 SIPP 包装费、燃油物流附加费、低量库存费各档，并标注每种场景成立条件。</p>
           <p class="hint">当前 HTML 版为纯本地运行，不依赖 Python。支持在线逐行录入、<span class="inline-code">CSV</span> 批量导入和结果导出。</p>
         </div>
         <div class="mini-card alt">
@@ -560,7 +560,7 @@
         </div>
         <div class="mini-card alt">
           <h3>费用组合</h3>
-          <p class="hint">基础 FBA 费按 <span class="inline-code">&lt;$10</span>、<span class="inline-code">$10-$50</span>、<span class="inline-code">&gt;$50</span> 价格段匹配，再穷举 SIPP、低量库存费，并在场景最终金额中计入燃油附加费。</p>
+          <p class="hint">基础 FBA 费按 <span class="inline-code">&lt;$10</span>、<span class="inline-code">$10-$50</span>、<span class="inline-code">&gt;$50</span> 价格段匹配，再穷举标准尺寸 SIPP 折扣或大件非 SIPP 包装费、低量库存费，并在场景最终金额中计入燃油附加费。</p>
         </div>
       </div>
 
@@ -631,7 +631,7 @@
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
         <div>
           <h2>SKU 摘要</h2>
-          <p>看每个 SKU 的基础费、低价费、SIPP 支持、低量库存费档位、场景数量、最低/最高可能费用，以及是否已包含燃油附加费。</p>
+          <p>看每个 SKU 的基础费、低价费、SIPP/大件包装政策、低量库存费档位、场景数量、最低/最高可能费用，以及是否已包含燃油附加费。</p>
         </div>
         <span class="pill">results</span>
       </div>
@@ -747,11 +747,15 @@
         extra_large_70_150: {base_fee:51.32,threshold_lb:71.0,interval_lb:1.0,increment_fee:0.75},
         extra_large_150_plus: {base_fee:194.95,threshold_lb:151.0,interval_lb:1.0,increment_fee:0.19}
       },
-      sipp_discount: {
-        small_standard: [{max_shipping_weight_lb:0.25,discount:0.04},{max_shipping_weight_lb:0.5,discount:0.05},{max_shipping_weight_lb:0.75,discount:0.06},{max_shipping_weight_lb:1.0,discount:0.07}],
-        large_standard: [{max_shipping_weight_lb:0.25,discount:0.04},{max_shipping_weight_lb:0.5,discount:0.04},{max_shipping_weight_lb:0.75,discount:0.07},{max_shipping_weight_lb:1.0,discount:0.08},{max_shipping_weight_lb:2.0,discount:0.11},{max_shipping_weight_lb:3.0,discount:0.14},{max_shipping_weight_lb:20.0,discount:0.23}],
-        small_bulky: {discount:1.32},
-        large_bulky: {discount:1.32}
+      sipp_fba_discount: {
+        small_standard: [{max_shipping_weight_lb:0.25,discount:0.04},{max_shipping_weight_lb:0.5,discount:0.07},{max_shipping_weight_lb:1.0,discount:0.11}],
+        large_standard: [{max_shipping_weight_lb:0.5,discount:0.14},{max_shipping_weight_lb:1.0,discount:0.21},{max_shipping_weight_lb:2.0,discount:0.32},{max_shipping_weight_lb:3.0,discount:0.54},{max_shipping_weight_lb:4.0,discount:0.74},{max_shipping_weight_lb:6.0,discount:0.84},{max_shipping_weight_lb:8.0,discount:0.91},{max_shipping_weight_lb:10.0,discount:0.97},{max_shipping_weight_lb:12.0,discount:1.03},{max_shipping_weight_lb:15.0,discount:1.13},{max_shipping_weight_lb:20.0,discount:1.32}],
+        bulky_packaging_fee_if_not_sipp: {
+          small_bulky: {base_fee:1.80,base_weight_lb:1.0,interval_lb:1.0,increment_fee:0.13},
+          large_bulky: {base_fee:2.48,base_weight_lb:1.0,interval_lb:1.0,increment_fee:0.13}
+        },
+        bulky_policy_effective_date: "2026-01-15",
+        detail_verification_status: "明细档位来自公开转载表，需以 Seller Central FBA 费率原页最终确认"
       },
       low_inventory_fee: {
         small_standard: {"0_14":0.89,"14_21":0.63,"21_28":0.32},
@@ -763,8 +767,10 @@
         {group:"US FBA three price-band rate transcription",kind:"secondary_verification",title:"2026 Amazon FBA Fee Changes - Full Breakdown",url:"https://goatconsulting.com/blog/2026-amazon-fba-fee-changes-complete-breakdown",note:"Used to transcribe the detailed <$10, $10-$50, and >$50 tier values where the Amazon-linked detailed table is not publicly renderable in this browser. Confirm against Seller Central before production decisions."},
         {group:"US FBA size tiers and shipping-weight rules",kind:"official_help",title:"商品尺寸分段",url:"https://sellercentral.amazon.com/help/hub/reference/external/GG5KW835AHDJCH8W",note:"Seller Central Help. Defines tiers using packaged single-item measurements; for large standard, small bulky, large bulky, and extra large (except over 150 lb), fees use the greater of product weight or dimensional weight. Small standard and extra large over 150 lb use product weight only."},
         {group:"US FBA dimensional-weight formula",kind:"official_help",title:"体积重量",url:"https://sellercentral.amazon.com/help/hub/reference/external/G53Z9EKF8VVZVH29",note:"Seller Central Help. Dimensional weight is volume divided by 139; for large standard, small bulky, large bulky, oversize and extra-large products, minimum width and height are 2 inches."},
-        {group:"SIPP overview",kind:"official_public",title:"Custom packaging / SIPP overview",url:"https://sell.amazon.com/programs/custom-packaging",note:"Public Amazon page. Confirms SIPP can lower fulfillment costs by up to $1.32."},
-        {group:"SIPP discount table",kind:"official_public_proxy",title:"Ships in product packaging - Buy with Prime",url:"https://buywithprime.amazon.com/knowledge-center/ships-in-product-packaging",note:"Official Amazon page. Used as Amazon-owned proxy for SIPP discount brackets."},
+        {group:"FBA SIPP program overview",kind:"official_public",title:"Custom packaging / SIPP overview",url:"https://sell.amazon.com/programs/custom-packaging",note:"Official Amazon public page. Confirms the program applies to FBA fulfillment costs and links to Seller Central for FBA discount details."},
+        {group:"2026 FBA SIPP bulky change",kind:"official_announcement",title:"2026年亚马逊美国站销售佣金和亚马逊物流费用变更",url:"https://gs.amazon.cn/news/news-notices-251016",note:"Official Amazon announcement. States that from 2026-01-15, SIPP discounts are cancelled for small/large bulky FBA products; non-SIPP bulky products incur a packaging fee. Standard-size SIPP discounts remain unchanged."},
+        {group:"2026 FBA SIPP bracket transcription",kind:"secondary_verification",title:"Amazon FBA Fees 2026: New Rates & Cost Guide Sellers Must Know About",url:"https://www.sellerapp.com/blog/amazon-fba-fees-calculator-guide/",note:"Used to transcribe the publicly indexed FBA SIPP standard-size discount brackets and bulky non-SIPP packaging-fee formulas while the linked Seller Central detail page does not render in this tool. Confirm against Seller Central before production decisions."},
+        {group:"Not used for FBA calculation: MCF / Buy with Prime SIPP table",kind:"excluded_source",title:"Ships in product packaging - Amazon Buy with Prime",url:"https://buywithprime.amazon.com/knowledge-center/ships-in-product-packaging",note:"Official table for MCF and Buy with Prime orders. An earlier version incorrectly used its brackets for this FBA calculator; it is now explicitly excluded from FBA calculations."},
         {group:"Low-inventory-level fee",kind:"official_forum_explainer",title:"Seller Forums: Low-inventory-level fee further explained",url:"https://sellercentral.amazon.com/seller-forums/discussions/t/aa9f98e5-fa91-4949-af8f-6cf918c86a77",note:"Official Amazon Seller Forums post. Used for historical-days-of-supply logic and fee tiers."},
         {group:"Fuel and logistics-related surcharge",kind:"official_forum_announcement",title:"Fuel and logistics-related surcharge: FBA, MCF, and BWP in US and CA",url:"https://sellercentral.amazon.com/seller-forums/discussions/t/7cbc0233-ee5b-4359-978a-dee7cad5c6f4",note:"Official Amazon Seller Forums announcement. States a 3.5% surcharge applies to FBA fulfillment fees in the US starting April 17, 2026."}
       ]
@@ -1231,18 +1237,30 @@
       return { unit: "lb", value: round2(shippingWeightLb), band: `${round2(shippingWeightLb)} lb with ${sizeTier} formula` };
     }
 
-    function getSippOptions(sizeTier, shippingWeightLb, sippEligible) {
+    function getSippOptions(sizeTier, shippingWeightLb, isApparel, sippEligible) {
       let supportedDiscount = 0;
-      if (!["extra_large_0_50", "extra_large_50_70", "extra_large_70_150", "extra_large_150_plus"].includes(sizeTier)) {
-        if (sizeTier === "small_bulky" || sizeTier === "large_bulky") supportedDiscount = POLICY.sipp_discount[sizeTier]?.discount || 0;
-        else supportedDiscount = pickDiscount(POLICY.sipp_discount[sizeTier] || [], shippingWeightLb);
+      const bulkyFormula = POLICY.sipp_fba_discount.bulky_packaging_fee_if_not_sipp[sizeTier];
+      if (bulkyFormula) {
+        const intervals = ceilIntervals(shippingWeightLb - bulkyFormula.base_weight_lb, bulkyFormula.interval_lb);
+        const packagingFee = round2(bulkyFormula.base_fee + intervals * bulkyFormula.increment_fee);
+        const sippCondition = `FBA 大件自 ${POLICY.sipp_fba_discount.bulky_policy_effective_date} 起不设 SIPP 折扣；已通过 SIPP，因此不收取非 SIPP 包装费`;
+        const nonSippCondition = `FBA 大件自 ${POLICY.sipp_fba_discount.bulky_policy_effective_date} 起不设 SIPP 折扣；未使用 SIPP，包装费 ${bulkyFormula.base_fee} + ${intervals} x ${bulkyFormula.increment_fee} = ${packagingFee}`;
+        if (sippEligible === true) return [{ applied: true, discount: 0, packagingFee: 0, condition: sippCondition }];
+        if (sippEligible === false) return [{ applied: false, discount: 0, packagingFee, condition: nonSippCondition }];
+        return [
+          { applied: true, discount: 0, packagingFee: 0, condition: `若通过 SIPP：${sippCondition}` },
+          { applied: false, discount: 0, packagingFee, condition: `若未通过 SIPP：${nonSippCondition}` }
+        ];
       }
-      if (supportedDiscount <= 0) return [{ applied: false, discount: 0, condition: "该尺寸/重量档当前不适用 SIPP 折扣" }];
-      if (sippEligible === true) return [{ applied: true, discount: supportedDiscount, condition: "已输入 SIPP 适配/已认证，且该尺寸重量档支持 SIPP 折扣" }];
-      if (sippEligible === false) return [{ applied: false, discount: 0, condition: "已输入不适配 SIPP，因此不享受 SIPP 折扣" }];
+      if (!["extra_large_0_50", "extra_large_50_70", "extra_large_70_150", "extra_large_150_plus"].includes(sizeTier)) {
+        supportedDiscount = pickDiscount(POLICY.sipp_fba_discount[sizeTier] || [], shippingWeightLb);
+      }
+      if (supportedDiscount <= 0) return [{ applied: false, discount: 0, packagingFee: 0, condition: "该尺寸/重量档当前不适用 SIPP 折扣" }];
+      if (sippEligible === true) return [{ applied: true, discount: supportedDiscount, packagingFee: 0, condition: "已输入 SIPP 适配/已认证，且该 FBA 标准尺寸重量档支持 SIPP 折扣" }];
+      if (sippEligible === false) return [{ applied: false, discount: 0, packagingFee: 0, condition: "已输入不适配 SIPP，因此不享受 FBA SIPP 折扣" }];
       return [
-        { applied: false, discount: 0, condition: "如果未通过 SIPP 认证，则不享受 SIPP 折扣" },
-        { applied: true, discount: supportedDiscount, condition: "如果通过 SIPP 认证，且该尺寸重量档支持 SIPP，则可享受该折扣" }
+        { applied: false, discount: 0, packagingFee: 0, condition: "如果未通过 SIPP 认证，则不享受 FBA SIPP 折扣" },
+        { applied: true, discount: supportedDiscount, packagingFee: 0, condition: "如果通过 SIPP 认证，且该 FBA 标准尺寸重量档支持 SIPP，则可享受该折扣" }
       ];
     }
 
@@ -1315,8 +1333,11 @@
         });
       }
 
-      const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.sippEligible);
+      const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.isApparel, row.sippEligible);
       const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb);
+      const bulkyPackagingFeeStatus = ["small_bulky", "large_bulky"].includes(sizeTier)
+        ? "若未通过 SIPP，按计费重计算包装费；已计入相应场景金额"
+        : "不适用";
       const scenarios = [];
       let scenarioId = 1;
 
@@ -1325,7 +1346,7 @@
           for (const lowInventoryOption of lowInventoryOptions) {
             const fulfillmentFeeAfterSipp = round2(Math.max(baseOption.base_fee - sippOption.discount, 0));
             const fuelSurcharge = computeFuelLogisticsSurcharge(fulfillmentFeeAfterSipp);
-            const finalFee = round2(fulfillmentFeeAfterSipp + fuelSurcharge + lowInventoryOption.fee);
+            const finalFee = round2(fulfillmentFeeAfterSipp + fuelSurcharge + sippOption.packagingFee + lowInventoryOption.fee);
             const scenarioNameParts = [baseOption.base_fee_type];
             if (sippOption.applied) scenarioNameParts.push("sipp");
             if (lowInventoryOption.band_code !== "none") scenarioNameParts.push(`low_inventory_${lowInventoryOption.band_code}`);
@@ -1342,6 +1363,8 @@
               base_fee_match: baseOption.base_fee_match,
               sipp_applied: sippOption.applied ? "Y" : "N",
               sipp_discount_usd: sippOption.discount,
+              bulky_non_sipp_packaging_fee_usd: sippOption.packagingFee,
+              bulky_non_sipp_packaging_fee_status: bulkyPackagingFeeStatus,
               fulfillment_fee_after_sipp_usd: fulfillmentFeeAfterSipp,
               fuel_logistics_surcharge_usd: fuelSurcharge,
               fuel_logistics_surcharge_rate: round4(POLICY.fuel_logistics_surcharge.rate),
@@ -1399,6 +1422,7 @@
       "low_price_fba_fee_usd", "low_price_fba_fee_match",
       "high_price_fba_fee_usd", "high_price_fba_fee_match",
       "sipp_discount_supported_usd",
+      "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
       "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate", "includes_fuel_logistics_surcharge", "low_inventory_fee_bands_usd",
       "scenario_count", "min_final_fee_usd", "max_final_fee_usd", "cheapest_scenario", "highest_scenario", "notes"
     ];
@@ -1406,6 +1430,7 @@
     const SCENARIO_COLUMNS = [
       "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "base_fee_type",
       "base_fee_usd", "base_fee_match", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_after_sipp_usd",
+      "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
       "fuel_logistics_surcharge_usd", "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate",
       "low_inventory_band", "low_inventory_fee_usd", "final_fee_usd", "conditions"
     ];
@@ -1468,8 +1493,11 @@
         const highPriceFee = computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, "over_50");
         const appliedPriceBandCode = getActualPriceBandCode(row.salePriceUsd);
         const appliedPolicyInfo = getShippingWeightPolicyInfo(sizeTier, shippingWeightLb, row.isApparel, appliedPriceBandCode);
-        const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.sippEligible);
+        const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.isApparel, row.sippEligible);
         const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb);
+        const bulkyPackagingFeeStatus = ["small_bulky", "large_bulky"].includes(sizeTier)
+          ? "若未通过 SIPP，按计费重计算包装费；已计入相应场景金额"
+          : "不适用";
         const scenarioRows = buildFeeScenarios(row, sizeTier, shippingWeightLb, standardFee, lowPriceFee, highPriceFee);
         scenarios.push(...scenarioRows);
         const cheapest = scenarioRows.reduce((best, item) => item.final_fee_usd < best.final_fee_usd ? item : best, scenarioRows[0]);
@@ -1510,6 +1538,8 @@
           high_price_fba_fee_usd: highPriceFee ?? "",
           high_price_fba_fee_match: highPriceFee === null ? "" : describeBaseFeeMatch(sizeTier, shippingWeightLb, row.isApparel, "over_50"),
           sipp_discount_supported_usd: Math.max(...sippOptions.map(item => item.discount)),
+          bulky_non_sipp_packaging_fee_usd: [...new Set(sippOptions.map(item => item.packagingFee))].join(", "),
+          bulky_non_sipp_packaging_fee_status: bulkyPackagingFeeStatus,
           low_inventory_fee_bands_usd: lowInventoryOptions.filter(item => item.band_code !== "none").map(item => `${item.band_code}=${item.fee}`).join(", "),
           low_price_supported: lowPriceSupported ? "Y" : "N",
           price_band: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "<$10" : (row.salePriceUsd > 50 ? ">$50" : "$10-$50")),
@@ -1536,6 +1566,7 @@
             lowPriceFee !== null ? "存在 Low-Price FBA 场景" : "",
             highPriceFee !== null ? "存在 >$50 高价 FBA 场景" : "",
             sippOptions.some(item => item.applied) ? "存在 SIPP 折扣场景" : "",
+            ["small_bulky", "large_bulky"].includes(sizeTier) ? "FBA 大件取消 SIPP 折扣；非 SIPP 包装费已计入对应场景，明细档位请与 Seller Central 原页复核" : "",
             lowInventoryOptions.length > 1 ? "存在多档低量库存费场景" : ""
           ].filter(Boolean).join("；")
         });
@@ -1676,21 +1707,24 @@
     }
 
     function renderAdjustmentRules() {
-      const sipp = POLICY.sipp_discount;
+      const sipp = POLICY.sipp_fba_discount;
       const lowInventory = POLICY.low_inventory_fee;
-      const sippSmall = sipp.small_standard.map(item => `<= ${item.max_shipping_weight_lb * 16} oz: -${formatMoney(item.discount)}`).join("；");
-      const sippLarge = sipp.large_standard.map(item => `<= ${item.max_shipping_weight_lb <= 1 ? `${item.max_shipping_weight_lb * 16} oz` : `${item.max_shipping_weight_lb} lb`}: -${formatMoney(item.discount)}`).join("；");
+      const formatSippBrackets = bands => bands.map(item => `<= ${item.max_shipping_weight_lb <= 1 ? `${item.max_shipping_weight_lb * 16} oz` : `${item.max_shipping_weight_lb} lb`}: -${formatMoney(item.discount)}`).join("；");
       const lowInventoryText = table => `0-14 天: +${formatMoney(table["0_14"])}；14-21 天: +${formatMoney(table["14_21"])}；21-28 天: +${formatMoney(table["21_28"])}`;
+      const smallBulkyPackaging = sipp.bulky_packaging_fee_if_not_sipp.small_bulky;
+      const largeBulkyPackaging = sipp.bulky_packaging_fee_if_not_sipp.large_bulky;
       const rows = [
-        { "规则类型": "SIPP 折扣", "适用范围": "小号标准尺寸", "规则说明": sippSmall },
-        { "规则类型": "SIPP 折扣", "适用范围": "大号标准尺寸", "规则说明": sippLarge },
-        { "规则类型": "SIPP 折扣", "适用范围": "小号大件 / 大号大件", "规则说明": `认证且适配时 -${formatMoney(sipp.small_bulky.discount)}` },
+        { "规则类型": "FBA SIPP 折扣", "适用范围": "小号标准尺寸", "规则说明": formatSippBrackets(sipp.small_standard) },
+        { "规则类型": "FBA SIPP 折扣", "适用范围": "大号标准尺寸", "规则说明": formatSippBrackets(sipp.large_standard) },
+        { "规则类型": "FBA 大件包装费", "适用范围": "小号大件 / 未使用 SIPP", "规则说明": `${formatMoney(smallBulkyPackaging.base_fee)} + 每超过首个 1 lb 的每 1 lb 加 ${formatMoney(smallBulkyPackaging.increment_fee)}；使用 SIPP 时不收取` },
+        { "规则类型": "FBA 大件包装费", "适用范围": "大号大件 / 未使用 SIPP", "规则说明": `${formatMoney(largeBulkyPackaging.base_fee)} + 每超过首个 1 lb 的每 1 lb 加 ${formatMoney(largeBulkyPackaging.increment_fee)}；使用 SIPP 时不收取` },
         { "规则类型": "低量库存费", "适用范围": "小号标准尺寸", "规则说明": lowInventoryText(lowInventory.small_standard) },
         { "规则类型": "低量库存费", "适用范围": "大号标准尺寸 <= 3 lb", "规则说明": lowInventoryText(lowInventory.large_standard_upto_3lb) },
         { "规则类型": "低量库存费", "适用范围": "大号标准尺寸 > 3 至 20 lb", "规则说明": lowInventoryText(lowInventory.large_standard_3_to_20lb) },
         { "规则类型": "燃油/物流附加费", "适用范围": "FBA 配送费（SIPP 折扣后）", "规则说明": `${formatPercent(POLICY.fuel_logistics_surcharge.rate)}；自 ${POLICY.fuel_logistics_surcharge.effective_date} 生效；计入场景最终费用` }
       ];
       renderTable("adjustmentRulesTable", rows);
+      document.getElementById("adjustmentRulesTable").insertAdjacentHTML("afterend", `<div class="rule-note">${sipp.detail_verification_status}</div>`);
     }
 
     function renderEmbeddedRules() {
