@@ -472,7 +472,7 @@
         <div class="online-head">
           <div>
             <h3>在线录入商品</h3>
-            <p class="hint"><strong>填写包装后的单件商品尺寸和重量。</strong> 售价、SIPP、30/90 天供货天数留空时，工具会穷举对应政策场景。</p>
+            <p class="hint"><strong>填写包装后的单件商品尺寸和重量。</strong> 售价与 SIPP 留空时会穷举对应场景；30/90 天供货天数都留空时才穷举低量库存费，填写后会按实际可成立档位计算。</p>
           </div>
           <div class="actions" style="margin-top:0;">
             <button id="addOnlineRow" class="secondary" type="button">新增一行</button>
@@ -495,8 +495,8 @@
                 <th>售价 USD<small>留空穷举</small></th>
                 <th>是否服饰<small>费率依据</small></th>
                 <th>SIPP<small>留空穷举</small></th>
-                <th>30天供货<small>留空穷举</small></th>
-                <th>90天供货<small>留空穷举</small></th>
+                <th>30天供货<small>与90天共同判断</small></th>
+                <th>90天供货<small>两项空才穷举</small></th>
                 <th class="narrow">操作</th>
               </tr>
             </thead>
@@ -613,7 +613,7 @@
         <div class="rule-block-head">
           <div>
             <h3>折扣与附加费规则</h3>
-            <p class="hint">这些规则会与基础配送费组合，形成场景明细中的最终可能费用。</p>
+            <p class="hint">这些规则会与基础配送费组合，形成场景明细中的最终可能费用。低量库存费仅在 30/90 天供货天数都留空时穷举所有档位；填写后按可成立的政策档位计算。</p>
           </div>
         </div>
         <div class="table-wrap rule-table">
@@ -1023,6 +1023,11 @@
         if ([lengthCm, widthCm, heightCm, weightKg].some(value => value === null)) {
           throw new Error(`第 ${item.rowNumber} 行尺寸或重量不是有效数字。`);
         }
+        const daysOfSupply30 = safeFloat(row.days_of_supply_30);
+        const daysOfSupply90 = safeFloat(row.days_of_supply_90);
+        if ([daysOfSupply30, daysOfSupply90].some(value => value !== null && value < 0)) {
+          throw new Error(`第 ${item.rowNumber} 行供货天数不能为负数。`);
+        }
         return {
           rowNumber: item.rowNumber,
           country,
@@ -1036,8 +1041,8 @@
           salePriceUsd,
           isApparel: safeBool(row.is_apparel) || category.toLowerCase().includes("apparel"),
           sippEligible: safeOptionalBool(row.sipp_eligible),
-          daysOfSupply30: safeFloat(row.days_of_supply_30),
-          daysOfSupply90: safeFloat(row.days_of_supply_90)
+          daysOfSupply30,
+          daysOfSupply90
         };
       });
     }
@@ -1264,7 +1269,7 @@
       ];
     }
 
-    function getLowInventoryBands(sizeTier, shippingWeightLb) {
+    function getLowInventoryBands(sizeTier, shippingWeightLb, daysOfSupply30, daysOfSupply90) {
       let table = null;
       if (sizeTier === "small_standard") table = POLICY.low_inventory_fee.small_standard;
       else if (sizeTier === "large_standard" && shippingWeightLb <= 3) table = POLICY.low_inventory_fee.large_standard_upto_3lb;
@@ -1272,12 +1277,39 @@
       if (!table) {
         return [{ band_code: "none", fee: 0, condition: "该尺寸/重量档当前未配置低量库存费" }];
       }
-      return [
-        { band_code: "none", fee: 0, condition: "过去30天与90天历史供货天数至少有一个 >= 28 天，或该费用当前不触发" },
-        { band_code: "21_28", fee: Number(table["21_28"]), condition: "过去30天与90天历史供货天数都 < 28 天，且较高那个值在 21-28 天区间" },
-        { band_code: "14_21", fee: Number(table["14_21"]), condition: "过去30天与90天历史供货天数都 < 28 天，且较高那个值在 14-21 天区间" },
-        { band_code: "0_14", fee: Number(table["0_14"]), condition: "过去30天与90天历史供货天数都 < 28 天，且较高那个值在 0-14 天区间" }
-      ];
+      const candidates = {
+        none: { band_code: "none", fee: 0, condition: "过去30天与90天历史供货天数至少有一个 >= 28 天，因此不触发低量库存费" },
+        "21_28": { band_code: "21_28", fee: Number(table["21_28"]), condition: "过去30天与90天历史供货天数都 < 28 天，且两者较高值满足 21 <= days < 28" },
+        "14_21": { band_code: "14_21", fee: Number(table["14_21"]), condition: "过去30天与90天历史供货天数都 < 28 天，且两者较高值满足 14 <= days < 21" },
+        "0_14": { band_code: "0_14", fee: Number(table["0_14"]), condition: "过去30天与90天历史供货天数都 < 28 天，且两者较高值满足 0 <= days < 14" }
+      };
+      const has30 = daysOfSupply30 !== null;
+      const has90 = daysOfSupply90 !== null;
+      if (!has30 && !has90) {
+        return [
+          { ...candidates.none, condition: "未输入 30/90 天供货天数；若至少有一个 >= 28 天，则不触发低量库存费" },
+          { ...candidates["21_28"], condition: "未输入 30/90 天供货天数；若两者都 < 28 天且较高值满足 21 <= days < 28" },
+          { ...candidates["14_21"], condition: "未输入 30/90 天供货天数；若两者都 < 28 天且较高值满足 14 <= days < 21" },
+          { ...candidates["0_14"], condition: "未输入 30/90 天供货天数；若两者都 < 28 天且较高值满足 0 <= days < 14" }
+        ];
+      }
+      if ((has30 && daysOfSupply30 >= 28) || (has90 && daysOfSupply90 >= 28)) {
+        return [candidates.none];
+      }
+      if (has30 && has90) {
+        const historicalDaysOfSupply = Math.max(daysOfSupply30, daysOfSupply90);
+        if (historicalDaysOfSupply >= 21) return [candidates["21_28"]];
+        if (historicalDaysOfSupply >= 14) return [candidates["14_21"]];
+        return [candidates["0_14"]];
+      }
+      const suppliedValue = has30 ? daysOfSupply30 : daysOfSupply90;
+      const possibleBands = [candidates.none, candidates["21_28"]];
+      if (suppliedValue < 21) possibleBands.push(candidates["14_21"]);
+      if (suppliedValue < 14) possibleBands.push(candidates["0_14"]);
+      return possibleBands.map(option => ({
+        ...option,
+        condition: `仅输入一个供货天数值 ${suppliedValue} 天；另一周期值未知时：${option.condition}`
+      }));
     }
 
     function computeFuelLogisticsSurcharge(fulfillmentFeeAfterSipp) {
@@ -1334,7 +1366,7 @@
       }
 
       const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.isApparel, row.sippEligible);
-      const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb);
+      const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb, row.daysOfSupply30, row.daysOfSupply90);
       const bulkyPackagingFeeStatus = ["small_bulky", "large_bulky"].includes(sizeTier)
         ? "若未通过 SIPP，按计费重计算包装费；已计入相应场景金额"
         : "不适用";
@@ -1369,6 +1401,8 @@
               fuel_logistics_surcharge_usd: fuelSurcharge,
               fuel_logistics_surcharge_rate: round4(POLICY.fuel_logistics_surcharge.rate),
               fuel_logistics_surcharge_percent: formatPercent(POLICY.fuel_logistics_surcharge.rate),
+              days_of_supply_30_input: row.daysOfSupply30 ?? "",
+              days_of_supply_90_input: row.daysOfSupply90 ?? "",
               low_inventory_band: lowInventoryOption.band_code,
               low_inventory_fee_usd: lowInventoryOption.fee,
               final_fee_usd: finalFee,
@@ -1424,6 +1458,7 @@
       "sipp_discount_supported_usd",
       "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
       "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate", "includes_fuel_logistics_surcharge", "low_inventory_fee_bands_usd",
+      "days_of_supply_30_input", "days_of_supply_90_input", "low_inventory_evaluation",
       "scenario_count", "min_final_fee_usd", "max_final_fee_usd", "cheapest_scenario", "highest_scenario", "notes"
     ];
 
@@ -1432,7 +1467,7 @@
       "base_fee_usd", "base_fee_match", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_after_sipp_usd",
       "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
       "fuel_logistics_surcharge_usd", "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate",
-      "low_inventory_band", "low_inventory_fee_usd", "final_fee_usd", "conditions"
+      "days_of_supply_30_input", "days_of_supply_90_input", "low_inventory_band", "low_inventory_fee_usd", "final_fee_usd", "conditions"
     ];
 
     function calculateRows(rows) {
@@ -1494,7 +1529,7 @@
         const appliedPriceBandCode = getActualPriceBandCode(row.salePriceUsd);
         const appliedPolicyInfo = getShippingWeightPolicyInfo(sizeTier, shippingWeightLb, row.isApparel, appliedPriceBandCode);
         const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.isApparel, row.sippEligible);
-        const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb);
+        const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb, row.daysOfSupply30, row.daysOfSupply90);
         const bulkyPackagingFeeStatus = ["small_bulky", "large_bulky"].includes(sizeTier)
           ? "若未通过 SIPP，按计费重计算包装费；已计入相应场景金额"
           : "不适用";
@@ -1540,6 +1575,9 @@
           sipp_discount_supported_usd: Math.max(...sippOptions.map(item => item.discount)),
           bulky_non_sipp_packaging_fee_usd: [...new Set(sippOptions.map(item => item.packagingFee))].join(", "),
           bulky_non_sipp_packaging_fee_status: bulkyPackagingFeeStatus,
+          days_of_supply_30_input: row.daysOfSupply30 ?? "",
+          days_of_supply_90_input: row.daysOfSupply90 ?? "",
+          low_inventory_evaluation: lowInventoryOptions.map(item => item.band_code).join(", "),
           low_inventory_fee_bands_usd: lowInventoryOptions.filter(item => item.band_code !== "none").map(item => `${item.band_code}=${item.fee}`).join(", "),
           low_price_supported: lowPriceSupported ? "Y" : "N",
           price_band: row.salePriceUsd === null ? "UNKNOWN" : (row.salePriceUsd < POLICY.low_price_threshold ? "<$10" : (row.salePriceUsd > 50 ? ">$50" : "$10-$50")),
