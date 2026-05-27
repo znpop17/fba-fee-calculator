@@ -546,10 +546,20 @@
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
         <div>
           <h2>当前内置规则</h2>
-          <p>这里展示美国站当前参与穷举测算的完整组合规则；墨西哥本地 FBA 已在测算引擎按其独立尺寸和币种规则处理，来源见下方。</p>
+          <p>按国家查看当前页面真正使用的规则包、已确认范围和待核验项目；各站费用逻辑不会交叉套用。</p>
         </div>
-        <span class="pill">US + MX LOCAL FBA</span>
+        <div class="rule-selectors" style="min-width:260px;">
+          <label>查看国家
+            <select id="ruleMarketplace">
+              <option value="US">US 美国</option>
+              <option value="CA">CA 加拿大</option>
+              <option value="MX">MX 墨西哥</option>
+            </select>
+          </label>
+          <span id="ruleMarketplacePill" class="pill">US · LOCAL FBA</span>
+        </div>
       </div>
+      <div id="usRulePanel">
       <div class="rule-intro">
         <div class="mini-card alt">
           <h3>尺寸与重量口径</h3>
@@ -621,19 +631,23 @@
           <table id="adjustmentRulesTable"></table>
         </div>
       </div>
+      </div>
 
+      <div id="caRulePanel" hidden>
       <div class="rule-block">
         <div class="rule-block-head">
           <div>
-            <h3>CA / MX 本地规则状态</h3>
-            <p class="hint">加拿大和墨西哥不会复用 US 的英寸/磅尺寸段或 US 附加费组合。</p>
+            <h3>CA 本地 FBA 规则状态</h3>
+            <p class="hint">加拿大不会复用 US 的英寸/磅尺寸段；当前仅展示已由官方公开定价页确认的范围。</p>
           </div>
         </div>
         <div class="table-wrap rule-table">
-          <table id="marketRuleStatusTable"></table>
+          <table id="caRuleStatusTable"></table>
         </div>
       </div>
+      </div>
 
+      <div id="mxRulePanel" hidden>
       <div class="rule-block">
         <div class="rule-block-head">
           <div>
@@ -661,6 +675,7 @@
           <table id="mxBaseFeeRulesTable"></table>
         </div>
         <div class="rule-note">MX 的体积重除数当前作为 <span class="inline-code">5,000 cm3/kg</span> 待复核口径显示于结果中；在取得 Seller Central MX 公式原文前，请不要将 MX 输出作为最终结算依据。</div>
+      </div>
       </div>
     </section>
 
@@ -696,7 +711,13 @@
     </section>
 
     <section class="panel">
-      <h2>政策来源</h2>
+      <div class="rule-block-head">
+        <div>
+          <h2>政策来源</h2>
+          <p class="hint">来源按上方所选国家同步筛选，便于逐站确认政策口径。</p>
+        </div>
+        <span id="sourceMarketplacePill" class="pill">US · SOURCES</span>
+      </div>
       <div id="sources" class="source-list"></div>
     </section>
   </main>
@@ -875,6 +896,7 @@
 
     const MARKET_SOURCES = [
       {
+        marketplace: "CA",
         group: "CA local FBA public pricing (calculation pending size tiers)",
         kind: "official_public",
         title: "Amazon.ca selling fees and FBA fulfilment pricing",
@@ -882,6 +904,7 @@
         note: "Official Amazon Canada page. Confirms fees effective February 1, 2026, CAD fulfilment fee structure, shipping weight based on the greater of unit or dimensional weight, and Low-Price FBA reduction of CAD 0.80 for eligible items below CAD 14. Product size-tier detail links to Seller Central and requires access in this verification session, so CA automatic calculation is intentionally not enabled."
       },
       {
+        marketplace: "MX",
         group: "MX local FBA fulfilment rates and size tiers",
         kind: "official_public",
         title: "Logística de Amazon - tarifas vigentes a partir del 17 de febrero de 2026",
@@ -889,6 +912,7 @@
         note: "Official Amazon Mexico page. Used for MXN fee tables, four sale-price bands, official listed category groups, Sobre/Estándar/Tamaño grande size boundaries, and the rule that fulfilment fees use the greater of product weight or dimensional weight. IVA is excluded on the official table."
       },
       {
+        marketplace: "MX",
         group: "MX Tamaño grande boundary interpretation",
         kind: "official_public",
         title: "Centro de capacitación de Logística de Amazon México",
@@ -896,6 +920,7 @@
         note: "Official Amazon Mexico training page. Used together with the pricing page to interpret Tamaño grande as longest side up to 270 cm and girth plus length up to 550 cm, rather than reusing a US oversize tier."
       },
       {
+        marketplace: "MX",
         group: "MX dimensional-weight divisor verification note",
         kind: "requires_confirmation",
         title: "Seller Central MX dimensional-weight help page required",
@@ -917,7 +942,13 @@
     function addOnlineRow(values = {}) {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><input data-field="country" type="text" aria-label="国家" placeholder="US"></td>
+        <td>
+          <select data-field="country" aria-label="国家">
+            <option value="US">US</option>
+            <option value="CA">CA</option>
+            <option value="MX">MX</option>
+          </select>
+        </td>
         <td><input data-field="sku" type="text" aria-label="SKU" placeholder="SKU-001"></td>
         <td><input data-field="product_name" type="text" aria-label="品名" placeholder="商品名称"></td>
         <td><input data-field="category" type="text" aria-label="分类备注" placeholder="可选"></td>
@@ -2105,19 +2136,13 @@
       document.getElementById("adjustmentRulesTable").insertAdjacentHTML("afterend", `<div class="rule-note">${sipp.detail_verification_status}</div>`);
     }
 
-    function renderMarketRuleStatus() {
-      renderTable("marketRuleStatusTable", [
+    function renderCaRuleStatus() {
+      renderTable("caRuleStatusTable", [
         {
           "站点": "CA 本地 FBA",
           "状态": "暂不自动计费",
           "尺寸/计费重口径": "不使用 US 规则；官方尺寸分段帮助正文待获取",
           "费用政策": "官方公开页确认 2026-02-01 起费率；符合条件且售价 < CAD 14 时标准 FBA 费减 CAD 0.80"
-        },
-        {
-          "站点": "MX 本地 FBA",
-          "状态": "基础费率已接入，体积重除数待最终复核",
-          "尺寸/计费重口径": "cm/kg；Sobre <= 38 x 27 x 2 cm，Estándar <= 45 x 35 x 20 cm；Tamaño grande 独立边界；商品重量与体积重量取较大值",
-          "费用政策": "2026-02-17 起 MXN 四价格段、三类目费率组；未套用 US SIPP/低量库存费/燃油附加费"
         }
       ]);
     }
@@ -2161,13 +2186,16 @@
       renderSizeTierRules();
       renderBaseFeeRules();
       renderAdjustmentRules();
-      renderMarketRuleStatus();
+      renderCaRuleStatus();
       renderMxBaseFeeRules();
     }
 
-    function renderSources() {
+    function renderSources(marketplace = document.getElementById("ruleMarketplace").value) {
       const container = document.getElementById("sources");
-      container.innerHTML = [...POLICY.sources, ...MARKET_SOURCES].map(source => `
+      const sources = marketplace === "US"
+        ? POLICY.sources
+        : MARKET_SOURCES.filter(source => source.marketplace === marketplace);
+      container.innerHTML = sources.map(source => `
         <div class="source-item">
           <div class="pill" style="margin-bottom:8px;">${source.kind}</div>
           <h3 style="margin-bottom:6px;">${source.group}</h3>
@@ -2175,6 +2203,17 @@
           <p class="hint">${source.note}</p>
         </div>
       `).join("");
+    }
+
+    function updateRuleMarketplace() {
+      const marketplace = document.getElementById("ruleMarketplace").value;
+      const labels = { US: "US · LOCAL FBA", CA: "CA · LOCAL FBA", MX: "MX · LOCAL FBA" };
+      document.getElementById("usRulePanel").hidden = marketplace !== "US";
+      document.getElementById("caRulePanel").hidden = marketplace !== "CA";
+      document.getElementById("mxRulePanel").hidden = marketplace !== "MX";
+      document.getElementById("ruleMarketplacePill").textContent = labels[marketplace];
+      document.getElementById("sourceMarketplacePill").textContent = `${marketplace} · SOURCES`;
+      renderSources(marketplace);
     }
 
     function escapeCsvCell(value) {
@@ -2226,7 +2265,14 @@
         renderTable("scenariosTable", state.scenarios, SCENARIO_COLUMNS);
         document.getElementById("exportResults").disabled = false;
         document.getElementById("exportScenarios").disabled = false;
-        setStatus(`测算完成：${state.results.length} 行 SKU，${state.scenarios.length} 个场景。摘要结果已明确标注是否包含燃油附加费。`);
+        const hasCaPending = state.results.some(row => row.status === CA_POLICY.calculation_status);
+        const hasMxPreview = state.results.some(row => row.status === "ok_pending_dimensional_formula_verification");
+        const statusNotes = [
+          hasMxPreview ? "MX 已输出本地基础费预览，体积重公式仍待官方正文复核" : "",
+          hasCaPending ? "CA 官方尺寸分段正文未取得，当前明确提示待启用而不输出猜测费用" : "",
+          state.results.some(row => row.country === "US") ? "US 场景含已配置的折扣/附加费组合" : ""
+        ].filter(Boolean).join("；");
+        setStatus(`测算完成：${state.results.length} 行 SKU，${state.scenarios.length} 个场景。${statusNotes}`);
       } catch (error) {
         setStatus(`执行失败：${error.message}`, true);
       }
@@ -2259,6 +2305,7 @@
     document.getElementById("ruleSizeTier").addEventListener("change", renderBaseFeeRules);
     document.getElementById("mxRuleCategory").addEventListener("change", renderMxBaseFeeRules);
     document.getElementById("mxRuleSizeTier").addEventListener("change", renderMxBaseFeeRules);
+    document.getElementById("ruleMarketplace").addEventListener("change", updateRuleMarketplace);
 
     setOnlineRows();
     updateInputMethod();
@@ -2266,7 +2313,7 @@
     renderTable("resultsTable", []);
     renderTable("scenariosTable", []);
     renderEmbeddedRules();
-    renderSources();
+    updateRuleMarketplace();
   </script>
 </body>
 </html>
