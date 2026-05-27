@@ -448,14 +448,14 @@
       <div class="hero-grid">
         <div>
           <h1>FBA 费成本批量测算器</h1>
-          <p>导入一份 SKU 包装后单件商品尺寸重量表，直接穷举美国站 FBA 所有政策可能场景：标准 FBA、低价 FBA、标准尺寸 SIPP 折扣、大件非 SIPP 包装费、燃油物流附加费、低量库存费各档，并标注每种场景成立条件。</p>
+          <p>导入一份 SKU 包装后单件商品尺寸重量表，直接按各站本地政策测算 FBA 可能场景。美国站支持基础费、低价费、SIPP、燃油物流附加费及低量库存费组合；墨西哥站支持已公开确认的本地基础费率；加拿大站会在尺寸规则可核验后启用自动计费。</p>
           <p class="hint">当前 HTML 版为纯本地运行，不依赖 Python。支持在线逐行录入、<span class="inline-code">CSV</span> 批量导入和结果导出。</p>
         </div>
         <div class="mini-card alt">
           <h3>这版包含</h3>
-          <p>美国站规则包版本 <span class="inline-code">2026-01-15（核验于 2026-05-25）</span></p>
+          <p>美国站规则包 <span class="inline-code">2026-01-15</span>；墨西哥本地 FBA 费率 <span class="inline-code">2026-02-17</span></p>
           <p>已包含 <span class="inline-code">2026-04-17</span> 生效的 <span class="inline-code">3.5%</span> 燃油/物流附加费。</p>
-          <p>结果摘要里会直接标出“<strong>是否已含燃油附加费</strong>”。</p>
+          <p class="hint">燃油附加费当前仅在已确认的美国站场景中计算；各站规则严格隔离。</p>
         </div>
       </div>
     </section>
@@ -492,8 +492,9 @@
                 <th>宽 cm<small>包装后</small></th>
                 <th>高 cm<small>包装后</small></th>
                 <th>重量 kg<small>包装后</small></th>
-                <th>售价 USD<small>留空穷举</small></th>
-                <th>是否服饰<small>费率依据</small></th>
+                <th>售价<small>sale_price_local</small></th>
+                <th>是否服饰<small>US 费率依据</small></th>
+                <th>MX 类目组<small>留空穷举</small></th>
                 <th>SIPP<small>留空穷举</small></th>
                 <th>30天供货<small>与90天共同判断</small></th>
                 <th>90天供货<small>两项空才穷举</small></th>
@@ -522,9 +523,9 @@
           </label>
           <div class="mini-card">
             <h3>输入列</h3>
-            <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">is_apparel</span></p>
+            <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">sale_price_local</span></p>
             <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
-            <p class="hint"><span class="inline-code">category</span> 是可选展示字段；当前费率判断使用 <span class="inline-code">is_apparel</span>。价格列 <span class="inline-code">sale_price_usd</span> 可留空；留空时会按政策穷举低价/非低价分支。</p>
+            <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写：US 为 USD，MX 为 MXN，CA 为 CAD。US 使用 <span class="inline-code">is_apparel</span>；MX 可填写 <span class="inline-code">mx_fee_group</span> 为 <span class="inline-code">main</span>、<span class="inline-code">health_grocery</span> 或 <span class="inline-code">other</span>，留空时穷举三个类目组。</p>
           </div>
         </div>
         <label style="margin-top:16px;">
@@ -538,16 +539,16 @@
         <button id="exportResults" class="secondary" disabled>导出 results.csv</button>
         <button id="exportScenarios" class="secondary" disabled>导出 scenarios.csv</button>
       </div>
-      <div id="status" class="status">就绪。当前内置 US 规则包，按政策穷举所有可能配送费场景。</div>
+      <div id="status" class="status">就绪。当前启用 US 与 MX 本地规则包；CA 仅展示已确认费率来源，待官方尺寸正文确认后启用自动计算。</div>
     </section>
 
     <section class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
         <div>
           <h2>当前内置规则</h2>
-          <p>这里展示的规则直接读取本页面实际参与测算的规则包；修改计算数据后，本区域也会随之变化。</p>
+          <p>这里展示美国站当前参与穷举测算的完整组合规则；墨西哥本地 FBA 已在测算引擎按其独立尺寸和币种规则处理，来源见下方。</p>
         </div>
-        <span class="pill">US · 2026-01-15 起</span>
+        <span class="pill">US + MX LOCAL FBA</span>
       </div>
       <div class="rule-intro">
         <div class="mini-card alt">
@@ -619,6 +620,47 @@
         <div class="table-wrap rule-table">
           <table id="adjustmentRulesTable"></table>
         </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-head">
+          <div>
+            <h3>CA / MX 本地规则状态</h3>
+            <p class="hint">加拿大和墨西哥不会复用 US 的英寸/磅尺寸段或 US 附加费组合。</p>
+          </div>
+        </div>
+        <div class="table-wrap rule-table">
+          <table id="marketRuleStatusTable"></table>
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-head">
+          <div>
+            <h3>MX 本地 FBA 基础配送费率</h3>
+            <p class="hint">金额单位 MXN，不含 IVA；仅显示并计算官方公开费率页已列示的本地基础配送费。</p>
+          </div>
+          <div class="rule-selectors">
+            <label>MX 类目组
+              <select id="mxRuleCategory">
+                <option value="main">主要类目</option>
+                <option value="health_grocery">健康/食品</option>
+                <option value="other">其他类目</option>
+              </select>
+            </label>
+            <label>MX 尺寸分段
+              <select id="mxRuleSizeTier">
+                <option value="envelope">Sobre</option>
+                <option value="standard">Estándar</option>
+                <option value="large">Tamaño grande</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="table-wrap rule-table">
+          <table id="mxBaseFeeRulesTable"></table>
+        </div>
+        <div class="rule-note">MX 的体积重除数当前作为 <span class="inline-code">5,000 cm3/kg</span> 待复核口径显示于结果中；在取得 Seller Central MX 公式原文前，请不要将 MX 输出作为最终结算依据。</div>
       </div>
     </section>
 
@@ -776,13 +818,99 @@
       ]
     };
 
+    const CA_POLICY = {
+      marketplace: "CA",
+      currency: "CAD",
+      version: "2026-02-01_public_pricing",
+      low_price_threshold: 14,
+      low_price_reduction: 0.80,
+      calculation_status: "awaiting_official_size_tier_text",
+      note: "官方公开定价页已确认基础计费结构与低价减免，但其商品尺寸分段帮助链接当前要求登录；为避免误套 US 尺寸规则，CA 自动计费暂未启用。"
+    };
+
+    const MX_POLICY = {
+      marketplace: "MX",
+      currency: "MXN",
+      version: "2026-02-17_public_pricing",
+      dimensional_weight_divisor_cm3_per_kg: 5000,
+      dimensional_formula_verification: "墨西哥公开费率页确认商品重量与体积重量取较大值；体积重量除数 5,000 请在正式使用前与 Seller Central 帮助正文复核。",
+      size_tiers: {
+        envelope: { label: "Sobre", max_longest_cm: 38, max_median_cm: 27, max_shortest_cm: 2 },
+        standard: { label: "Estándar", max_longest_cm: 45, max_median_cm: 35, max_shortest_cm: 20 },
+        large: { label: "Tamaño grande", max_length_plus_girth_cm: 550, max_longest_cm: 270 }
+      },
+      price_bands: [
+        { code: "under_150", label: "< MXN 150", min: null, max_exclusive: 150 },
+        { code: "150_299", label: "MXN 150 - 298.99", min: 150, max_exclusive: 299 },
+        { code: "299_499", label: "MXN 299 - 498.99", min: 299, max_exclusive: 499 },
+        { code: "499_plus", label: ">= MXN 499", min: 499, max_exclusive: null }
+      ],
+      fee_groups: {
+        main: {
+          label: "主要类目（服饰、汽车用品、美妆等官方列示类目）",
+          envelope: [[0.1,43,43,43,43],[0.2,45,47,47,47],[0.3,46,49,49,49],[0.4,47,51,51,51],[Infinity,50,53,53,53]],
+          standard: [[0.1,53,57,62,65],[0.2,54,59,64,67],[0.3,55,61,66,69],[0.4,57,62,67,70],[0.5,59,64,69,72],[0.6,61,66,71,74],[0.7,63,68,73,76],[0.8,66,71,76,79],[0.9,68,73,78,81],[1,69,75,80,83]],
+          standard_above_1kg: { base: [75,81,86,89], first_band_max_kg: 1.25, interval_kg: 0.25, increment: [3,3,3,3] },
+          large_upto_1kg: [85,92,97,98],
+          large_above_1kg: { interval_kg: 0.5, increment: [5,5,5,5] }
+        },
+        health_grocery: {
+          label: "Salud y Cuidado Personal / Despensa y bebidas",
+          envelope: [[0.1,31,31,36,36],[0.2,33,35,40,40],[0.3,36,38,43,43],[0.4,38,40,45,45],[Infinity,40,42,47,47]],
+          standard: [[0.1,36,40,45,48],[0.2,38,42,47,50],[0.3,40,44,49,52],[0.4,42,46,51,54],[0.5,44,48,53,56],[0.6,46,50,55,58],[0.7,48,52,57,60],[0.8,50,54,59,62],[0.9,52,56,61,64],[1,54,58,63,66]],
+          standard_above_1kg: { base: [60,64,69,72], first_band_max_kg: 1.25, interval_kg: 0.25, increment: [3,3,3,3] },
+          large_upto_1kg: [70,75,80,81],
+          large_above_1kg: { interval_kg: 0.5, increment: [5,5,5,5] }
+        },
+        other: {
+          label: "其他官方列示类目（含设备、视频游戏等）",
+          envelope: [[0.1,49,51,56,56],[0.2,51,53,58,58],[0.3,53,55,60,60],[0.4,55,57,62,62],[Infinity,57,59,64,64]],
+          standard: [[0.1,57,59,64,67],[0.2,59,61,66,69],[0.3,61,63,68,71],[0.4,63,65,70,73],[0.5,65,67,72,75],[0.6,67,69,74,77],[0.7,69,71,76,79],[0.8,71,73,78,81],[0.9,73,75,80,83],[1,75,77,82,85]],
+          standard_above_1kg: { base: [81,83,88,91], first_band_max_kg: 1.25, interval_kg: 0.25, increment: [3,3,3,3] },
+          large_upto_1kg: [91,93,98,99],
+          large_above_1kg: { interval_kg: 0.5, increment: [5,5,5,5] }
+        }
+      }
+    };
+
+    const MARKET_SOURCES = [
+      {
+        group: "CA local FBA public pricing (calculation pending size tiers)",
+        kind: "official_public",
+        title: "Amazon.ca selling fees and FBA fulfilment pricing",
+        url: "https://sell.amazon.ca/pricing",
+        note: "Official Amazon Canada page. Confirms fees effective February 1, 2026, CAD fulfilment fee structure, shipping weight based on the greater of unit or dimensional weight, and Low-Price FBA reduction of CAD 0.80 for eligible items below CAD 14. Product size-tier detail links to Seller Central and requires access in this verification session, so CA automatic calculation is intentionally not enabled."
+      },
+      {
+        group: "MX local FBA fulfilment rates and size tiers",
+        kind: "official_public",
+        title: "Logística de Amazon - tarifas vigentes a partir del 17 de febrero de 2026",
+        url: "https://vender.amazon.com.mx/logistica-de-amazon",
+        note: "Official Amazon Mexico page. Used for MXN fee tables, four sale-price bands, official listed category groups, Sobre/Estándar/Tamaño grande size boundaries, and the rule that fulfilment fees use the greater of product weight or dimensional weight. IVA is excluded on the official table."
+      },
+      {
+        group: "MX Tamaño grande boundary interpretation",
+        kind: "official_public",
+        title: "Centro de capacitación de Logística de Amazon México",
+        url: "https://vender.amazon.com.mx/logistica-de-amazon/centro-de-capacitacion/empezar",
+        note: "Official Amazon Mexico training page. Used together with the pricing page to interpret Tamaño grande as longest side up to 270 cm and girth plus length up to 550 cm, rather than reusing a US oversize tier."
+      },
+      {
+        group: "MX dimensional-weight divisor verification note",
+        kind: "requires_confirmation",
+        title: "Seller Central MX dimensional-weight help page required",
+        url: "https://vender.amazon.com.mx/logistica-de-amazon",
+        note: "The public MX pricing page confirms dimensional-weight usage but the divisor detail is not present in the retrievable fee-table text. The calculator currently exposes its 5,000 cm3/kg working assumption in each MX result; confirm against the Seller Central MX help text before production costing."
+      }
+    ];
+
     const TEMPLATE_HEADERS = [
       "country", "sku", "product_name", "category", "length_cm", "width_cm", "height_cm",
-      "weight_kg", "sale_price_usd", "is_apparel", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
+      "weight_kg", "sale_price_local", "is_apparel", "mx_fee_group", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
     ];
     const TEMPLATE_ROWS = [
-      ["US", "SKU-001", "示例普通品", "", "22", "13", "2", "0.18", "9.99", "N", "", "", ""],
-      ["US", "SKU-002", "示例服饰品", "", "30", "25", "4", "0.62", "", "Y", "N", "", ""]
+      ["US", "SKU-001", "示例普通品", "", "22", "13", "2", "0.18", "9.99", "N", "", "", "", ""],
+      ["MX", "SKU-MX-001", "示例墨西哥普通品", "", "30", "20", "10", "0.5", "249", "N", "main", "", "", ""]
     ];
     const TEMPLATE_CSV = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
 
@@ -797,11 +925,19 @@
         <td><input data-field="width_cm" type="number" step="any" min="0" aria-label="宽 cm"></td>
         <td><input data-field="height_cm" type="number" step="any" min="0" aria-label="高 cm"></td>
         <td><input data-field="weight_kg" type="number" step="any" min="0" aria-label="重量 kg"></td>
-        <td><input data-field="sale_price_usd" type="number" step="any" min="0" aria-label="售价 USD" placeholder="留空"></td>
+        <td><input data-field="sale_price_local" type="number" step="any" min="0" aria-label="站点币种售价" placeholder="留空"></td>
         <td>
           <select data-field="is_apparel" aria-label="是否服饰">
             <option value="N">非服饰</option>
             <option value="Y">服饰</option>
+          </select>
+        </td>
+        <td>
+          <select data-field="mx_fee_group" aria-label="墨西哥费率类目组">
+            <option value="">MX 留空穷举</option>
+            <option value="main">主要类目</option>
+            <option value="health_grocery">健康/食品</option>
+            <option value="other">其他类目</option>
           </select>
         </td>
         <td>
@@ -841,7 +977,7 @@
         return TEMPLATE_HEADERS.map(field => row.querySelector(`[data-field="${field}"]`).value.trim());
       });
       const activeRows = rows.filter(values => {
-        return values.some((value, index) => !["country", "is_apparel"].includes(TEMPLATE_HEADERS[index]) && value !== "");
+        return values.some((value, index) => !["country", "is_apparel", "mx_fee_group"].includes(TEMPLATE_HEADERS[index]) && value !== "");
       });
       if (!activeRows.length) throw new Error("请先在在线录入表格中填写至少一个商品。");
       return [TEMPLATE_HEADERS, ...activeRows].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
@@ -869,8 +1005,10 @@
       width_cm: ["width_cm", "宽", "width"],
       height_cm: ["height_cm", "高", "height"],
       weight_kg: ["weight_kg", "重量", "weight"],
-      sale_price_usd: ["sale_price_usd", "price", "售价", "售价usd", "price_usd"],
+      sale_price_local: ["sale_price_local", "sale_price", "price", "售价", "local_price", "price_local"],
+      sale_price_usd: ["sale_price_usd", "售价usd", "price_usd"],
       is_apparel: ["is_apparel", "apparel", "服饰", "服装"],
+      mx_fee_group: ["mx_fee_group", "mx_category_group", "墨西哥类目组", "mx类目组"],
       sipp_eligible: ["sipp_eligible", "sipp", "sioc", "ships_in_product_packaging"],
       days_of_supply_30: ["days_of_supply_30", "dos_30", "30天库存天数", "30d_supply"],
       days_of_supply_90: ["days_of_supply_90", "dos_90", "90天库存天数", "90d_supply"]
@@ -1018,7 +1156,8 @@
         const widthCm = safeFloat(row.width_cm);
         const heightCm = safeFloat(row.height_cm);
         const weightKg = safeFloat(row.weight_kg);
-        const salePriceUsd = safeFloat(row.sale_price_usd);
+        const salePriceLocal = safeFloat(row.sale_price_local);
+        const legacySalePriceUsd = safeFloat(row.sale_price_usd);
         if (!country || !sku) throw new Error(`第 ${item.rowNumber} 行 country 或 sku 为空。`);
         if ([lengthCm, widthCm, heightCm, weightKg].some(value => value === null)) {
           throw new Error(`第 ${item.rowNumber} 行尺寸或重量不是有效数字。`);
@@ -1038,8 +1177,10 @@
           widthCm,
           heightCm,
           weightKg,
-          salePriceUsd,
+          salePriceLocal: salePriceLocal ?? (country === "US" ? legacySalePriceUsd : null),
+          salePriceUsd: country === "US" ? (salePriceLocal ?? legacySalePriceUsd) : null,
           isApparel: safeBool(row.is_apparel) || category.toLowerCase().includes("apparel"),
+          mxFeeGroup: String(row.mx_fee_group || "").trim().toLowerCase(),
           sippEligible: safeOptionalBool(row.sipp_eligible),
           daysOfSupply30,
           daysOfSupply90
@@ -1324,14 +1465,14 @@
           base_fee_type: "standard_fba",
           base_fee: standardFee,
           base_fee_match: describeBaseFeeMatch(sizeTier, shippingWeightLb, row.isApparel, "10_50"),
-          condition: `若 sale_price_usd >= ${POLICY.low_price_threshold} 且 <= 50 USD，则适用 $10-$50 标准 FBA 配送费`
+          condition: `若 sale_price_local (USD) >= ${POLICY.low_price_threshold} 且 <= 50，则适用 $10-$50 标准 FBA 配送费`
         });
         if (lowPriceFee !== null) {
           baseFeeOptions.push({
             base_fee_type: "low_price_fba",
             base_fee: lowPriceFee,
             base_fee_match: describeBaseFeeMatch(sizeTier, shippingWeightLb, row.isApparel, "under_10"),
-            condition: `若 sale_price_usd < ${POLICY.low_price_threshold} USD，则适用 Low-Price FBA`
+            condition: `若 sale_price_local (USD) < ${POLICY.low_price_threshold}，则适用 Low-Price FBA`
           });
         }
         if (highPriceFee !== null) {
@@ -1339,7 +1480,7 @@
             base_fee_type: "high_price_fba",
             base_fee: highPriceFee,
             base_fee_match: describeBaseFeeMatch(sizeTier, shippingWeightLb, row.isApparel, "over_50"),
-            condition: "若 sale_price_usd > 50 USD，则适用 >$50 高价标准 FBA 配送费"
+            condition: "若 sale_price_local (USD) > 50，则适用 >$50 高价标准 FBA 配送费"
           });
         }
       } else if (row.salePriceUsd < POLICY.low_price_threshold && lowPriceFee !== null) {
@@ -1347,14 +1488,14 @@
           base_fee_type: "low_price_fba",
           base_fee: lowPriceFee,
           base_fee_match: describeBaseFeeMatch(sizeTier, shippingWeightLb, row.isApparel, "under_10"),
-          condition: `实际 sale_price_usd < ${POLICY.low_price_threshold} USD，适用 Low-Price FBA`
+          condition: `实际 sale_price_local (USD) < ${POLICY.low_price_threshold}，适用 Low-Price FBA`
         });
       } else if (row.salePriceUsd > 50 && highPriceFee !== null) {
         baseFeeOptions.push({
           base_fee_type: "high_price_fba",
           base_fee: highPriceFee,
           base_fee_match: describeBaseFeeMatch(sizeTier, shippingWeightLb, row.isApparel, "over_50"),
-          condition: "实际 sale_price_usd > 50 USD，适用 >$50 高价标准 FBA 配送费"
+          condition: "实际 sale_price_local (USD) > 50，适用 >$50 高价标准 FBA 配送费"
         });
       } else {
         baseFeeOptions.push({
@@ -1388,6 +1529,7 @@
               country: row.country,
               sku: row.sku,
               product_name: row.productName,
+              currency: POLICY.currency,
               size_tier: sizeTier,
               shipping_weight_lb: round3(shippingWeightLb),
               base_fee_type: baseOption.base_fee_type,
@@ -1444,14 +1586,191 @@
       return [...new Set(scenarioRows.map(item => item.base_fee_usd))].join(", ");
     }
 
+    function getMxPriceBandOptions(salePriceLocal) {
+      if (salePriceLocal === null) return MX_POLICY.price_bands.map((band, index) => ({ ...band, index }));
+      const index = MX_POLICY.price_bands.findIndex(band => {
+        const aboveMin = band.min === null || salePriceLocal >= band.min;
+        const belowMax = band.max_exclusive === null || salePriceLocal < band.max_exclusive;
+        return aboveMin && belowMax;
+      });
+      return [{ ...MX_POLICY.price_bands[index], index }];
+    }
+
+    function getMxFeeGroupOptions(mxFeeGroup) {
+      if (mxFeeGroup && MX_POLICY.fee_groups[mxFeeGroup]) return [mxFeeGroup];
+      return Object.keys(MX_POLICY.fee_groups);
+    }
+
+    function determineMxSizeTier(longestCm, medianCm, shortestCm) {
+      const tiers = MX_POLICY.size_tiers;
+      if (longestCm <= tiers.envelope.max_longest_cm && medianCm <= tiers.envelope.max_median_cm && shortestCm <= tiers.envelope.max_shortest_cm) return "envelope";
+      if (longestCm <= tiers.standard.max_longest_cm && medianCm <= tiers.standard.max_median_cm && shortestCm <= tiers.standard.max_shortest_cm) return "standard";
+      const lengthPlusGirthCm = longestCm + 2 * (medianCm + shortestCm);
+      if (longestCm <= tiers.large.max_longest_cm && lengthPlusGirthCm <= tiers.large.max_length_plus_girth_cm) return "large";
+      return "mx_size_limit_exceeded";
+    }
+
+    function computeMxBaseFee(sizeTier, shippingWeightKg, groupCode, priceBandIndex) {
+      const group = MX_POLICY.fee_groups[groupCode];
+      if (sizeTier === "envelope") {
+        const band = group.envelope.find(item => shippingWeightKg <= item[0] + 1e-9);
+        return Number(band[priceBandIndex + 1]);
+      }
+      if (sizeTier === "standard" && shippingWeightKg <= 1) {
+        const band = group.standard.find(item => shippingWeightKg <= item[0] + 1e-9);
+        return Number(band[priceBandIndex + 1]);
+      }
+      if (sizeTier === "standard") {
+        const formula = group.standard_above_1kg;
+        const steps = ceilIntervals(shippingWeightKg - formula.first_band_max_kg, formula.interval_kg);
+        return round2(formula.base[priceBandIndex] + steps * formula.increment[priceBandIndex]);
+      }
+      const base = group.large_upto_1kg[priceBandIndex];
+      const formula = group.large_above_1kg;
+      const steps = ceilIntervals(shippingWeightKg - 1, formula.interval_kg);
+      return round2(base + steps * formula.increment[priceBandIndex]);
+    }
+
+    function describeMxFeeMatch(sizeTier, shippingWeightKg, groupCode, priceBand) {
+      const group = MX_POLICY.fee_groups[groupCode];
+      const fee = computeMxBaseFee(sizeTier, shippingWeightKg, groupCode, priceBand.index);
+      if (sizeTier === "envelope") {
+        const band = group.envelope.find(item => shippingWeightKg <= item[0] + 1e-9);
+        const weightBand = Number.isFinite(band[0]) ? `<= ${band[0]} kg` : "> 0.40 kg";
+        return `${groupCode}, ${priceBand.label}, Sobre: ${shippingWeightKg} kg => ${weightBand} => MXN ${fee}`;
+      }
+      if (sizeTier === "standard" && shippingWeightKg <= 1) {
+        const band = group.standard.find(item => shippingWeightKg <= item[0] + 1e-9);
+        return `${groupCode}, ${priceBand.label}, Estándar: ${shippingWeightKg} kg => <= ${band[0]} kg => MXN ${fee}`;
+      }
+      if (sizeTier === "standard") {
+        const formula = group.standard_above_1kg;
+        const steps = ceilIntervals(shippingWeightKg - formula.first_band_max_kg, formula.interval_kg);
+        return `${groupCode}, ${priceBand.label}, Estándar > 1 kg: ${formula.base[priceBand.index]} + ${steps} x ${formula.increment[priceBand.index]} => MXN ${fee}`;
+      }
+      const steps = ceilIntervals(shippingWeightKg - 1, group.large_above_1kg.interval_kg);
+      return `${groupCode}, ${priceBand.label}, Tamaño grande: ${group.large_upto_1kg[priceBand.index]} + ${steps} x ${group.large_above_1kg.increment[priceBand.index]} => MXN ${fee}`;
+    }
+
+    function calculateMxRow(row) {
+      const dimsCm = [row.lengthCm, row.widthCm, row.heightCm].sort((a, b) => b - a).map(round2);
+      const [longestCm, medianCm, shortestCm] = dimsCm;
+      const lengthPlusGirthCm = round2(longestCm + 2 * (medianCm + shortestCm));
+      const sizeTier = determineMxSizeTier(longestCm, medianCm, shortestCm);
+      if (sizeTier === "mx_size_limit_exceeded") {
+        return {
+          result: {
+            row_number: row.rowNumber, country: row.country, sku: row.sku, product_name: row.productName,
+            category: row.category, status: "mx_size_limit_exceeded", currency: MX_POLICY.currency,
+            size_tier: sizeTier, notes: "输入尺寸超过当前已确认的 MX Tamaño grande 尺寸边界，未生成费用场景。"
+          },
+          scenarios: []
+        };
+      }
+      const unitWeightKg = round3(row.weightKg);
+      const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / MX_POLICY.dimensional_weight_divisor_cm3_per_kg);
+      const shippingWeightKg = round3(Math.max(unitWeightKg, dimensionalWeightKg));
+      const categoryGroups = getMxFeeGroupOptions(row.mxFeeGroup);
+      const priceBands = getMxPriceBandOptions(row.salePriceLocal);
+      const scenarios = [];
+      let scenarioId = 1;
+      categoryGroups.forEach(groupCode => {
+        priceBands.forEach(priceBand => {
+          const fee = computeMxBaseFee(sizeTier, shippingWeightKg, groupCode, priceBand.index);
+          scenarios.push({
+            scenario_id: scenarioId,
+            row_number: row.rowNumber,
+            country: row.country,
+            sku: row.sku,
+            product_name: row.productName,
+            scenario_name: `mx_local_fba + ${groupCode} + ${priceBand.code}`,
+            currency: MX_POLICY.currency,
+            size_tier: sizeTier,
+            shipping_weight_kg: shippingWeightKg,
+            base_fee_type: "mx_local_fba",
+            base_fee_local_currency: fee,
+            base_fee_match: describeMxFeeMatch(sizeTier, shippingWeightKg, groupCode, priceBand),
+            mx_fee_group: groupCode,
+            price_band: priceBand.label,
+            final_fee_local_currency: fee,
+            conditions: `${row.mxFeeGroup ? "已指定" : "若适用"} MX 类目组 ${groupCode}；${row.salePriceLocal === null ? "若售价落入" : "实际售价落入"} ${priceBand.label}；当前仅计入已确认的 MX 本地 FBA 基础配送费，不套用 US 附加/折扣政策`
+          });
+          scenarioId += 1;
+        });
+      });
+      const fees = scenarios.map(item => item.final_fee_local_currency);
+      return {
+        result: {
+          row_number: row.rowNumber,
+          country: row.country,
+          sku: row.sku,
+          product_name: row.productName,
+          category: row.category,
+          status: "ok_pending_dimensional_formula_verification",
+          currency: MX_POLICY.currency,
+          rule_pack: MX_POLICY.version,
+          size_tier: sizeTier,
+          size_tier_reason: `${sizeTier} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm; length_plus_girth_cm=${lengthPlusGirthCm}`,
+          measurement_rounding_rule: "MX 尺寸按输入 cm 四舍五入至 2 位用于尺寸比较；计费重量以 kg 四舍五入至 3 位用于费率匹配",
+          length_cm: row.lengthCm,
+          width_cm: row.widthCm,
+          height_cm: row.heightCm,
+          weight_kg: row.weightKg,
+          longest_cm: longestCm,
+          median_cm: medianCm,
+          shortest_cm: shortestCm,
+          length_plus_girth_cm: lengthPlusGirthCm,
+          dimensional_weight_kg: dimensionalWeightKg,
+          shipping_weight_kg: shippingWeightKg,
+          shipping_weight_basis: `商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 取较大值`,
+          dimensional_weight_formula_note: MX_POLICY.dimensional_formula_verification,
+          sale_price_local: row.salePriceLocal ?? "",
+          mx_fee_group: row.mxFeeGroup || "UNKNOWN / ENUMERATED",
+          applied_base_fee_type: "mx_local_fba",
+          applied_base_fee_local_currency: [...new Set(scenarios.map(item => item.base_fee_local_currency))].join(", "),
+          all_fba_fees_local_currency: fees.join(", "),
+          scenario_count: scenarios.length,
+          min_final_fee_local_currency: Math.min(...fees),
+          max_final_fee_local_currency: Math.max(...fees),
+          notes: "MX 本地 FBA 基础费已计算；SIPP、低量库存费与燃油/物流附加费未在已核验 MX 公开政策中配置，因此未计入。"
+        },
+        scenarios
+      };
+    }
+
+    function calculateCaPendingRow(row) {
+      return {
+        result: {
+          row_number: row.rowNumber,
+          country: row.country,
+          sku: row.sku,
+          product_name: row.productName,
+          category: row.category,
+          status: CA_POLICY.calculation_status,
+          currency: CA_POLICY.currency,
+          sale_price_local: row.salePriceLocal ?? "",
+          notes: CA_POLICY.note
+        },
+        scenarios: [{
+          row_number: row.rowNumber,
+          country: row.country,
+          sku: row.sku,
+          product_name: row.productName,
+          currency: CA_POLICY.currency,
+          scenario_name: CA_POLICY.calculation_status,
+          conditions: CA_POLICY.note
+        }]
+      };
+    }
+
     const RESULTS_COLUMNS = [
-      "row_number", "country", "sku", "product_name", "category", "status", "size_tier",
+      "row_number", "country", "sku", "product_name", "category", "status", "currency", "rule_pack", "size_tier",
       "size_tier_reason", "measurement_rounding_rule", "length_cm", "width_cm", "height_cm", "weight_kg",
       "raw_longest_in", "raw_median_in", "raw_shortest_in",
       "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
       "shipping_weight_basis", "shipping_weight_policy_unit", "shipping_weight_policy_value", "shipping_weight_band",
       "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb", "dimensional_weight_width_in", "dimensional_weight_height_in",
-      "price_band", "applied_base_fee_type", "applied_base_fee_usd", "applicable_fba_fee_including_fuel_usd", "all_fba_fees_usd",
+      "sale_price_local", "price_band", "mx_fee_group", "applied_base_fee_type", "applied_base_fee_local_currency", "all_fba_fees_local_currency", "applied_base_fee_usd", "applicable_fba_fee_including_fuel_usd", "all_fba_fees_usd",
       "standard_fba_fee_usd", "standard_fba_fee_match",
       "low_price_fba_fee_usd", "low_price_fba_fee_match",
       "high_price_fba_fee_usd", "high_price_fba_fee_match",
@@ -1463,7 +1782,8 @@
     ];
 
     const SCENARIO_COLUMNS = [
-      "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "base_fee_type",
+      "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "currency", "base_fee_type",
+      "base_fee_local_currency", "final_fee_local_currency", "mx_fee_group", "price_band", "shipping_weight_kg",
       "base_fee_usd", "base_fee_match", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_after_sipp_usd",
       "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
       "fuel_logistics_surcharge_usd", "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate",
@@ -1475,6 +1795,18 @@
       const scenarios = [];
 
       rows.forEach(row => {
+        if (row.country === "MX") {
+          const mxComputed = calculateMxRow(row);
+          results.push(mxComputed.result);
+          scenarios.push(...mxComputed.scenarios);
+          return;
+        }
+        if (row.country === "CA") {
+          const caComputed = calculateCaPendingRow(row);
+          results.push(caComputed.result);
+          scenarios.push(...caComputed.scenarios);
+          return;
+        }
         if (row.country !== "US") {
           results.push({
             row_number: row.rowNumber,
@@ -1482,7 +1814,7 @@
             sku: row.sku,
             product_name: row.productName,
             status: "unsupported_marketplace",
-            notes: "当前版本仅内置 US 规则包。"
+            notes: "当前版本仅启用 US 与 MX 本地计算；CA 等待官方尺寸分段正文确认。"
           });
           scenarios.push({
             row_number: row.rowNumber,
@@ -1490,7 +1822,7 @@
             sku: row.sku,
             product_name: row.productName,
             scenario_name: "unsupported_marketplace",
-            conditions: "当前版本仅内置 US 规则包。"
+            conditions: "当前版本仅启用 US 与 MX 本地计算；CA 等待官方尺寸分段正文确认。"
           });
           return;
         }
@@ -1545,6 +1877,8 @@
           product_name: row.productName,
           category: row.category,
           status: "ok",
+          currency: POLICY.currency,
+          rule_pack: POLICY.version,
           size_tier: sizeTier,
           size_tier_reason: sizeTierReason,
           measurement_rounding_rule: "费用变量尺寸/商品重量四舍五入取到 2 位小数后判断尺寸；适用体积重量的尺寸分段按宽和高最小 2 in 计算，体积重量及计费重四舍五入取到 3 位小数",
@@ -1563,6 +1897,7 @@
           shipping_weight_policy_unit: appliedPolicyInfo.unit,
           shipping_weight_policy_value: appliedPolicyInfo.value,
           shipping_weight_band: appliedPolicyInfo.band,
+          sale_price_local: row.salePriceUsd ?? "",
           sale_price_usd: row.salePriceUsd ?? "",
           is_apparel: row.isApparel ? "Y" : "N",
           sipp_eligible_input: row.sippEligible === null ? "" : (row.sippEligible ? "Y" : "N"),
@@ -1614,12 +1949,17 @@
     }
 
     function renderStats(results, scenarios) {
+      const currencies = [...new Set(results.filter(row => row.status.startsWith("ok")).map(row => row.currency))];
+      const singleCurrency = currencies.length === 1 ? currencies[0] : "";
+      const amountField = singleCurrency === "USD" ? "min_final_fee_usd" : (singleCurrency === "MXN" ? "min_final_fee_local_currency" : "");
+      const maxAmountField = singleCurrency === "USD" ? "max_final_fee_usd" : (singleCurrency === "MXN" ? "max_final_fee_local_currency" : "");
+      const validResults = results.filter(row => row.status.startsWith("ok"));
       const stats = [
         { label: "SKU 行数", value: results.length },
         { label: "场景总数", value: scenarios.length },
-        { label: "最低可能费", value: results.length ? `${Math.min(...results.filter(r => r.status === "ok").map(r => r.min_final_fee_usd)) || 0} USD` : "-" },
-        { label: "最高可能费", value: results.length ? `${Math.max(...results.filter(r => r.status === "ok").map(r => r.max_final_fee_usd)) || 0} USD` : "-" },
-        { label: "燃油附加费", value: POLICY.fuel_logistics_surcharge.enabled ? formatPercent(POLICY.fuel_logistics_surcharge.rate) : "未启用" }
+        { label: "最低可能费", value: amountField && validResults.length ? `${Math.min(...validResults.map(r => r[amountField]))} ${singleCurrency}` : (validResults.length ? "分币种查看" : "-") },
+        { label: "最高可能费", value: maxAmountField && validResults.length ? `${Math.max(...validResults.map(r => r[maxAmountField]))} ${singleCurrency}` : (validResults.length ? "分币种查看" : "-") },
+        { label: "US 燃油附加费", value: POLICY.fuel_logistics_surcharge.enabled ? formatPercent(POLICY.fuel_logistics_surcharge.rate) : "未启用" }
       ];
       const container = document.getElementById("stats");
       container.innerHTML = stats.map(item => `<div class="stat"><strong>${item.value}</strong><span>${item.label}</span></div>`).join("");
@@ -1765,15 +2105,69 @@
       document.getElementById("adjustmentRulesTable").insertAdjacentHTML("afterend", `<div class="rule-note">${sipp.detail_verification_status}</div>`);
     }
 
+    function renderMarketRuleStatus() {
+      renderTable("marketRuleStatusTable", [
+        {
+          "站点": "CA 本地 FBA",
+          "状态": "暂不自动计费",
+          "尺寸/计费重口径": "不使用 US 规则；官方尺寸分段帮助正文待获取",
+          "费用政策": "官方公开页确认 2026-02-01 起费率；符合条件且售价 < CAD 14 时标准 FBA 费减 CAD 0.80"
+        },
+        {
+          "站点": "MX 本地 FBA",
+          "状态": "基础费率已接入，体积重除数待最终复核",
+          "尺寸/计费重口径": "cm/kg；Sobre <= 38 x 27 x 2 cm，Estándar <= 45 x 35 x 20 cm；Tamaño grande 独立边界；商品重量与体积重量取较大值",
+          "费用政策": "2026-02-17 起 MXN 四价格段、三类目费率组；未套用 US SIPP/低量库存费/燃油附加费"
+        }
+      ]);
+    }
+
+    function formatMxn(value) {
+      return `MXN ${Number(value).toFixed(2)}`;
+    }
+
+    function renderMxBaseFeeRules() {
+      const group = MX_POLICY.fee_groups[document.getElementById("mxRuleCategory").value];
+      const sizeTier = document.getElementById("mxRuleSizeTier").value;
+      const rows = [];
+      const mapFeeRow = (label, values) => ({
+        "计费重量档": label,
+        "< MXN 150": formatMxn(values[0]),
+        "MXN 150-298.99": formatMxn(values[1]),
+        "MXN 299-498.99": formatMxn(values[2]),
+        ">= MXN 499": formatMxn(values[3])
+      });
+      if (sizeTier === "envelope") {
+        group.envelope.forEach((band, index) => {
+          const previous = index === 0 ? 0 : group.envelope[index - 1][0];
+          const label = Number.isFinite(band[0]) ? `${previous} 至 ${band[0]} kg` : "> 0.40 kg";
+          rows.push(mapFeeRow(label, band.slice(1)));
+        });
+      } else if (sizeTier === "standard") {
+        group.standard.forEach((band, index) => {
+          const previous = index === 0 ? 0 : group.standard[index - 1][0];
+          rows.push(mapFeeRow(`${previous} 至 ${band[0]} kg`, band.slice(1)));
+        });
+        rows.push(mapFeeRow("> 1 至 1.25 kg 基础费", group.standard_above_1kg.base));
+        rows.push(mapFeeRow("每额外 0.25 kg 加收", group.standard_above_1kg.increment));
+      } else {
+        rows.push(mapFeeRow("0 至 1 kg 基础费", group.large_upto_1kg));
+        rows.push(mapFeeRow("每额外 0.50 kg 加收", group.large_above_1kg.increment));
+      }
+      renderTable("mxBaseFeeRulesTable", rows);
+    }
+
     function renderEmbeddedRules() {
       renderSizeTierRules();
       renderBaseFeeRules();
       renderAdjustmentRules();
+      renderMarketRuleStatus();
+      renderMxBaseFeeRules();
     }
 
     function renderSources() {
       const container = document.getElementById("sources");
-      container.innerHTML = POLICY.sources.map(source => `
+      container.innerHTML = [...POLICY.sources, ...MARKET_SOURCES].map(source => `
         <div class="source-item">
           <div class="pill" style="margin-bottom:8px;">${source.kind}</div>
           <h3 style="margin-bottom:6px;">${source.group}</h3>
@@ -1863,6 +2257,8 @@
     });
     document.getElementById("ruleCategory").addEventListener("change", renderBaseFeeRules);
     document.getElementById("ruleSizeTier").addEventListener("change", renderBaseFeeRules);
+    document.getElementById("mxRuleCategory").addEventListener("change", renderMxBaseFeeRules);
+    document.getElementById("mxRuleSizeTier").addEventListener("change", renderMxBaseFeeRules);
 
     setOnlineRows();
     updateInputMethod();
