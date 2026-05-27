@@ -546,7 +546,7 @@
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
         <div>
           <h2>当前内置规则</h2>
-          <p>按国家查看当前页面真正使用的规则包、已确认范围和待核验项目；各站费用逻辑不会交叉套用。</p>
+          <p>按国家查看当前页面真正使用的规则包、已确认范围和待核验项目；在线选择商品站点时此处会同步切换，混合站点 CSV 可在右侧手动查看。</p>
         </div>
         <div class="rule-selectors" style="min-width:260px;">
           <label>查看国家
@@ -2294,6 +2294,13 @@
       renderSources(marketplace);
     }
 
+    function showRulesForMarketplace(marketplace) {
+      const selector = document.getElementById("ruleMarketplace");
+      if (![...selector.options].some(option => option.value === marketplace)) return;
+      selector.value = marketplace;
+      updateRuleMarketplace();
+    }
+
     function escapeCsvCell(value) {
       const text = String(value ?? "");
       if (/[",\n\r]/.test(text)) return `"${text.replaceAll('"', '""')}"`;
@@ -2335,6 +2342,7 @@
         setStatus("正在测算，请稍等...");
         const text = await readInputText();
         const rows = parseInputRows(text);
+        if (rows.length) showRulesForMarketplace(rows[0].country);
         const computed = calculateRows(rows);
         state.results = computed.results;
         state.scenarios = computed.scenarios;
@@ -2380,6 +2388,9 @@
       if (!event.target.classList.contains("remove-online-row")) return;
       event.target.closest("tr").remove();
       if (!document.querySelector("#onlineInputRows tr")) addOnlineRow();
+    });
+    document.getElementById("onlineInputRows").addEventListener("change", event => {
+      if (event.target.matches('[data-field="country"]')) showRulesForMarketplace(event.target.value);
     });
     document.getElementById("ruleCategory").addEventListener("change", renderBaseFeeRules);
     document.getElementById("ruleSizeTier").addEventListener("change", renderBaseFeeRules);
