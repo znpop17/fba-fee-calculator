@@ -818,7 +818,8 @@
           large_bulky: {base_fee:2.48,base_weight_lb:1.0,interval_lb:1.0,increment_fee:0.13}
         },
         bulky_policy_effective_date: "2026-01-15",
-        detail_verification_status: "明细档位来自公开转载表，需以 Seller Central FBA 费率原页最终确认"
+        official_rate_source_url: "https://sellercentral.amazon.com/help/hub/reference/external/GFGVB6C7ZF38285W",
+        detail_verification_status: "美国 FBA SIPP 最新官方费率来源已更正为 Seller Central 帮助页 GFGVB6C7ZF38285W。当前内置折扣数值尚未从该原页逐档重录，SIPP 场景仅作待核验预览；请提供官方表格正文后再作为正式成本结果。"
       },
       low_inventory_fee: {
         small_standard: {"0_14":0.89,"14_21":0.63,"21_28":0.32},
@@ -830,9 +831,10 @@
         {group:"US FBA three price-band rate transcription",kind:"secondary_verification",title:"2026 Amazon FBA Fee Changes - Full Breakdown",url:"https://goatconsulting.com/blog/2026-amazon-fba-fee-changes-complete-breakdown",note:"Used to transcribe the detailed <$10, $10-$50, and >$50 tier values where the Amazon-linked detailed table is not publicly renderable in this browser. Confirm against Seller Central before production decisions."},
         {group:"US FBA size tiers and shipping-weight rules",kind:"official_help",title:"商品尺寸分段",url:"https://sellercentral.amazon.com/help/hub/reference/external/GG5KW835AHDJCH8W",note:"Seller Central Help. Defines tiers using packaged single-item measurements; for large standard, small bulky, large bulky, and extra large (except over 150 lb), fees use the greater of product weight or dimensional weight. Small standard and extra large over 150 lb use product weight only."},
         {group:"US FBA dimensional-weight formula",kind:"official_help",title:"体积重量",url:"https://sellercentral.amazon.com/help/hub/reference/external/G53Z9EKF8VVZVH29",note:"Seller Central Help. Dimensional weight is volume divided by 139; for large standard, small bulky, large bulky, oversize and extra-large products, minimum width and height are 2 inches."},
-        {group:"FBA SIPP program overview",kind:"official_public",title:"Custom packaging / SIPP overview",url:"https://sell.amazon.com/programs/custom-packaging",note:"Official Amazon public page. Confirms the program applies to FBA fulfillment costs and links to Seller Central for FBA discount details."},
+        {group:"US FBA SIPP fee rates - canonical current source",kind:"official_help_primary",title:"Seller Central FBA SIPP fee rates",url:"https://sellercentral.amazon.com/help/hub/reference/external/GFGVB6C7ZF38285W",note:"User-identified current official Seller Central help source for U.S. FBA SIPP fees. This page is now the required authority for SIPP rate values; its rate-table body did not render through this verification session, so embedded SIPP numbers remain explicitly pending line-by-line confirmation."},
+        {group:"FBA SIPP program overview",kind:"official_public_context",title:"Custom packaging / SIPP overview",url:"https://sell.amazon.com/programs/custom-packaging",note:"Official public overview used only for program context, not as the SIPP discount rate table."},
         {group:"2026 FBA SIPP bulky change",kind:"official_announcement",title:"2026年亚马逊美国站销售佣金和亚马逊物流费用变更",url:"https://gs.amazon.cn/news/news-notices-251016",note:"Official Amazon announcement. States that from 2026-01-15, SIPP discounts are cancelled for small/large bulky FBA products; non-SIPP bulky products incur a packaging fee. Standard-size SIPP discounts remain unchanged."},
-        {group:"2026 FBA SIPP bracket transcription",kind:"secondary_verification",title:"Amazon FBA Fees 2026: New Rates & Cost Guide Sellers Must Know About",url:"https://www.sellerapp.com/blog/amazon-fba-fees-calculator-guide/",note:"Used to transcribe the publicly indexed FBA SIPP standard-size discount brackets and bulky non-SIPP packaging-fee formulas while the linked Seller Central detail page does not render in this tool. Confirm against Seller Central before production decisions."},
+        {group:"Current embedded SIPP values - pending official replacement",kind:"secondary_unverified_for_preview_only",title:"Previous public transcription used by the draft calculator",url:"https://www.sellerapp.com/blog/amazon-fba-fees-calculator-guide/",note:"These draft values remain in calculations only as visibly marked previews until they are compared row-by-row against the official Seller Central page GFGVB6C7ZF38285W. Do not treat this secondary page as the current policy authority."},
         {group:"Not used for FBA calculation: MCF / Buy with Prime SIPP table",kind:"excluded_source",title:"Ships in product packaging - Amazon Buy with Prime",url:"https://buywithprime.amazon.com/knowledge-center/ships-in-product-packaging",note:"Official table for MCF and Buy with Prime orders. An earlier version incorrectly used its brackets for this FBA calculator; it is now explicitly excluded from FBA calculations."},
         {group:"Low-inventory-level fee",kind:"official_forum_explainer",title:"Seller Forums: Low-inventory-level fee further explained",url:"https://sellercentral.amazon.com/seller-forums/discussions/t/aa9f98e5-fa91-4949-af8f-6cf918c86a77",note:"Official Amazon Seller Forums post. Used for historical-days-of-supply logic and fee tiers."},
         {group:"Fuel and logistics-related surcharge",kind:"official_forum_announcement",title:"Fuel and logistics-related surcharge: FBA, MCF, and BWP in US and CA",url:"https://sellercentral.amazon.com/seller-forums/discussions/t/7cbc0233-ee5b-4359-978a-dee7cad5c6f4",note:"Official Amazon Seller Forums announcement. States a 3.5% surcharge applies to FBA fulfillment fees in the US starting April 17, 2026."}
@@ -1420,8 +1422,8 @@
       if (bulkyFormula) {
         const intervals = ceilIntervals(shippingWeightLb - bulkyFormula.base_weight_lb, bulkyFormula.interval_lb);
         const packagingFee = round2(bulkyFormula.base_fee + intervals * bulkyFormula.increment_fee);
-        const sippCondition = `FBA 大件自 ${POLICY.sipp_fba_discount.bulky_policy_effective_date} 起不设 SIPP 折扣；已通过 SIPP，因此不收取非 SIPP 包装费`;
-        const nonSippCondition = `FBA 大件自 ${POLICY.sipp_fba_discount.bulky_policy_effective_date} 起不设 SIPP 折扣；未使用 SIPP，包装费 ${bulkyFormula.base_fee} + ${intervals} x ${bulkyFormula.increment_fee} = ${packagingFee}`;
+        const sippCondition = `FBA 大件自 ${POLICY.sipp_fba_discount.bulky_policy_effective_date} 起不设 SIPP 折扣；已通过 SIPP，因此不收取非 SIPP 包装费（金额待按最新官方 SIPP 原页复核）`;
+        const nonSippCondition = `FBA 大件自 ${POLICY.sipp_fba_discount.bulky_policy_effective_date} 起不设 SIPP 折扣；未使用 SIPP，包装费 ${bulkyFormula.base_fee} + ${intervals} x ${bulkyFormula.increment_fee} = ${packagingFee}（金额待按最新官方 SIPP 原页复核）`;
         if (sippEligible === true) return [{ applied: true, discount: 0, packagingFee: 0, condition: sippCondition }];
         if (sippEligible === false) return [{ applied: false, discount: 0, packagingFee, condition: nonSippCondition }];
         return [
@@ -1433,11 +1435,11 @@
         supportedDiscount = pickDiscount(POLICY.sipp_fba_discount[sizeTier] || [], shippingWeightLb);
       }
       if (supportedDiscount <= 0) return [{ applied: false, discount: 0, packagingFee: 0, condition: "该尺寸/重量档当前不适用 SIPP 折扣" }];
-      if (sippEligible === true) return [{ applied: true, discount: supportedDiscount, packagingFee: 0, condition: "已输入 SIPP 适配/已认证，且该 FBA 标准尺寸重量档支持 SIPP 折扣" }];
+      if (sippEligible === true) return [{ applied: true, discount: supportedDiscount, packagingFee: 0, condition: "已输入 SIPP 适配/已认证；当前折扣金额为待按最新官方 SIPP 原页复核的预览值" }];
       if (sippEligible === false) return [{ applied: false, discount: 0, packagingFee: 0, condition: "已输入不适配 SIPP，因此不享受 FBA SIPP 折扣" }];
       return [
         { applied: false, discount: 0, packagingFee: 0, condition: "如果未通过 SIPP 认证，则不享受 FBA SIPP 折扣" },
-        { applied: true, discount: supportedDiscount, packagingFee: 0, condition: "如果通过 SIPP 认证，且该 FBA 标准尺寸重量档支持 SIPP，则可享受该折扣" }
+        { applied: true, discount: supportedDiscount, packagingFee: 0, condition: "如果通过 SIPP 认证且该重量档适用，则显示当前待按最新官方 SIPP 原页复核的折扣预览值" }
       ];
     }
 
