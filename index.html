@@ -554,6 +554,7 @@
               <option value="US">US 美国</option>
               <option value="CA">CA 加拿大</option>
               <option value="MX">MX 墨西哥</option>
+              <option value="JP">JP 日本</option>
             </select>
           </label>
           <span id="ruleMarketplacePill" class="pill">US · LOCAL FBA</span>
@@ -675,6 +676,20 @@
           <table id="mxBaseFeeRulesTable"></table>
         </div>
         <div class="rule-note">MX 的体积重除数当前作为 <span class="inline-code">5,000 cm3/kg</span> 待复核口径显示于结果中；在取得 Seller Central MX 公式原文前，请不要将 MX 输出作为最终结算依据。</div>
+      </div>
+      </div>
+
+      <div id="jpRulePanel" hidden>
+      <div class="rule-block">
+        <div class="rule-block-head">
+          <div>
+            <h3>JP 本地 FBA 规则状态</h3>
+            <p class="hint">日本站官方帮助页已收录；在取得费率表与尺寸/重量正文前，不使用其他国家规则推算 JPY 费用。</p>
+          </div>
+        </div>
+        <div class="table-wrap rule-table">
+          <table id="jpRuleStatusTable"></table>
+        </div>
       </div>
       </div>
     </section>
@@ -895,6 +910,14 @@
       }
     };
 
+    const JP_POLICY = {
+      marketplace: "JP",
+      currency: "JPY",
+      official_source_url: "https://sellercentral.amazon.co.jp/help/hub/reference/external/GRH54FUTD3C5LWWW",
+      calculation_status: "awaiting_official_jp_rate_table_text",
+      note: "已收录日本 Seller Central 官方帮助页 GRH54FUTD3C5LWWW；当前自动读取未显示费率及尺寸/重量正文，为避免误套其他站点规则，JP 自动计费暂未启用。"
+    };
+
     const MARKET_SOURCES = [
       {
         marketplace: "CA",
@@ -927,6 +950,14 @@
         title: "Seller Central MX dimensional-weight help page required",
         url: "https://vender.amazon.com.mx/logistica-de-amazon",
         note: "The public MX pricing page confirms dimensional-weight usage but the divisor detail is not present in the retrievable fee-table text. The calculator currently exposes its 5,000 cm3/kg working assumption in each MX result; confirm against the Seller Central MX help text before production costing."
+      },
+      {
+        marketplace: "JP",
+        group: "JP local FBA official help source (calculation pending page tables)",
+        kind: "official_help_primary",
+        title: "Seller Central Japan FBA help",
+        url: "https://sellercentral.amazon.co.jp/help/hub/reference/external/GRH54FUTD3C5LWWW",
+        note: "Official Amazon Japan Seller Central help page supplied for JP policy. The page shell is accessible, but its FBA rate and measurement-table body did not render in this verification session; JP automatic calculation remains disabled until the table text is available."
       }
     ];
 
@@ -948,6 +979,7 @@
             <option value="US">US</option>
             <option value="CA">CA</option>
             <option value="MX">MX</option>
+            <option value="JP">JP</option>
           </select>
         </td>
         <td><input data-field="sku" type="text" aria-label="SKU" placeholder="SKU-001"></td>
@@ -1795,6 +1827,31 @@
       };
     }
 
+    function calculateJpPendingRow(row) {
+      return {
+        result: {
+          row_number: row.rowNumber,
+          country: row.country,
+          sku: row.sku,
+          product_name: row.productName,
+          category: row.category,
+          status: JP_POLICY.calculation_status,
+          currency: JP_POLICY.currency,
+          sale_price_local: row.salePriceLocal ?? "",
+          notes: JP_POLICY.note
+        },
+        scenarios: [{
+          row_number: row.rowNumber,
+          country: row.country,
+          sku: row.sku,
+          product_name: row.productName,
+          currency: JP_POLICY.currency,
+          scenario_name: JP_POLICY.calculation_status,
+          conditions: JP_POLICY.note
+        }]
+      };
+    }
+
     const RESULTS_COLUMNS = [
       "row_number", "country", "sku", "product_name", "category", "status", "currency", "rule_pack", "size_tier",
       "size_tier_reason", "measurement_rounding_rule", "length_cm", "width_cm", "height_cm", "weight_kg",
@@ -1839,6 +1896,12 @@
           scenarios.push(...caComputed.scenarios);
           return;
         }
+        if (row.country === "JP") {
+          const jpComputed = calculateJpPendingRow(row);
+          results.push(jpComputed.result);
+          scenarios.push(...jpComputed.scenarios);
+          return;
+        }
         if (row.country !== "US") {
           results.push({
             row_number: row.rowNumber,
@@ -1846,7 +1909,7 @@
             sku: row.sku,
             product_name: row.productName,
             status: "unsupported_marketplace",
-            notes: "当前版本仅启用 US 与 MX 本地计算；CA 等待官方尺寸分段正文确认。"
+            notes: "当前版本仅启用 US 与 MX 本地计算；CA/JP 等待各自官方费率及尺寸正文确认。"
           });
           scenarios.push({
             row_number: row.rowNumber,
@@ -1854,7 +1917,7 @@
             sku: row.sku,
             product_name: row.productName,
             scenario_name: "unsupported_marketplace",
-            conditions: "当前版本仅启用 US 与 MX 本地计算；CA 等待官方尺寸分段正文确认。"
+            conditions: "当前版本仅启用 US 与 MX 本地计算；CA/JP 等待各自官方费率及尺寸正文确认。"
           });
           return;
         }
@@ -2148,6 +2211,18 @@
       ]);
     }
 
+    function renderJpRuleStatus() {
+      renderTable("jpRuleStatusTable", [
+        {
+          "站点": "JP 本地 FBA",
+          "状态": "暂不自动计费",
+          "币种": "JPY",
+          "尺寸/计费重口径": "不使用 US / CA / MX 规则；日本官方费率与尺寸正文待获取",
+          "费用政策": "已收录 Seller Central Japan 官方帮助页 GRH54FUTD3C5LWWW，待正文录入后启用"
+        }
+      ]);
+    }
+
     function formatMxn(value) {
       return `MXN ${Number(value).toFixed(2)}`;
     }
@@ -2189,6 +2264,7 @@
       renderAdjustmentRules();
       renderCaRuleStatus();
       renderMxBaseFeeRules();
+      renderJpRuleStatus();
     }
 
     function renderSources(marketplace = document.getElementById("ruleMarketplace").value) {
@@ -2208,10 +2284,11 @@
 
     function updateRuleMarketplace() {
       const marketplace = document.getElementById("ruleMarketplace").value;
-      const labels = { US: "US · LOCAL FBA", CA: "CA · LOCAL FBA", MX: "MX · LOCAL FBA" };
+      const labels = { US: "US · LOCAL FBA", CA: "CA · LOCAL FBA", MX: "MX · LOCAL FBA", JP: "JP · LOCAL FBA" };
       document.getElementById("usRulePanel").hidden = marketplace !== "US";
       document.getElementById("caRulePanel").hidden = marketplace !== "CA";
       document.getElementById("mxRulePanel").hidden = marketplace !== "MX";
+      document.getElementById("jpRulePanel").hidden = marketplace !== "JP";
       document.getElementById("ruleMarketplacePill").textContent = labels[marketplace];
       document.getElementById("sourceMarketplacePill").textContent = `${marketplace} · SOURCES`;
       renderSources(marketplace);
@@ -2268,9 +2345,11 @@
         document.getElementById("exportScenarios").disabled = false;
         const hasCaPending = state.results.some(row => row.status === CA_POLICY.calculation_status);
         const hasMxPreview = state.results.some(row => row.status === "ok_pending_dimensional_formula_verification");
+        const hasJpPending = state.results.some(row => row.status === JP_POLICY.calculation_status);
         const statusNotes = [
           hasMxPreview ? "MX 已输出本地基础费预览，体积重公式仍待官方正文复核" : "",
           hasCaPending ? "CA 官方尺寸分段正文未取得，当前明确提示待启用而不输出猜测费用" : "",
+          hasJpPending ? "JP 官方费率及尺寸正文未取得，当前明确提示待启用而不输出猜测费用" : "",
           state.results.some(row => row.country === "US") ? "US 场景含已配置的折扣/附加费组合" : ""
         ].filter(Boolean).join("；");
         setStatus(`测算完成：${state.results.length} 行 SKU，${state.scenarios.length} 个场景。${statusNotes}`);
