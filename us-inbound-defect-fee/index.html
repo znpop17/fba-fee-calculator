@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>美国站入库缺陷费计算器</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3efe8;
+      --panel: rgba(255, 253, 249, 0.94);
+      --ink: #241b14;
+      --muted: #6e5d50;
+      --line: #d9c8b7;
+      --accent: #a34b1e;
+      --accent-dark: #7f3513;
+      --teal: #0d6b6b;
+      --soft: #fff3e7;
+      --soft-teal: #edf7f5;
+      --warning: #b2452b;
+      --success: #245e3b;
+      --shadow: 0 18px 44px rgba(46, 28, 17, 0.11);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(214, 126, 68, 0.18), transparent 26%),
+        radial-gradient(circle at top right, rgba(48, 147, 147, 0.14), transparent 24%),
+        linear-gradient(180deg, #f8f4ee 0%, #f1ece4 100%);
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 20px 44px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      line-height: 1.16;
+    }
+
+    h1 { font-size: clamp(32px, 5vw, 50px); }
+    h2 { font-size: 22px; }
+    h3 { font-size: 16px; }
+
+    p {
+      margin: 0 0 12px;
+      line-height: 1.62;
+      color: var(--muted);
+    }
+
+    a {
+      color: var(--teal);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .hero, .panel {
+      background: var(--panel);
+      border: 1px solid rgba(36, 27, 20, 0.08);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .hero {
+      padding: 27px;
+      border-color: rgba(163, 75, 30, 0.12);
+      background:
+        linear-gradient(135deg, rgba(255, 244, 232, 0.98), rgba(255, 250, 245, 0.92)),
+        #fff;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 18px;
+    }
+
+    .eyebrow, .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .eyebrow {
+      margin-bottom: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(163, 75, 30, 0.08);
+    }
+
+    .pill {
+      color: var(--teal);
+      background: var(--soft-teal);
+      white-space: nowrap;
+    }
+
+    .card-grid, .stats {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
+
+    .mini-card, .stat {
+      padding: 14px;
+      border-radius: 16px;
+      background: var(--soft);
+      border: 1px solid rgba(163, 75, 30, 0.13);
+    }
+
+    .mini-card.alt, .stat.alt {
+      background: var(--soft-teal);
+      border-color: rgba(13, 107, 107, 0.14);
+    }
+
+    .stat strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--accent-dark);
+      font-size: 29px;
+      line-height: 1.15;
+    }
+
+    .stat.alt strong { color: var(--teal); }
+
+    .heading-row, .toolbar, .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .toolbar { margin-bottom: 14px; }
+    .actions { justify-content: flex-start; margin-top: 14px; }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      min-height: 41px;
+      padding: 9px 16px;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+      font-weight: 600;
+    }
+
+    button.secondary {
+      color: var(--accent);
+      background: #fff;
+    }
+
+    button.ghost {
+      color: var(--teal);
+      border-color: rgba(13, 107, 107, 0.32);
+      background: var(--soft-teal);
+    }
+
+    button.small {
+      min-height: 34px;
+      padding: 6px 11px;
+      font-size: 13px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    input[type="number"], input[type="text"], select, textarea, input[type="file"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 8px 10px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    input[type="number"], input[type="text"], select {
+      min-height: 39px;
+    }
+
+    textarea {
+      min-height: 116px;
+      resize: vertical;
+      margin-top: 8px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid rgba(36, 27, 20, 0.08);
+      border-radius: 13px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      padding: 12px 10px;
+      text-align: left;
+      vertical-align: bottom;
+      color: var(--muted);
+      font-weight: 600;
+      background: rgba(244, 237, 228, 0.7);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px;
+      border-top: 1px solid rgba(36, 27, 20, 0.07);
+      vertical-align: top;
+    }
+
+    .entry-table th small {
+      display: block;
+      font-weight: 400;
+      margin-top: 3px;
+    }
+
+    .entry-table td { padding: 7px; }
+    .entry-table input, .entry-table select { min-width: 88px; }
+    .entry-table .sku { min-width: 130px; }
+    .entry-table .tier { min-width: 150px; }
+    .entry-table .problem { min-width: 135px; }
+
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(36, 27, 20, 0.06);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: var(--ink);
+    }
+
+    .status {
+      margin-top: 14px;
+      border-radius: 10px;
+      padding: 11px 13px;
+      background: var(--soft-teal);
+      color: var(--success);
+      font-size: 14px;
+    }
+
+    .status.error {
+      background: #fff0ec;
+      color: var(--warning);
+    }
+
+    .notice {
+      padding: 12px 14px;
+      border: 1px solid rgba(178, 69, 43, 0.19);
+      border-radius: 12px;
+      background: #fff6f2;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 14px;
+    }
+
+    .result-note {
+      color: var(--warning);
+      font-size: 12px;
+    }
+
+    .empty {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .sources {
+      display: grid;
+      gap: 12px;
+    }
+
+    .source {
+      border: 1px solid rgba(36, 27, 20, 0.08);
+      border-radius: 14px;
+      background: #fff;
+      padding: 13px 15px;
+    }
+
+    .source p { margin-bottom: 4px; }
+
+    .import-panel {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 14px;
+      background: var(--soft-teal);
+      border: 1px solid rgba(13, 107, 107, 0.12);
+    }
+
+    .import-grid {
+      display: grid;
+      gap: 13px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @media (max-width: 920px) {
+      .hero-grid, .import-grid { grid-template-columns: 1fr; }
+      main { padding: 18px 13px 30px; }
+      .hero, .panel { padding: 16px; border-radius: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="eyebrow">US FBA · Inbound Defect Fee</div>
+      <div class="hero-grid">
+        <div>
+          <h1>美国站入库缺陷费计算器</h1>
+          <p>测算 FBA 货件发生<strong>误送、删除或弃置</strong>时，可能产生的美国站入库缺陷费。按 SKU 录入包装后尺寸、重量和缺陷数量，即可得到费用暴露金额与批量汇总。</p>
+          <p class="hint">纯网页本地运行，不上传数据。工具按货件创建日期在 <span class="code">2026-01-15</span> 及之后适用的统一入库缺陷费规则测算。</p>
+        </div>
+        <div class="mini-card alt">
+          <h3>当前规则提醒</h3>
+          <p>自 <strong>2026-01-15</strong> 起，误送、删除或弃置货件按统一费率计费，缺陷类型不再分别改变费率。</p>
+          <p>公开可核验表显示标准尺寸为 <strong>$0.32-$1.74/件</strong>，大件最高 <strong>$5.72/件</strong>。</p>
+          <p class="hint">若 Seller Central 已显示实际单件费率，可直接填入覆盖值，得到精准金额。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div>
+          <h2>货件输入</h2>
+          <p>尺寸和重量应填写包装后的单件商品数据。缺陷件数是 Amazon 判定涉及该缺陷的件数。</p>
+        </div>
+        <div class="actions" style="margin-top:0">
+          <button id="addRow" class="secondary" type="button">新增一行</button>
+          <button id="loadSample" class="ghost" type="button">载入示例</button>
+          <button id="clearRows" class="secondary" type="button">清空</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="entry-table">
+          <thead>
+            <tr>
+              <th>SKU<small>必填</small></th>
+              <th>品名<small>可选</small></th>
+              <th>缺陷类型</th>
+              <th>入库总件数</th>
+              <th>缺陷件数<small>计费数量</small></th>
+              <th>长 cm</th>
+              <th>宽 cm</th>
+              <th>高 cm</th>
+              <th>重量 kg</th>
+              <th>尺寸档位<small>可覆盖自动识别</small></th>
+              <th>实际单价 USD<small>可选精算</small></th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="inputRows"></tbody>
+        </table>
+      </div>
+
+      <div class="import-panel">
+        <div class="import-grid">
+          <label>批量上传 CSV
+            <input id="csvFile" type="file" accept=".csv,text/csv">
+            <span class="hint">可上传已按模板填写的 CSV，导入后会替换页面现有行。</span>
+          </label>
+          <label>或粘贴 CSV 内容
+            <textarea id="csvText" placeholder="sku,product_name,defect_type,total_units,defective_units,length_cm,width_cm,height_cm,weight_kg,size_tier_override,custom_unit_fee_usd"></textarea>
+          </label>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="calculate" type="button">开始测算</button>
+        <button id="downloadTemplate" class="secondary" type="button">下载 CSV 模板</button>
+        <button id="importText" class="ghost" type="button">导入粘贴内容</button>
+        <button id="exportResults" class="secondary" type="button" disabled>导出测算结果</button>
+      </div>
+      <div id="status" class="status">就绪。可直接填一行，或载入示例查看计算结果。</div>
+    </section>
+
+    <section class="panel">
+      <div class="heading-row">
+        <div>
+          <h2>费用汇总</h2>
+          <p>存在仅能按公开区间估算的大件，或尚无公开逐档数值的档位时，汇总将显示最低至最高费用区间。</p>
+        </div>
+        <span class="pill">USD · 2026-01-15 起</span>
+      </div>
+      <div id="stats" class="stats"></div>
+    </section>
+
+    <section class="panel">
+      <h2>SKU 测算结果</h2>
+      <div class="table-wrap">
+        <table id="resultsTable"></table>
+      </div>
+      <div class="notice">本工具仅计算入库缺陷费，不包含入库配置服务费、运输费、未按要求预处理/贴标产生的其他服务费用、移除或弃置等其他收费。若账单或 Seller Central 提供了单件缺陷费，请填入“实际单价 USD”覆盖公开区间估算。</div>
+    </section>
+
+    <section class="panel">
+      <div class="heading-row">
+        <div>
+          <h2>内置规则表</h2>
+          <p>只有公开资料能够明确核验的单价才用于自动精准计算；区间值只用于暴露范围预估。</p>
+        </div>
+        <span class="pill">核验于 2026-05-27</span>
+      </div>
+      <div class="table-wrap">
+        <table id="rulesTable"></table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>政策来源</h2>
+      <div class="sources">
+        <div class="source">
+          <h3>Amazon 官方公告：2026 Updates to US Referral and Fulfillment by Amazon Fees</h3>
+          <p>确认 2026 美国站 FBA 费用更新及默认生效日期为 <strong>2026-01-15</strong>，并指向 Seller Central 详细费表。</p>
+          <a href="https://sellercentral.amazon.com/seller-forums/discussions/t/f3fa3211-820b-4e2e-a023-158a9cf55f99" target="_blank" rel="noopener">打开官方公告</a>
+        </div>
+        <div class="source">
+          <h3>Seller Central 官方帮助页：Amazon Inbound Defect Fees</h3>
+          <p>官方详细费表入口；该页面通常需要卖家登录或启用脚本后查看，生产决策应以登录后的当前费表为准。</p>
+          <a href="https://sellercentral.amazon.com/help/hub/reference/external/GL5XA3MNXAJKJE8E" target="_blank" rel="noopener">打开官方费表入口</a>
+        </div>
+        <div class="source">
+          <h3>SupplierWiki / SPS Commerce：官方表格公开转录</h3>
+          <p>用于在本地页面内录入公开可见的 2026 入库缺陷费档位：标准尺寸确定值及大件范围；其文章链接回 Seller Central 官方费表。</p>
+          <a href="https://www.spscommerce.com/community/articles/amazon-s-2026-fba-fee-changes-and-new-ai-tools" target="_blank" rel="noopener">查看公开转录表</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const POLICY = {
+      marketplace: "US",
+      effectiveDate: "2026-01-15",
+      verifiedDate: "2026-05-27",
+      dimensionalDivisor: 139,
+      tiers: {
+        small_standard: { label: "小号标准尺寸", limits: "最长边 <= 15 in，次长边 <= 12 in，最短边 <= 0.75 in，重量 <= 1 lb" },
+        large_standard: { label: "大号标准尺寸", limits: "最长边 <= 18 in，次长边 <= 14 in，最短边 <= 8 in，重量 <= 20 lb" },
+        small_bulky: { label: "小号大件", limits: "最长边 <= 37 in，次长边 <= 28 in，最短边 <= 20 in，重量 <= 50 lb，长加围 <= 130 in" },
+        large_bulky: { label: "大号大件", limits: "最长边 <= 59 in，次长边 <= 33 in，最短边 <= 33 in，重量 <= 50 lb，长加围 <= 130 in" },
+        extra_large: { label: "超大件/超出公开表范围", limits: "不满足以上档位" }
+      },
+      rates: [
+        { tier: "small_standard", weightLabel: "<= 16 oz", maxLb: 1, minFee: 0.32, maxFee: 0.32, certainty: "公开确定值" },
+        { tier: "large_standard", weightLabel: "<= 12 oz", maxLb: 0.75, minFee: 0.46, maxFee: 0.46, certainty: "公开确定值" },
+        { tier: "large_standard", weightLabel: "> 12 oz 至 1.5 lb", minLbExclusive: 0.75, maxLb: 1.5, minFee: null, maxFee: null, certainty: "公开转录缺少该行，请填实际单价" },
+        { tier: "large_standard", weightLabel: "> 1.5 至 3 lb", minLbExclusive: 1.5, maxLb: 3, minFee: 0.59, maxFee: 0.59, certainty: "公开确定值" },
+        { tier: "large_standard", weightLabel: "> 3 至 5 lb", minLbExclusive: 3, maxLb: 5, minFee: 0.74, maxFee: 0.74, certainty: "公开确定值" },
+        { tier: "large_standard", weightLabel: "> 5 至 7 lb", minLbExclusive: 5, maxLb: 7, minFee: 0.94, maxFee: 0.94, certainty: "公开确定值" },
+        { tier: "large_standard", weightLabel: "> 7 至 10 lb", minLbExclusive: 7, maxLb: 10, minFee: 1.14, maxFee: 1.14, certainty: "公开确定值" },
+        { tier: "large_standard", weightLabel: "> 10 至 15 lb", minLbExclusive: 10, maxLb: 15, minFee: 1.44, maxFee: 1.44, certainty: "公开确定值" },
+        { tier: "large_standard", weightLabel: "> 15 至 20 lb", minLbExclusive: 15, maxLb: 20, minFee: 1.74, maxFee: 1.74, certainty: "公开确定值" },
+        { tier: "small_bulky", weightLabel: "<= 5 至 50 lb（公开范围）", minFee: 1.38, maxFee: 5.25, certainty: "公开区间，填实际单价可精算" },
+        { tier: "large_bulky", weightLabel: "<= 5 至 50 lb（公开范围）", minFee: 1.43, maxFee: 5.72, certainty: "公开区间，填实际单价可精算" },
+        { tier: "extra_large", weightLabel: "未在公开转录表中核得", minFee: null, maxFee: null, certainty: "请填 Seller Central 实际单价" }
+      ]
+    };
+
+    const DEFECT_TYPES = {
+      misrouted: "误送货件",
+      deleted: "删除货件",
+      abandoned: "弃置/未按期到货货件"
+    };
+
+    const TIER_OPTIONS = [
+      ["", "自动识别"],
+      ["small_standard", "小号标准尺寸"],
+      ["large_standard", "大号标准尺寸"],
+      ["small_bulky", "小号大件"],
+      ["large_bulky", "大号大件"],
+      ["extra_large", "超大件/其他"]
+    ];
+
+    const headers = [
+      "sku", "product_name", "defect_type", "total_units", "defective_units",
+      "length_cm", "width_cm", "height_cm", "weight_kg",
+      "size_tier_override", "custom_unit_fee_usd"
+    ];
+
+    let latestResults = [];
+
+    function money(value) {
+      return value === null || value === undefined || Number.isNaN(value)
+        ? "-"
+        : `$${Number(value).toFixed(2)}`;
+    }
+
+    function numberOrNull(value) {
+      const text = String(value ?? "").trim();
+      if (!text) return null;
+      const parsed = Number(text);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function optionsHtml(options, chosen) {
+      return options.map(([value, label]) =>
+        `<option value="${value}" ${String(value) === String(chosen ?? "") ? "selected" : ""}>${label}</option>`
+      ).join("");
+    }
+
+    function addRow(values = {}) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input class="sku" data-field="sku" type="text" value="${escapeHtml(values.sku || "")}" placeholder="SKU-001"></td>
+        <td><input data-field="product_name" type="text" value="${escapeHtml(values.product_name || "")}" placeholder="品名"></td>
+        <td><select class="problem" data-field="defect_type">${optionsHtml(Object.entries(DEFECT_TYPES), values.defect_type || "misrouted")}</select></td>
+        <td><input data-field="total_units" type="number" min="0" step="1" value="${escapeHtml(values.total_units ?? "")}" placeholder="1000"></td>
+        <td><input data-field="defective_units" type="number" min="0" step="1" value="${escapeHtml(values.defective_units ?? "")}" placeholder="0"></td>
+        <td><input data-field="length_cm" type="number" min="0" step="0.01" value="${escapeHtml(values.length_cm ?? "")}"></td>
+        <td><input data-field="width_cm" type="number" min="0" step="0.01" value="${escapeHtml(values.width_cm ?? "")}"></td>
+        <td><input data-field="height_cm" type="number" min="0" step="0.01" value="${escapeHtml(values.height_cm ?? "")}"></td>
+        <td><input data-field="weight_kg" type="number" min="0" step="0.001" value="${escapeHtml(values.weight_kg ?? "")}"></td>
+        <td><select class="tier" data-field="size_tier_override">${optionsHtml(TIER_OPTIONS, values.size_tier_override || "")}</select></td>
+        <td><input data-field="custom_unit_fee_usd" type="number" min="0" step="0.01" value="${escapeHtml(values.custom_unit_fee_usd ?? "")}" placeholder="选填"></td>
+        <td><button class="small secondary remove" type="button">删除</button></td>
+      `;
+      row.querySelector(".remove").addEventListener("click", () => {
+        row.remove();
+        if (!document.querySelector("#inputRows tr")) addRow();
+      });
+      document.getElementById("inputRows").appendChild(row);
+    }
+
+    function setRows(rows) {
+      document.getElementById("inputRows").innerHTML = "";
+      (rows.length ? rows : [{}]).forEach(addRow);
+      document.querySelector(".entry-table").closest(".table-wrap").scrollLeft = 0;
+    }
+
+    function readInputRows() {
+      return Array.from(document.querySelectorAll("#inputRows tr")).map(row => {
+        const values = {};
+        row.querySelectorAll("[data-field]").forEach(field => {
+          values[field.dataset.field] = field.value.trim();
+        });
+        return values;
+      }).filter(row => Object.values(row).some(Boolean));
+    }
+
+    function sortDimensionsInches(row) {
+      const dims = ["length_cm", "width_cm", "height_cm"].map(field => numberOrNull(row[field]));
+      if (dims.some(value => value === null || value <= 0)) return null;
+      return dims.map(value => value / 2.54).sort((a, b) => b - a);
+    }
+
+    function automaticTier(row, actualWeightLb) {
+      const dims = sortDimensionsInches(row);
+      if (!dims || actualWeightLb === null || actualWeightLb <= 0) return null;
+      const [longest, median, shortest] = dims;
+      const girth = longest + 2 * (median + shortest);
+      if (actualWeightLb <= 1 && longest <= 15 && median <= 12 && shortest <= 0.75) return "small_standard";
+      if (actualWeightLb <= 20 && longest <= 18 && median <= 14 && shortest <= 8) return "large_standard";
+      if (actualWeightLb <= 50 && longest <= 37 && median <= 28 && shortest <= 20 && girth <= 130) return "small_bulky";
+      if (actualWeightLb <= 50 && longest <= 59 && median <= 33 && shortest <= 33 && girth <= 130) return "large_bulky";
+      return "extra_large";
+    }
+
+    function billableWeight(tier, row, actualWeightLb) {
+      if (actualWeightLb === null) return null;
+      if (tier === "small_standard") return actualWeightLb;
+      const dims = sortDimensionsInches(row);
+      if (!dims) return actualWeightLb;
+      const dimensionalWeight = dims.reduce((total, dimension) => total * dimension, 1) / POLICY.dimensionalDivisor;
+      return Math.max(actualWeightLb, dimensionalWeight);
+    }
+
+    function matchRate(tier, weightLb) {
+      const candidates = POLICY.rates.filter(rate => rate.tier === tier);
+      if (!candidates.length) return POLICY.rates.find(rate => rate.tier === "extra_large");
+      if (tier === "small_bulky" || tier === "large_bulky" || tier === "extra_large") return candidates[0];
+      return candidates.find(rate => weightLb !== null &&
+        (rate.minLbExclusive === undefined || weightLb > rate.minLbExclusive) &&
+        (rate.maxLb === undefined || weightLb <= rate.maxLb)
+      ) || POLICY.rates.find(rate => rate.tier === "extra_large");
+    }
+
+    function calculateRow(row, index) {
+      const sku = row.sku || `第${index + 1}行`;
+      const defectiveUnits = numberOrNull(row.defective_units);
+      const totalUnits = numberOrNull(row.total_units);
+      if (!row.sku) throw new Error(`${sku}：请输入 SKU。`);
+      if (defectiveUnits === null || defectiveUnits < 0 || !Number.isInteger(defectiveUnits)) {
+        throw new Error(`${sku}：缺陷件数必须是非负整数。`);
+      }
+      if (totalUnits !== null && (!Number.isInteger(totalUnits) || totalUnits < defectiveUnits)) {
+        throw new Error(`${sku}：入库总件数必须为不小于缺陷件数的整数。`);
+      }
+
+      const weightKg = numberOrNull(row.weight_kg);
+      const actualWeightLb = weightKg === null ? null : weightKg * 2.2046226218;
+      const customFee = numberOrNull(row.custom_unit_fee_usd);
+      if (customFee !== null && customFee < 0) throw new Error(`${sku}：实际单价不能为负数。`);
+
+      const tier = row.size_tier_override || automaticTier(row, actualWeightLb);
+      if (!tier && customFee === null) {
+        throw new Error(`${sku}：请填写有效尺寸与重量，或选择尺寸档位/填写实际单价。`);
+      }
+      const chosenTier = tier || "extra_large";
+      const shippingWeightLb = billableWeight(chosenTier, row, actualWeightLb);
+      const matchedRate = matchRate(chosenTier, shippingWeightLb);
+      const minFee = customFee !== null ? customFee : matchedRate.minFee;
+      const maxFee = customFee !== null ? customFee : matchedRate.maxFee;
+      const minTotal = minFee === null ? null : minFee * defectiveUnits;
+      const maxTotal = maxFee === null ? null : maxFee * defectiveUnits;
+      const isRange = minFee !== null && maxFee !== null && minFee !== maxFee;
+      const rateBasis = customFee !== null
+        ? "手动覆盖实际单价"
+        : matchedRate.certainty;
+
+      return {
+        sku: row.sku,
+        product_name: row.product_name || "-",
+        defect_type: DEFECT_TYPES[row.defect_type] || DEFECT_TYPES.misrouted,
+        total_units: totalUnits,
+        defective_units: defectiveUnits,
+        defect_rate: totalUnits === null || totalUnits === 0 ? null : defectiveUnits / totalUnits,
+        size_tier: POLICY.tiers[chosenTier].label,
+        shipping_weight_lb: shippingWeightLb,
+        weight_band: customFee !== null && !tier ? "按手动实际单价" : matchedRate.weightLabel,
+        unit_fee_min: minFee,
+        unit_fee_max: maxFee,
+        estimated_fee_min: minTotal,
+        estimated_fee_max: maxTotal,
+        calculation_basis: rateBasis,
+        needs_actual_rate: minFee === null || isRange
+      };
+    }
+
+    function renderStats(results) {
+      const stats = document.getElementById("stats");
+      if (!results.length) {
+        stats.innerHTML = '<div class="empty">计算后在这里查看汇总。</div>';
+        return;
+      }
+      const units = results.reduce((sum, row) => sum + row.defective_units, 0);
+      const knownMin = results.reduce((sum, row) => sum + (row.estimated_fee_min || 0), 0);
+      const knownMax = results.reduce((sum, row) => sum + (row.estimated_fee_max || 0), 0);
+      const unresolved = results.filter(row => row.estimated_fee_min === null).length;
+      const rangeRows = results.filter(row => row.needs_actual_rate).length;
+      const costDisplay = unresolved ? "待补单价" : knownMin === knownMax ? money(knownMin) : `${money(knownMin)} - ${money(knownMax)}`;
+      stats.innerHTML = `
+        <div class="stat"><strong>${results.length}</strong><span>SKU 数量</span></div>
+        <div class="stat alt"><strong>${units.toLocaleString("zh-CN")}</strong><span>缺陷计费件数</span></div>
+        <div class="stat"><strong>${costDisplay}</strong><span>入库缺陷费合计</span></div>
+        <div class="stat alt"><strong>${rangeRows}</strong><span>建议用账单单价复核的 SKU</span></div>
+      `;
+    }
+
+    function feeDisplay(row) {
+      if (row.unit_fee_min === null) return '<span class="result-note">需填写实际单价</span>';
+      return row.unit_fee_min === row.unit_fee_max
+        ? money(row.unit_fee_min)
+        : `${money(row.unit_fee_min)} - ${money(row.unit_fee_max)}`;
+    }
+
+    function totalDisplay(row) {
+      if (row.estimated_fee_min === null) return '<span class="result-note">待精算</span>';
+      return row.estimated_fee_min === row.estimated_fee_max
+        ? money(row.estimated_fee_min)
+        : `${money(row.estimated_fee_min)} - ${money(row.estimated_fee_max)}`;
+    }
+
+    function renderResults(results) {
+      const table = document.getElementById("resultsTable");
+      if (!results.length) {
+        table.innerHTML = '<tbody><tr><td class="empty">尚无测算结果。</td></tr></tbody>';
+        return;
+      }
+      table.innerHTML = `
+        <thead><tr>
+          <th>SKU / 品名</th><th>缺陷类型</th><th>缺陷件数 / 比例</th><th>尺寸档位</th>
+          <th>计费重量 lb</th><th>费率档位</th><th>单件费率</th><th>费用金额</th><th>依据</th>
+        </tr></thead>
+        <tbody>${results.map(row => `
+          <tr>
+            <td><strong>${escapeHtml(row.sku)}</strong><br><span class="hint">${escapeHtml(row.product_name)}</span></td>
+            <td>${escapeHtml(row.defect_type)}</td>
+            <td>${row.defective_units.toLocaleString("zh-CN")}${row.defect_rate === null ? "" : `<br><span class="hint">${(row.defect_rate * 100).toFixed(2)}%</span>`}</td>
+            <td>${escapeHtml(row.size_tier)}</td>
+            <td>${row.shipping_weight_lb === null ? "-" : row.shipping_weight_lb.toFixed(3)}</td>
+            <td>${escapeHtml(row.weight_band)}</td>
+            <td>${feeDisplay(row)}</td>
+            <td><strong>${totalDisplay(row)}</strong></td>
+            <td>${escapeHtml(row.calculation_basis)}${row.needs_actual_rate ? '<br><span class="result-note">请以 Seller Central 复核</span>' : ""}</td>
+          </tr>
+        `).join("")}</tbody>
+      `;
+    }
+
+    function renderRules() {
+      const table = document.getElementById("rulesTable");
+      table.innerHTML = `
+        <thead><tr><th>商品尺寸档位</th><th>计费重量档位</th><th>2026 单件入库缺陷费</th><th>自动计算口径</th></tr></thead>
+        <tbody>${POLICY.rates.map(rate => `
+          <tr>
+            <td><strong>${escapeHtml(POLICY.tiers[rate.tier].label)}</strong><br><span class="hint">${escapeHtml(POLICY.tiers[rate.tier].limits)}</span></td>
+            <td>${escapeHtml(rate.weightLabel)}</td>
+            <td>${rate.minFee === null ? "请查 Seller Central" : rate.minFee === rate.maxFee ? money(rate.minFee) : `${money(rate.minFee)} - ${money(rate.maxFee)}`}</td>
+            <td>${escapeHtml(rate.certainty)}</td>
+          </tr>
+        `).join("")}</tbody>
+      `;
+    }
+
+    function setStatus(message, error = false) {
+      const status = document.getElementById("status");
+      status.textContent = message;
+      status.classList.toggle("error", error);
+    }
+
+    function runCalculation() {
+      try {
+        const rows = readInputRows();
+        if (!rows.length) throw new Error("请至少填写一行货件数据。");
+        latestResults = rows.map(calculateRow);
+        renderStats(latestResults);
+        renderResults(latestResults);
+        document.getElementById("exportResults").disabled = false;
+        const attention = latestResults.filter(row => row.needs_actual_rate).length;
+        setStatus(`完成：已测算 ${latestResults.length} 个 SKU、${latestResults.reduce((sum, row) => sum + row.defective_units, 0)} 件缺陷货物。${attention ? `其中 ${attention} 个 SKU 建议补入 Seller Central 实际单价后复核。` : ""}`);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let quoted = false;
+      for (let index = 0; index < text.length; index += 1) {
+        const char = text[index];
+        const next = text[index + 1];
+        if (char === '"') {
+          if (quoted && next === '"') {
+            cell += '"';
+            index += 1;
+          } else {
+            quoted = !quoted;
+          }
+        } else if (char === "," && !quoted) {
+          row.push(cell);
+          cell = "";
+        } else if ((char === "\n" || char === "\r") && !quoted) {
+          if (char === "\r" && next === "\n") index += 1;
+          row.push(cell);
+          if (row.some(value => value.trim())) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += char;
+        }
+      }
+      row.push(cell);
+      if (row.some(value => value.trim())) rows.push(row);
+      return rows;
+    }
+
+    function importCsv(text) {
+      const parsed = parseCsv(text.trim());
+      if (parsed.length < 2) throw new Error("CSV 需包含表头和至少一行数据。");
+      const normalized = parsed[0].map(value => value.trim().toLowerCase());
+      if (!normalized.includes("sku") || !normalized.includes("defective_units")) {
+        throw new Error("CSV 至少需要包含 sku 和 defective_units 列。");
+      }
+      const rows = parsed.slice(1).map(values => {
+        const result = {};
+        normalized.forEach((field, index) => {
+          if (headers.includes(field)) result[field] = values[index] ? values[index].trim() : "";
+        });
+        return result;
+      });
+      setRows(rows);
+      setStatus(`已导入 ${rows.length} 行 CSV 数据，点击“开始测算”生成结果。`);
+    }
+
+    function csvCell(value) {
+      const text = String(value ?? "");
+      return `"${text.replaceAll('"', '""')}"`;
+    }
+
+    function downloadCsv(filename, rows) {
+      const text = rows.map(row => row.map(csvCell).join(",")).join("\n");
+      const blob = new Blob(["\ufeff" + text], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    document.getElementById("addRow").addEventListener("click", () => addRow());
+    document.getElementById("clearRows").addEventListener("click", () => {
+      setRows([{}]);
+      latestResults = [];
+      renderStats([]);
+      renderResults([]);
+      document.getElementById("exportResults").disabled = true;
+      setStatus("已清空输入。");
+    });
+    document.getElementById("loadSample").addEventListener("click", () => {
+      setRows([
+        { sku: "CASE-SS-001", product_name: "手机保护壳", defect_type: "misrouted", total_units: "1000", defective_units: "80", length_cm: "14", width_cm: "7", height_cm: "1.5", weight_kg: "0.09" },
+        { sku: "RACK-LS-002", product_name: "桌面收纳架", defect_type: "abandoned", total_units: "300", defective_units: "300", length_cm: "40", width_cm: "26", height_cm: "12", weight_kg: "1.2" },
+        { sku: "CHAIR-BULKY-003", product_name: "折叠椅", defect_type: "deleted", total_units: "120", defective_units: "20", length_cm: "80", width_cm: "45", height_cm: "12", weight_kg: "7.5" }
+      ]);
+      runCalculation();
+    });
+    document.getElementById("calculate").addEventListener("click", runCalculation);
+    document.getElementById("downloadTemplate").addEventListener("click", () => {
+      downloadCsv("us_inbound_defect_fee_template.csv", [
+        headers,
+        ["CASE-SS-001", "手机保护壳", "misrouted", "1000", "80", "14", "7", "1.5", "0.09", "", ""]
+      ]);
+    });
+    document.getElementById("importText").addEventListener("click", () => {
+      try {
+        importCsv(document.getElementById("csvText").value);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+    document.getElementById("csvFile").addEventListener("change", async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        importCsv(await file.text());
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+    document.getElementById("exportResults").addEventListener("click", () => {
+      const rows = [[
+        "sku", "product_name", "defect_type", "total_units", "defective_units", "defect_rate",
+        "size_tier", "shipping_weight_lb", "weight_band", "unit_fee_min_usd",
+        "unit_fee_max_usd", "estimated_fee_min_usd", "estimated_fee_max_usd", "calculation_basis"
+      ]];
+      latestResults.forEach(row => rows.push([
+        row.sku, row.product_name, row.defect_type, row.total_units ?? "", row.defective_units,
+        row.defect_rate === null ? "" : (row.defect_rate * 100).toFixed(2) + "%",
+        row.size_tier, row.shipping_weight_lb === null ? "" : row.shipping_weight_lb.toFixed(3),
+        row.weight_band, row.unit_fee_min ?? "", row.unit_fee_max ?? "",
+        row.estimated_fee_min ?? "", row.estimated_fee_max ?? "", row.calculation_basis
+      ]));
+      downloadCsv("us_inbound_defect_fee_results.csv", rows);
+    });
+
+    setRows([{}]);
+    renderStats([]);
+    renderResults([]);
+    renderRules();
+  </script>
+</body>
+</html>
