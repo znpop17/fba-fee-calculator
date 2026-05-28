@@ -471,7 +471,7 @@
           <p>导入一份 SKU 包装后单件商品尺寸重量表，按站点本地政策测算 FBA 可能场景。</p>
           <div class="market-summary">
             <div><strong>US 美国</strong><span class="hint">已启用基础费、低价/高价费、SIPP、低量库存费、燃油/物流附加费组合。</span></div>
-            <div><strong>MX 墨西哥</strong><span class="hint">已启用本地基础配送费预览；无燃油/物流附加费、无低库存水平费用。</span></div>
+            <div><strong>MX 墨西哥</strong><span class="hint">已启用官方小数费率和 SIPP；无燃油/物流附加费、无低库存水平费用。</span></div>
             <div><strong>CA 加拿大</strong><span class="hint">已启用基础费、低价费、SIPP、燃油/物流附加费和低库存水平费用。</span></div>
             <div><strong>JP 日本</strong><span class="hint">已启用本地基础配送费，按三边合计、重量和 1000 日元价格段匹配。</span></div>
           </div>
@@ -991,29 +991,34 @@
       ],
       fee_groups: {
         main: {
-          label: "主要类目（服饰、汽车用品、美妆等官方列示类目）",
-          envelope: [[0.1,43,43,43,43],[0.2,45,47,47,47],[0.3,46,49,49,49],[0.4,47,51,51,51],[Infinity,50,53,53,53]],
-          standard: [[0.1,53,57,62,65],[0.2,54,59,64,67],[0.3,55,61,66,69],[0.4,57,62,67,70],[0.5,59,64,69,72],[0.6,61,66,71,74],[0.7,63,68,73,76],[0.8,66,71,76,79],[0.9,68,73,78,81],[1,69,75,80,83]],
-          standard_above_1kg: { base: [75,81,86,89], first_band_max_kg: 1.25, interval_kg: 0.25, increment: [3,3,3,3] },
-          large_upto_1kg: [85,92,97,98],
-          large_above_1kg: { interval_kg: 0.5, increment: [5,5,5,5] }
+          label: "MX 2026 通用/扩展类目官方价目表",
+          envelope: [[0.1,27.00,33.00,49.00,60.00],[0.2,27.20,34.00,50.00,60.40],[0.3,27.40,35.00,51.00,60.80],[0.4,27.60,36.00,52.00,61.20],[Infinity,27.80,37.00,53.00,61.50]],
+          standard: [[0.1,28.00,33.00,50.00,61.80],[0.2,28.05,34.00,51.00,63.00],[0.3,28.10,35.00,52.00,64.00],[0.4,28.15,36.00,53.00,66.00],[0.5,28.20,37.00,54.00,67.00],[0.6,28.25,37.50,55.00,68.30],[0.7,28.30,38.00,56.00,69.60],[0.8,28.35,38.50,57.00,71.00],[0.9,28.40,39.00,58.00,72.00],[1,28.45,39.50,59.00,72.70]],
+          standard_above_1kg: { base: [28.50,40.00,60.00,72.80], first_band_max_kg: 1, interval_kg: 0.25, increment: [1.15,1.15,1.75,1.50] },
+          large_upto_1kg: [32.00,38.00,61.00,75.40],
+          large_above_1kg: { interval_kg: 0.5, increment: [2.80,2.80,3.10,3.75] }
         },
         health_grocery: {
-          label: "Salud y Cuidado Personal / Despensa y bebidas",
-          envelope: [[0.1,31,31,36,36],[0.2,33,35,40,40],[0.3,36,38,43,43],[0.4,38,40,45,45],[Infinity,40,42,47,47]],
-          standard: [[0.1,36,40,45,48],[0.2,38,42,47,50],[0.3,40,44,49,52],[0.4,42,46,51,54],[0.5,44,48,53,56],[0.6,46,50,55,58],[0.7,48,52,57,60],[0.8,50,54,59,62],[0.9,52,56,61,64],[1,54,58,63,66]],
-          standard_above_1kg: { base: [60,64,69,72], first_band_max_kg: 1.25, interval_kg: 0.25, increment: [3,3,3,3] },
-          large_upto_1kg: [70,75,80,81],
-          large_above_1kg: { interval_kg: 0.5, increment: [5,5,5,5] }
+          label: "个护健康 / 食品等指定类目官方价目表",
+          envelope: [[0.1,4.50,5.50,14.00,60.00],[0.2,4.60,5.60,14.10,60.40],[0.3,4.70,5.70,14.20,60.80],[0.4,4.80,5.80,14.30,61.20],[Infinity,4.90,5.90,14.40,61.50]],
+          standard: [[0.1,5.00,6.00,14.50,61.80],[0.2,5.10,6.10,14.60,63.00],[0.3,5.20,6.20,14.70,64.00],[0.4,5.30,6.30,14.80,66.00],[0.5,5.40,6.40,14.90,67.00],[0.6,5.50,6.50,15.00,68.30],[0.7,5.60,6.60,15.10,69.60],[0.8,5.70,6.70,15.20,71.00],[0.9,5.80,6.80,15.30,72.00],[1,5.90,6.90,15.40,72.70]],
+          standard_above_1kg: { base: [6.00,7.00,15.50,72.80], first_band_max_kg: 1, interval_kg: 0.25, increment: [0.15,0.30,0.45,1.50] },
+          large_upto_1kg: [5.20,6.20,15.50,75.40],
+          large_above_1kg: { interval_kg: 0.5, increment: [0.25,0.50,0.75,3.75] }
         },
         other: {
-          label: "其他官方列示类目（含设备、视频游戏等）",
-          envelope: [[0.1,49,51,56,56],[0.2,51,53,58,58],[0.3,53,55,60,60],[0.4,55,57,62,62],[Infinity,57,59,64,64]],
-          standard: [[0.1,57,59,64,67],[0.2,59,61,66,69],[0.3,61,63,68,71],[0.4,63,65,70,73],[0.5,65,67,72,75],[0.6,67,69,74,77],[0.7,69,71,76,79],[0.8,71,73,78,81],[0.9,73,75,80,83],[1,75,77,82,85]],
-          standard_above_1kg: { base: [81,83,88,91], first_band_max_kg: 1.25, interval_kg: 0.25, increment: [3,3,3,3] },
-          large_upto_1kg: [91,93,98,99],
-          large_above_1kg: { interval_kg: 0.5, increment: [5,5,5,5] }
+          label: "其他/未指定类目（同通用价目表，建议用 mx_fee_group 明确类目）",
+          envelope: [[0.1,27.00,33.00,49.00,60.00],[0.2,27.20,34.00,50.00,60.40],[0.3,27.40,35.00,51.00,60.80],[0.4,27.60,36.00,52.00,61.20],[Infinity,27.80,37.00,53.00,61.50]],
+          standard: [[0.1,28.00,33.00,50.00,61.80],[0.2,28.05,34.00,51.00,63.00],[0.3,28.10,35.00,52.00,64.00],[0.4,28.15,36.00,53.00,66.00],[0.5,28.20,37.00,54.00,67.00],[0.6,28.25,37.50,55.00,68.30],[0.7,28.30,38.00,56.00,69.60],[0.8,28.35,38.50,57.00,71.00],[0.9,28.40,39.00,58.00,72.00],[1,28.45,39.50,59.00,72.70]],
+          standard_above_1kg: { base: [28.50,40.00,60.00,72.80], first_band_max_kg: 1, interval_kg: 0.25, increment: [1.15,1.15,1.75,1.50] },
+          large_upto_1kg: [32.00,38.00,61.00,75.40],
+          large_above_1kg: { interval_kg: 0.5, increment: [2.80,2.80,3.10,3.75] }
         }
+      },
+      sipp_discount: {
+        envelope: 0.83,
+        standard: 1.46,
+        large: 2.92
       }
     };
 
@@ -1860,7 +1865,7 @@
 
     function getMxFeeGroupOptions(mxFeeGroup) {
       if (mxFeeGroup && MX_POLICY.fee_groups[mxFeeGroup]) return [mxFeeGroup];
-      return Object.keys(MX_POLICY.fee_groups);
+      return ["main", "health_grocery"];
     }
 
     function determineMxSizeTier(longestCm, medianCm, shortestCm) {
@@ -1914,6 +1919,17 @@
       return `${groupCode}, ${priceBand.label}, Tamaño grande: ${group.large_upto_1kg[priceBand.index]} + ${steps} x ${group.large_above_1kg.increment[priceBand.index]} => MXN ${fee}`;
     }
 
+    function getMxSippOptions(sizeTier, sippEligible) {
+      const discount = Number(MX_POLICY.sipp_discount[sizeTier] || 0);
+      if (discount <= 0) return [{ applied: false, discount: 0, condition: "该 MX 尺寸分段当前官方表未配置 SIPP 折扣" }];
+      if (sippEligible === true) return [{ applied: true, discount, condition: `已输入 SIPP 适配/已认证；按 MX 官方 SIPP 表折扣 MXN ${discount.toFixed(2)}` }];
+      if (sippEligible === false) return [{ applied: false, discount: 0, condition: "已输入不适配 SIPP，因此不享受 MX SIPP 折扣" }];
+      return [
+        { applied: false, discount: 0, condition: "如果未通过 SIPP 认证，则不享受 MX SIPP 折扣" },
+        { applied: true, discount, condition: `如果通过 SIPP 认证且该尺寸分段适用，则按 MX 官方 SIPP 表折扣 MXN ${discount.toFixed(2)}` }
+      ];
+    }
+
     function calculateMxRow(row) {
       const dimsCm = [row.lengthCm, row.widthCm, row.heightCm].sort((a, b) => b - a).map(round2);
       const [longestCm, medianCm, shortestCm] = dimsCm;
@@ -1934,33 +1950,40 @@
       const shippingWeightKg = round3(Math.max(unitWeightKg, dimensionalWeightKg));
       const categoryGroups = getMxFeeGroupOptions(row.mxFeeGroup);
       const priceBands = getMxPriceBandOptions(row.salePriceLocal);
+      const sippOptions = getMxSippOptions(sizeTier, row.sippEligible);
       const scenarios = [];
       let scenarioId = 1;
       categoryGroups.forEach(groupCode => {
         priceBands.forEach(priceBand => {
-          const fee = computeMxBaseFee(sizeTier, shippingWeightKg, groupCode, priceBand.index);
-          scenarios.push({
-            scenario_id: scenarioId,
-            row_number: row.rowNumber,
-            country: row.country,
-            sku: row.sku,
-            product_name: row.productName,
-            scenario_name: `mx_local_fba + ${groupCode} + ${priceBand.code}`,
-            currency: MX_POLICY.currency,
-            size_tier: sizeTier,
-            shipping_weight_kg: shippingWeightKg,
-            base_fee_type: "mx_local_fba",
-            base_fee_local_currency: fee,
-            base_fee_match: describeMxFeeMatch(sizeTier, shippingWeightKg, groupCode, priceBand),
-            mx_fee_group: groupCode,
-            price_band: priceBand.label,
-            final_fee_local_currency: fee,
-            conditions: `${row.mxFeeGroup ? "已指定" : "若适用"} MX 类目组 ${groupCode}；${row.salePriceLocal === null ? "若售价落入" : "实际售价落入"} ${priceBand.label}；当前仅计入已确认的 MX 本地 FBA 基础配送费，不套用 US 附加/折扣政策`
+          sippOptions.forEach(sippOption => {
+            const fee = computeMxBaseFee(sizeTier, shippingWeightKg, groupCode, priceBand.index);
+            const feeAfterSipp = round2(Math.max(fee - sippOption.discount, 0));
+            scenarios.push({
+              scenario_id: scenarioId,
+              row_number: row.rowNumber,
+              country: row.country,
+              sku: row.sku,
+              product_name: row.productName,
+              scenario_name: `mx_local_fba + ${groupCode} + ${priceBand.code}${sippOption.applied ? " + sipp" : ""}`,
+              currency: MX_POLICY.currency,
+              size_tier: sizeTier,
+              shipping_weight_kg: shippingWeightKg,
+              base_fee_type: "mx_local_fba",
+              base_fee_local_currency: fee.toFixed(2),
+              base_fee_match: describeMxFeeMatch(sizeTier, shippingWeightKg, groupCode, priceBand),
+              mx_fee_group: groupCode,
+              price_band: priceBand.label,
+              sipp_applied: sippOption.applied ? "Y" : "N",
+              sipp_discount_local_currency: sippOption.discount.toFixed(2),
+              fulfillment_fee_after_sipp_local_currency: feeAfterSipp.toFixed(2),
+              final_fee_local_currency: feeAfterSipp.toFixed(2),
+              conditions: `${row.mxFeeGroup ? "已指定" : "若适用"} MX 类目组 ${groupCode}；${row.salePriceLocal === null ? "若售价落入" : "实际售价落入"} ${priceBand.label}；${sippOption.condition}；MX 无燃油/物流附加费、无低库存水平费用`
+            });
+            scenarioId += 1;
           });
-          scenarioId += 1;
         });
       });
-      const fees = scenarios.map(item => item.final_fee_local_currency);
+      const fees = scenarios.map(item => Number(item.final_fee_local_currency));
       return {
         result: {
           row_number: row.rowNumber,
@@ -1968,7 +1991,7 @@
           sku: row.sku,
           product_name: row.productName,
           category: row.category,
-          status: "ok_pending_dimensional_formula_verification",
+          status: "ok",
           currency: MX_POLICY.currency,
           rule_pack: MX_POLICY.version,
           size_tier: sizeTier,
@@ -1990,11 +2013,13 @@
           mx_fee_group: row.mxFeeGroup || "UNKNOWN / ENUMERATED",
           applied_base_fee_type: "mx_local_fba",
           applied_base_fee_local_currency: [...new Set(scenarios.map(item => item.base_fee_local_currency))].join(", "),
-          all_fba_fees_local_currency: fees.join(", "),
+          all_fba_fees_local_currency: fees.map(item => item.toFixed(2)).join(", "),
+          sipp_discount_supported_local_currency: Math.max(...sippOptions.map(item => item.discount)).toFixed(2),
+          sipp_eligible_input: row.sippEligible === null ? "" : (row.sippEligible ? "Y" : "N"),
           scenario_count: scenarios.length,
-          min_final_fee_local_currency: Math.min(...fees),
-          max_final_fee_local_currency: Math.max(...fees),
-          notes: "MX 本地 FBA 基础费已计算；SIPP、低量库存费与燃油/物流附加费未在已核验 MX 公开政策中配置，因此未计入。"
+          min_final_fee_local_currency: Math.min(...fees).toFixed(2),
+          max_final_fee_local_currency: Math.max(...fees).toFixed(2),
+          notes: "MX 本地 FBA 基础费已按官方 2026 小数费率计算；SIPP 折扣已计入；MX 无燃油/物流附加费、无低库存水平费用。"
         },
         scenarios
       };
@@ -2892,9 +2917,8 @@
         renderTable("scenariosTable", state.scenarios, SCENARIO_COLUMNS);
         document.getElementById("exportResults").disabled = false;
         document.getElementById("exportScenarios").disabled = false;
-        const hasMxPreview = state.results.some(row => row.status === "ok_pending_dimensional_formula_verification");
         const statusNotes = [
-          hasMxPreview ? "MX 已输出现有本地基础费，官方表格已读取，仍建议逐档抽样核对" : "",
+          state.results.some(row => row.country === "MX") ? "MX 已启用官方小数费率和 SIPP 折扣；无燃油/物流附加费、无低库存水平费用" : "",
           state.results.some(row => row.country === "CA") ? "CA 已启用本地基础费、低价费、燃油/物流附加费和低库存水平费" : "",
           state.results.some(row => row.country === "JP") ? "JP 已启用本地基础配送费，按三边合计尺寸/重量/1000 日元价格段匹配" : "",
           state.results.some(row => row.country === "US") ? "US 场景含已配置的折扣/附加费组合" : ""
