@@ -471,8 +471,8 @@
           <p>导入一份 SKU 包装后单件商品尺寸重量表，按站点本地政策测算 FBA 可能场景。</p>
           <div class="market-summary">
             <div><strong>US 美国</strong><span class="hint">已启用基础费、低价/高价费、SIPP、低量库存费、燃油/物流附加费组合。</span></div>
-            <div><strong>MX 墨西哥</strong><span class="hint">已启用已公开确认的本地基础配送费率；体积重除数仍待官方正文复核。</span></div>
-            <div><strong>CA 加拿大</strong><span class="hint">已收录官方定价来源；待尺寸分段正文补齐后启用自动计费。</span></div>
+            <div><strong>MX 墨西哥</strong><span class="hint">已启用本地基础配送费预览；无燃油/物流附加费、无低库存水平费用，待 Seller Central 官方表格对齐。</span></div>
+            <div><strong>CA 加拿大</strong><span class="hint">已收录配送费、低价费、尺寸、体积重、SIPP、低库存官方来源；待正文补齐后启用自动计费。</span></div>
             <div><strong>JP 日本</strong><span class="hint">已收录配送费与尺寸分段官方来源；待表格正文补齐后启用自动计费。</span></div>
           </div>
           <p class="hint">当前 HTML 版为纯本地运行，不依赖 Python。支持在线逐行录入、<span class="inline-code">CSV</span> 批量导入和结果导出。</p>
@@ -695,7 +695,7 @@
         <div class="table-wrap rule-table">
           <table id="mxBaseFeeRulesTable"></table>
         </div>
-        <div class="rule-note">MX 的体积重除数当前作为 <span class="inline-code">5,000 cm3/kg</span> 待复核口径显示于结果中；在取得 Seller Central MX 公式原文前，请不要将 MX 输出作为最终结算依据。</div>
+        <div class="rule-note">MX 官方来源已切换为 Seller Central <span class="inline-code">G200209150</span>；该站点当前不配置燃油/物流附加费和低库存水平费用。当前内置 MX 费率仍需按官方页正文逐档对齐后再作为最终结算依据。</div>
       </div>
       </div>
 
@@ -882,15 +882,25 @@
       low_price_threshold: 14,
       low_price_reduction: 0.80,
       calculation_status: "awaiting_official_size_tier_text",
-      note: "官方公开定价页已确认基础计费结构与低价减免，但其商品尺寸分段帮助链接当前要求登录；为避免误套 US 尺寸规则，CA 自动计费暂未启用。"
+      official_sources: {
+        fulfillment_and_fuel: "https://sellercentral.amazon.ca/help/hub/reference/external/GABBX6GZPA8MSZGW",
+        low_price_fba: "https://sellercentral.amazon.ca/help/hub/reference/external/GJTAVU7P2W2VE8Q9",
+        size_tiers: "https://sellercentral.amazon.ca/help/hub/reference/external/G201105770",
+        dimensional_weight: "https://sellercentral.amazon.ca/help/hub/reference/external/G59RXFJCSKH9E9PK",
+        sipp: "https://sellercentral.amazon.ca/help/hub/reference/external/201112670",
+        low_inventory: "https://sellercentral.amazon.ca/help/hub/reference/external/GV43F6S76Y9DHYRH"
+      },
+      note: "已收录加拿大 Seller Central 官方配送费/燃油、低价 FBA、尺寸分段、体积重量、SIPP、低库存水平费用来源；当前自动读取未显示表格正文，为避免误套 US 规则，CA 自动计费暂未启用。"
     };
 
     const MX_POLICY = {
       marketplace: "MX",
       currency: "MXN",
       version: "2026-02-17_public_pricing",
+      official_fulfillment_source_url: "https://sellercentral.amazon.com.mx/help/hub/reference/external/G200209150",
+      official_sipp_source_url: "https://sellercentral.amazon.com.mx/help/hub/reference/external/GFGVB6C7ZF38285W",
       dimensional_weight_divisor_cm3_per_kg: 5000,
-      dimensional_formula_verification: "墨西哥公开费率页确认商品重量与体积重量取较大值；体积重量除数 5,000 请在正式使用前与 Seller Central 帮助正文复核。",
+      dimensional_formula_verification: "墨西哥官方 Seller Central 来源为 G200209150；当前内置费率/尺寸/体积重口径需按该官方页正文最终对齐。MX 不配置燃油/物流附加费和低库存水平费用。",
       size_tiers: {
         envelope: { label: "Sobre", max_longest_cm: 38, max_median_cm: 27, max_shortest_cm: 2 },
         standard: { label: "Estándar", max_longest_cm: 45, max_median_cm: 35, max_shortest_cm: 20 },
@@ -942,35 +952,67 @@
     const MARKET_SOURCES = [
       {
         marketplace: "CA",
-        group: "CA local FBA public pricing (calculation pending size tiers)",
-        kind: "official_public",
-        title: "Amazon.ca selling fees and FBA fulfilment pricing",
-        url: "https://sell.amazon.ca/pricing",
-        note: "Official Amazon Canada page. Confirms fees effective February 1, 2026, CAD fulfilment fee structure, shipping weight based on the greater of unit or dimensional weight, and Low-Price FBA reduction of CAD 0.80 for eligible items below CAD 14. Product size-tier detail links to Seller Central and requires access in this verification session, so CA automatic calculation is intentionally not enabled."
+        group: "CA FBA fulfillment fees + fuel/logistics surcharge",
+        kind: "official_help_primary",
+        title: "Seller Central Canada FBA fulfillment fees",
+        url: "https://sellercentral.amazon.ca/help/hub/reference/external/GABBX6GZPA8MSZGW",
+        note: "Official Seller Central Canada source for FBA fulfillment fees and fuel/logistics-related surcharge. The page shell is accessible, but the table body did not render in this verification session; CA automatic calculation remains disabled until table text is available."
+      },
+      {
+        marketplace: "CA",
+        group: "CA Low-Price FBA fees",
+        kind: "official_help_primary",
+        title: "Seller Central Canada Low-Price FBA fees",
+        url: "https://sellercentral.amazon.ca/help/hub/reference/external/GJTAVU7P2W2VE8Q9",
+        note: "Official Seller Central Canada source for Low-Price FBA. Table body did not render in this verification session; values must be transcribed from the official page before enabling CA low-price calculation."
+      },
+      {
+        marketplace: "CA",
+        group: "CA product size tiers",
+        kind: "official_help_primary",
+        title: "Seller Central Canada product size tiers",
+        url: "https://sellercentral.amazon.ca/help/hub/reference/external/G201105770",
+        note: "Official Seller Central Canada source for product size tiers. Table body did not render in this verification session; CA size-tier logic remains disabled until the table text is available."
+      },
+      {
+        marketplace: "CA",
+        group: "CA dimensional weight",
+        kind: "official_help_primary",
+        title: "Seller Central Canada dimensional weight",
+        url: "https://sellercentral.amazon.ca/help/hub/reference/external/G59RXFJCSKH9E9PK",
+        note: "Official Seller Central Canada source for dimensional-weight rules. Body did not render in this verification session; CA dimensional-weight calculation remains disabled until the rule text is available."
+      },
+      {
+        marketplace: "CA",
+        group: "CA SIPP fees",
+        kind: "official_help_primary",
+        title: "Seller Central Canada SIPP fees",
+        url: "https://sellercentral.amazon.ca/help/hub/reference/external/201112670",
+        note: "Official Seller Central Canada source for SIPP fees. Table body did not render in this verification session; CA SIPP calculation remains disabled until the fee table is available."
+      },
+      {
+        marketplace: "CA",
+        group: "CA low-inventory-level fee",
+        kind: "official_help_primary",
+        title: "Seller Central Canada low-inventory-level fee",
+        url: "https://sellercentral.amazon.ca/help/hub/reference/external/GV43F6S76Y9DHYRH",
+        note: "Official Seller Central Canada source for low-inventory-level fee. Table body did not render in this verification session; CA low-inventory calculation remains disabled until the table text is available."
       },
       {
         marketplace: "MX",
-        group: "MX local FBA fulfilment rates and size tiers",
-        kind: "official_public",
-        title: "Logística de Amazon - tarifas vigentes a partir del 17 de febrero de 2026",
-        url: "https://vender.amazon.com.mx/logistica-de-amazon",
-        note: "Official Amazon Mexico page. Used for MXN fee tables, four sale-price bands, official listed category groups, Sobre/Estándar/Tamaño grande size boundaries, and the rule that fulfilment fees use the greater of product weight or dimensional weight. IVA is excluded on the official table."
+        group: "MX FBA fulfillment fees, four price bands, size tiers, dimensional weight",
+        kind: "official_help_primary",
+        title: "Seller Central Mexico FBA fulfillment fees",
+        url: "https://sellercentral.amazon.com.mx/help/hub/reference/external/G200209150",
+        note: "Official Seller Central Mexico source for local FBA fulfillment fees, four sale-price bands, product size tiers, and dimensional-weight rules. MX has no fuel/logistics surcharge and no low-inventory-level fee in this calculator scope. The page shell is accessible, but the table body did not render in this verification session; current embedded MX values should be aligned against this official page before final costing."
       },
       {
         marketplace: "MX",
-        group: "MX Tamaño grande boundary interpretation",
-        kind: "official_public",
-        title: "Centro de capacitación de Logística de Amazon México",
-        url: "https://vender.amazon.com.mx/logistica-de-amazon/centro-de-capacitacion/empezar",
-        note: "Official Amazon Mexico training page. Used together with the pricing page to interpret Tamaño grande as longest side up to 270 cm and girth plus length up to 550 cm, rather than reusing a US oversize tier."
-      },
-      {
-        marketplace: "MX",
-        group: "MX dimensional-weight divisor verification note",
-        kind: "requires_confirmation",
-        title: "Seller Central MX dimensional-weight help page required",
-        url: "https://vender.amazon.com.mx/logistica-de-amazon",
-        note: "The public MX pricing page confirms dimensional-weight usage but the divisor detail is not present in the retrievable fee-table text. The calculator currently exposes its 5,000 cm3/kg working assumption in each MX result; confirm against the Seller Central MX help text before production costing."
+        group: "MX SIPP fees",
+        kind: "official_help_primary",
+        title: "Seller Central Mexico SIPP fees",
+        url: "https://sellercentral.amazon.com.mx/help/hub/reference/external/GFGVB6C7ZF38285W",
+        note: "Official Seller Central Mexico source for SIPP fees. The page shell is accessible, but the table body did not render in this verification session; MX SIPP calculation is not enabled until the official fee table is available."
       },
       {
         marketplace: "JP",
@@ -2235,7 +2277,7 @@
           "站点": "CA 本地 FBA",
           "状态": "暂不自动计费",
           "尺寸/计费重口径": "不使用 US 规则；官方尺寸分段帮助正文待获取",
-          "费用政策": "官方公开页确认 2026-02-01 起费率；符合条件且售价 < CAD 14 时标准 FBA 费减 CAD 0.80"
+          "费用政策": "已收录 CA 官方配送费+燃油/物流、低价 FBA、尺寸分段、体积重量、SIPP、低库存水平费用 6 个来源；待表格正文录入后启用"
         }
       ]);
     }
