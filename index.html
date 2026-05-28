@@ -878,10 +878,50 @@
     const CA_POLICY = {
       marketplace: "CA",
       currency: "CAD",
-      version: "2026-02-01_public_pricing",
+      version: "2026-01-15_official_seller_central",
       low_price_threshold: 14,
       low_price_reduction: 0.80,
-      calculation_status: "awaiting_official_size_tier_text",
+      fuel_logistics_surcharge: {
+        enabled: true,
+        rate: 0.035,
+        effective_date: "2026-04-17"
+      },
+      dimensional_weight_divisor_cm3_per_kg: 5000,
+      size_tiers: {
+        envelope: { label: "信封", max_shipping_weight_kg: 0.5, max_longest_cm: 38, max_median_cm: 27, max_shortest_cm: 2, rounding_g: 100 },
+        standard: { label: "标准", max_shipping_weight_kg: 9, max_longest_cm: 45, max_median_cm: 35, max_shortest_cm: 20, rounding_g: 100 },
+        small_oversize: { label: "小号大件", max_shipping_weight_kg: 32, max_longest_cm: 152, max_median_cm: 76, max_length_plus_girth_cm: 330, rounding_g: 500 },
+        medium_oversize: { label: "中号大件", max_shipping_weight_kg: 68, max_longest_cm: 270, max_length_plus_girth_cm: 330, rounding_g: 500 },
+        large_oversize: { label: "大号大件", max_shipping_weight_kg: 68, max_longest_cm: 270, max_length_plus_girth_cm: 419, rounding_g: 500 },
+        special_oversize: { label: "特殊大件", min_shipping_weight_kg: 68, min_longest_cm: 270, min_length_plus_girth_cm: 419, rounding_g: 500 }
+      },
+      base_fees: {
+        standard: {
+          envelope: [[100,4.46],[200,4.71],[300,5.01],[400,5.28],[500,5.62]],
+          standard: [[100,5.92],[200,6.12],[300,6.36],[400,6.73],[500,7.23],[600,7.40],[700,7.71],[800,7.95],[900,8.25],[1000,8.49],[1100,8.58],[1200,8.84],[1300,9.04],[1400,9.29],[1500,9.60]],
+          standard_above_1500g: { base: 10.32, base_weight_g: 1500, max_weight_g: 9000, interval_g: 100, increment: 0.09 },
+          small_oversize: { base: 15.43, base_weight_g: 500, interval_g: 500, increment: 0.46 },
+          medium_oversize: { base: 37.78, base_weight_g: 500, interval_g: 500, increment: 0.52 },
+          large_oversize: { base: 82.20, base_weight_g: 500, interval_g: 500, increment: 0.58 },
+          special_oversize: { base: 150.78, base_weight_g: 500, interval_g: 500, increment: 0.58 }
+        },
+        low_price: {
+          envelope: [[100,3.66],[200,3.91],[300,4.21],[400,4.48],[500,4.82]],
+          standard: [[100,5.12],[200,5.32],[300,5.56],[400,5.93],[500,6.43],[600,6.60],[700,6.91],[800,7.15],[900,7.45],[1000,7.69],[1100,7.78],[1200,8.04],[1300,8.24],[1400,8.49],[1500,8.80]],
+          standard_above_1500g: { base: 9.52, base_weight_g: 1500, max_weight_g: 9000, interval_g: 100, increment: 0.09 },
+          small_oversize: { base: 14.63, base_weight_g: 500, interval_g: 500, increment: 0.46 },
+          medium_oversize: { base: 36.98, base_weight_g: 500, interval_g: 500, increment: 0.52 },
+          large_oversize: { base: 81.40, base_weight_g: 500, interval_g: 500, increment: 0.58 },
+          special_oversize: { base: 149.98, base_weight_g: 500, interval_g: 500, increment: 0.58 }
+        }
+      },
+      low_inventory_fee: {
+        envelope: {"0_14":1.21,"14_21":0.72,"21_28":0.43},
+        standard_upto_300g: {"0_14":1.42,"14_21":0.83,"21_28":0.47},
+        standard_300_to_1000g: {"0_14":1.57,"14_21":0.89,"21_28":0.49},
+        standard_1000_to_1500g: {"0_14":1.73,"14_21":1.10,"21_28":0.56},
+        standard_1500_to_9000g: {"0_14":2.09,"14_21":1.41,"21_28":0.73}
+      },
       official_sources: {
         fulfillment_and_fuel: "https://sellercentral.amazon.ca/help/hub/reference/external/GABBX6GZPA8MSZGW",
         low_price_fba: "https://sellercentral.amazon.ca/help/hub/reference/external/GJTAVU7P2W2VE8Q9",
@@ -890,7 +930,7 @@
         sipp: "https://sellercentral.amazon.ca/help/hub/reference/external/201112670",
         low_inventory: "https://sellercentral.amazon.ca/help/hub/reference/external/GV43F6S76Y9DHYRH"
       },
-      note: "已收录加拿大 Seller Central 官方配送费/燃油、低价 FBA、尺寸分段、体积重量、SIPP、低库存水平费用来源；当前自动读取未显示表格正文，为避免误套 US 规则，CA 自动计费暂未启用。"
+      note: "已按加拿大 Seller Central 官方表格启用本地基础配送费、低价商品 FBA、3.5% 燃油/物流附加费和低库存水平费用；CA SIPP 页面正文已读取但当前表格为配送费口径，暂不额外叠加 SIPP 折扣。"
     };
 
     const MX_POLICY = {
@@ -956,7 +996,7 @@
         kind: "official_help_primary",
         title: "Seller Central Canada FBA fulfillment fees",
         url: "https://sellercentral.amazon.ca/help/hub/reference/external/GABBX6GZPA8MSZGW",
-        note: "Official Seller Central Canada source for FBA fulfillment fees and fuel/logistics-related surcharge. The page shell is accessible, but the table body did not render in this verification session; CA automatic calculation remains disabled until table text is available."
+        note: "Official Seller Central Canada source for FBA fulfillment fees and the 3.5% fuel/logistics-related surcharge. The visible official table was read in the in-app browser and is now used for CA base-fee calculation."
       },
       {
         marketplace: "CA",
@@ -964,7 +1004,7 @@
         kind: "official_help_primary",
         title: "Seller Central Canada Low-Price FBA fees",
         url: "https://sellercentral.amazon.ca/help/hub/reference/external/GJTAVU7P2W2VE8Q9",
-        note: "Official Seller Central Canada source for Low-Price FBA. Table body did not render in this verification session; values must be transcribed from the official page before enabling CA low-price calculation."
+        note: "Official Seller Central Canada source for Low-Price FBA. The visible official table was read in the in-app browser and is now used for CA low-price fee calculation; threshold is CAD 14."
       },
       {
         marketplace: "CA",
@@ -972,7 +1012,7 @@
         kind: "official_help_primary",
         title: "Seller Central Canada product size tiers",
         url: "https://sellercentral.amazon.ca/help/hub/reference/external/G201105770",
-        note: "Official Seller Central Canada source for product size tiers. Table body did not render in this verification session; CA size-tier logic remains disabled until the table text is available."
+        note: "Official Seller Central Canada source for product size tiers. The visible official size-tier rules were read and are now used for CA envelope, standard, small/medium/large/special oversize classification."
       },
       {
         marketplace: "CA",
@@ -980,7 +1020,7 @@
         kind: "official_help_primary",
         title: "Seller Central Canada dimensional weight",
         url: "https://sellercentral.amazon.ca/help/hub/reference/external/G59RXFJCSKH9E9PK",
-        note: "Official Seller Central Canada source for dimensional-weight rules. Body did not render in this verification session; CA dimensional-weight calculation remains disabled until the rule text is available."
+        note: "Official Seller Central Canada source for dimensional-weight rules. The visible rule states dimensional weight in kg = L x W x H cm / 5,000; used for CA size-tier and shipping-weight calculation."
       },
       {
         marketplace: "CA",
@@ -988,7 +1028,7 @@
         kind: "official_help_primary",
         title: "Seller Central Canada SIPP fees",
         url: "https://sellercentral.amazon.ca/help/hub/reference/external/201112670",
-        note: "Official Seller Central Canada source for SIPP fees. Table body did not render in this verification session; CA SIPP calculation remains disabled until the fee table is available."
+        note: "Official Seller Central Canada SIPP-related source supplied by the user. The visible table content was read, but it currently presents fulfillment-fee rows rather than a separate discount table, so no additional CA SIPP discount is applied yet."
       },
       {
         marketplace: "CA",
@@ -996,7 +1036,7 @@
         kind: "official_help_primary",
         title: "Seller Central Canada low-inventory-level fee",
         url: "https://sellercentral.amazon.ca/help/hub/reference/external/GV43F6S76Y9DHYRH",
-        note: "Official Seller Central Canada source for low-inventory-level fee. Table body did not render in this verification session; CA low-inventory calculation remains disabled until the table text is available."
+        note: "Official Seller Central Canada source for low-inventory-level fee. The visible fee bands were read and are now used for CA envelope/standard low-inventory scenarios."
       },
       {
         marketplace: "MX",
@@ -1004,7 +1044,7 @@
         kind: "official_help_primary",
         title: "Seller Central Mexico FBA fulfillment fees",
         url: "https://sellercentral.amazon.com.mx/help/hub/reference/external/G200209150",
-        note: "Official Seller Central Mexico source for local FBA fulfillment fees, four sale-price bands, product size tiers, and dimensional-weight rules. MX has no fuel/logistics surcharge and no low-inventory-level fee in this calculator scope. The page shell is accessible, but the table body did not render in this verification session; current embedded MX values should be aligned against this official page before final costing."
+        note: "Official Seller Central Mexico source for local FBA fulfillment fees, four sale-price bands, product size tiers, and dimensional-weight rules. The visible official table was read; MX has no fuel/logistics surcharge and no low-inventory-level fee in this calculator scope."
       },
       {
         marketplace: "MX",
@@ -1012,7 +1052,7 @@
         kind: "official_help_primary",
         title: "Seller Central Mexico SIPP fees",
         url: "https://sellercentral.amazon.com.mx/help/hub/reference/external/GFGVB6C7ZF38285W",
-        note: "Official Seller Central Mexico source for SIPP fees. The page shell is accessible, but the table body did not render in this verification session; MX SIPP calculation is not enabled until the official fee table is available."
+        note: "Official Seller Central Mexico source for SIPP fees. The visible official table was read; MX SIPP discounts are not yet applied to the calculator until the values are fully mapped into scenario logic."
       },
       {
         marketplace: "JP",
@@ -1873,7 +1913,173 @@
       };
     }
 
-    function calculateCaPendingRow(row) {
+    function determineCaSizeTier(longestCm, medianCm, shortestCm, shippingWeightKg, lengthPlusGirthCm) {
+      const tiers = CA_POLICY.size_tiers;
+      if (
+        shippingWeightKg <= tiers.envelope.max_shipping_weight_kg &&
+        longestCm <= tiers.envelope.max_longest_cm &&
+        medianCm <= tiers.envelope.max_median_cm &&
+        shortestCm <= tiers.envelope.max_shortest_cm
+      ) return "envelope";
+      if (
+        shippingWeightKg <= tiers.standard.max_shipping_weight_kg &&
+        longestCm <= tiers.standard.max_longest_cm &&
+        medianCm <= tiers.standard.max_median_cm &&
+        shortestCm <= tiers.standard.max_shortest_cm
+      ) return "standard";
+      if (
+        shippingWeightKg <= tiers.small_oversize.max_shipping_weight_kg &&
+        longestCm <= tiers.small_oversize.max_longest_cm &&
+        medianCm <= tiers.small_oversize.max_median_cm &&
+        lengthPlusGirthCm <= tiers.small_oversize.max_length_plus_girth_cm
+      ) return "small_oversize";
+      if (
+        shippingWeightKg <= tiers.medium_oversize.max_shipping_weight_kg &&
+        longestCm <= tiers.medium_oversize.max_longest_cm &&
+        lengthPlusGirthCm <= tiers.medium_oversize.max_length_plus_girth_cm
+      ) return "medium_oversize";
+      if (
+        shippingWeightKg <= tiers.large_oversize.max_shipping_weight_kg &&
+        longestCm <= tiers.large_oversize.max_longest_cm &&
+        lengthPlusGirthCm <= tiers.large_oversize.max_length_plus_girth_cm
+      ) return "large_oversize";
+      return "special_oversize";
+    }
+
+    function roundUpToGrams(weightKg, intervalG) {
+      const rawG = weightKg * 1000;
+      return Math.ceil((rawG - 1e-9) / intervalG) * intervalG;
+    }
+
+    function getCaPriceTypeOptions(salePriceLocal) {
+      if (salePriceLocal === null) {
+        return [
+          { code: "standard", label: "标准 FBA（售价 >= CAD 14 或非低价场景）" },
+          { code: "low_price", label: "低价商品 FBA（售价 < CAD 14）" }
+        ];
+      }
+      return salePriceLocal < CA_POLICY.low_price_threshold
+        ? [{ code: "low_price", label: "低价商品 FBA（售价 < CAD 14）" }]
+        : [{ code: "standard", label: "标准 FBA（售价 >= CAD 14）" }];
+    }
+
+    function computeCaBaseFee(sizeTier, billableWeightG, priceType) {
+      const table = CA_POLICY.base_fees[priceType];
+      if (sizeTier === "envelope" || (sizeTier === "standard" && billableWeightG <= 1500)) {
+        const band = table[sizeTier].find(item => billableWeightG <= item[0] + 1e-9);
+        return Number(band[1]);
+      }
+      if (sizeTier === "standard") {
+        const formula = table.standard_above_1500g;
+        const steps = ceilIntervals(billableWeightG - formula.base_weight_g, formula.interval_g);
+        return round2(formula.base + steps * formula.increment);
+      }
+      const formula = table[sizeTier];
+      const steps = ceilIntervals(billableWeightG - formula.base_weight_g, formula.interval_g);
+      return round2(formula.base + steps * formula.increment);
+    }
+
+    function describeCaBaseFeeMatch(sizeTier, billableWeightG, priceType) {
+      const label = CA_POLICY.size_tiers[sizeTier].label;
+      const fee = computeCaBaseFee(sizeTier, billableWeightG, priceType);
+      if (sizeTier === "envelope" || (sizeTier === "standard" && billableWeightG <= 1500)) {
+        const previous = CA_POLICY.base_fees[priceType][sizeTier].findIndex(item => billableWeightG <= item[0] + 1e-9);
+        const lower = previous <= 0 ? 0 : CA_POLICY.base_fees[priceType][sizeTier][previous - 1][0];
+        const upper = CA_POLICY.base_fees[priceType][sizeTier][previous][0];
+        return `${label}: ${billableWeightG} g => ${lower} 至 ${upper} g（不含 ${lower} g）=> CAD ${fee}`;
+      }
+      const formula = sizeTier === "standard" ? CA_POLICY.base_fees[priceType].standard_above_1500g : CA_POLICY.base_fees[priceType][sizeTier];
+      const steps = ceilIntervals(billableWeightG - formula.base_weight_g, formula.interval_g);
+      return `${label}: ${billableWeightG} g => CAD ${formula.base} + ${steps} x CAD ${formula.increment} => CAD ${fee}`;
+    }
+
+    function getCaLowInventoryOptions(sizeTier, billableWeightG, daysOfSupply30, daysOfSupply90) {
+      if (!["envelope", "standard"].includes(sizeTier)) return [{ band_code: "none", fee: 0, reason: "CA 低库存水平费用仅适用于信封和标准尺寸商品" }];
+      const has30 = daysOfSupply30 !== null;
+      const has90 = daysOfSupply90 !== null;
+      if (has30 && has90) {
+        if (daysOfSupply30 >= 28 || daysOfSupply90 >= 28) return [{ band_code: "none", fee: 0, reason: "30/90 天任一供货天数 >= 28，不收取低库存水平费用" }];
+        const historicalDays = Math.max(daysOfSupply30, daysOfSupply90);
+        const band = historicalDays < 14 ? "0_14" : (historicalDays < 21 ? "14_21" : "21_28");
+        const feeTable = getCaLowInventoryFeeTable(sizeTier, billableWeightG);
+        return [{ band_code: band, fee: feeTable[band], reason: `30/90 天均 < 28，按较大供货天数 ${historicalDays} 天入档` }];
+      }
+      if (has30 || has90) {
+        const supplied = has30 ? daysOfSupply30 : daysOfSupply90;
+        if (supplied >= 28) return [{ band_code: "none", fee: 0, reason: "已填写供货天数 >= 28，不收取低库存水平费用" }];
+        const band = supplied < 14 ? "0_14" : (supplied < 21 ? "14_21" : "21_28");
+        const feeTable = getCaLowInventoryFeeTable(sizeTier, billableWeightG);
+        return [{ band_code: band, fee: feeTable[band], reason: `仅填写一个供货天数 ${supplied} 天，按该值入档` }];
+      }
+      const feeTable = getCaLowInventoryFeeTable(sizeTier, billableWeightG);
+      return [
+        { band_code: "none", fee: 0, reason: "未填写供货天数，穷举不收取低库存水平费用场景" },
+        { band_code: "0_14", fee: feeTable["0_14"], reason: "未填写供货天数，穷举 0-14 天低库存场景" },
+        { band_code: "14_21", fee: feeTable["14_21"], reason: "未填写供货天数，穷举 14-21 天低库存场景" },
+        { band_code: "21_28", fee: feeTable["21_28"], reason: "未填写供货天数，穷举 21-28 天低库存场景" }
+      ];
+    }
+
+    function getCaLowInventoryFeeTable(sizeTier, billableWeightG) {
+      if (sizeTier === "envelope") return CA_POLICY.low_inventory_fee.envelope;
+      if (billableWeightG <= 300) return CA_POLICY.low_inventory_fee.standard_upto_300g;
+      if (billableWeightG <= 1000) return CA_POLICY.low_inventory_fee.standard_300_to_1000g;
+      if (billableWeightG <= 1500) return CA_POLICY.low_inventory_fee.standard_1000_to_1500g;
+      return CA_POLICY.low_inventory_fee.standard_1500_to_9000g;
+    }
+
+    function calculateCaRow(row) {
+      const dimsCm = [row.lengthCm, row.widthCm, row.heightCm].sort((a, b) => b - a).map(round2);
+      const [longestCm, medianCm, shortestCm] = dimsCm;
+      const lengthPlusGirthCm = round2(longestCm + 2 * (medianCm + shortestCm));
+      const unitWeightKg = round3(row.weightKg);
+      const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / CA_POLICY.dimensional_weight_divisor_cm3_per_kg);
+      const shippingWeightKg = round3(Math.max(unitWeightKg, dimensionalWeightKg));
+      const sizeTier = determineCaSizeTier(longestCm, medianCm, shortestCm, shippingWeightKg, lengthPlusGirthCm);
+      const roundingG = CA_POLICY.size_tiers[sizeTier].rounding_g;
+      const billableWeightG = roundUpToGrams(shippingWeightKg, roundingG);
+      const priceTypes = getCaPriceTypeOptions(row.salePriceLocal);
+      const lowInventoryOptions = getCaLowInventoryOptions(sizeTier, billableWeightG, row.daysOfSupply30, row.daysOfSupply90);
+      const scenarios = [];
+      let scenarioId = 1;
+      priceTypes.forEach(priceType => {
+        lowInventoryOptions.forEach(lowInventory => {
+          const baseFee = computeCaBaseFee(sizeTier, billableWeightG, priceType.code);
+          const fuelSurcharge = CA_POLICY.fuel_logistics_surcharge.enabled ? round2(baseFee * CA_POLICY.fuel_logistics_surcharge.rate) : 0;
+          const finalFee = round2(baseFee + fuelSurcharge + lowInventory.fee);
+          scenarios.push({
+            scenario_id: scenarioId,
+            row_number: row.rowNumber,
+            country: row.country,
+            sku: row.sku,
+            product_name: row.productName,
+            scenario_name: `ca_${priceType.code}_fba + fuel + low_inventory_${lowInventory.band_code}`,
+            currency: CA_POLICY.currency,
+            size_tier: sizeTier,
+            shipping_weight_kg: shippingWeightKg,
+            shipping_weight_g: billableWeightG,
+            base_fee_type: `ca_${priceType.code}_fba`,
+            base_fee_local_currency: baseFee,
+            base_fee_match: describeCaBaseFeeMatch(sizeTier, billableWeightG, priceType.code),
+            price_band: priceType.label,
+            fuel_logistics_surcharge_local_currency: fuelSurcharge,
+            fuel_logistics_surcharge_percent: formatPercent(CA_POLICY.fuel_logistics_surcharge.rate),
+            fuel_logistics_surcharge_rate: round4(CA_POLICY.fuel_logistics_surcharge.rate),
+            days_of_supply_30_input: row.daysOfSupply30 ?? "",
+            days_of_supply_90_input: row.daysOfSupply90 ?? "",
+            low_inventory_band: lowInventory.band_code,
+            low_inventory_fee_local_currency: lowInventory.fee,
+            final_fee_local_currency: finalFee,
+            conditions: `${row.salePriceLocal === null ? "售价留空，按政策穷举" : "按实际售价"} ${priceType.label}；${lowInventory.reason}；燃油/物流附加费按基础配送费 ${formatPercent(CA_POLICY.fuel_logistics_surcharge.rate)} 单独叠加`
+          });
+          scenarioId += 1;
+        });
+      });
+      const fees = scenarios.map(item => item.final_fee_local_currency);
+      const cheapest = scenarios.reduce((best, item) => item.final_fee_local_currency < best.final_fee_local_currency ? item : best, scenarios[0]);
+      const highest = scenarios.reduce((best, item) => item.final_fee_local_currency > best.final_fee_local_currency ? item : best, scenarios[0]);
+      const standardBase = computeCaBaseFee(sizeTier, billableWeightG, "standard");
+      const lowPriceBase = computeCaBaseFee(sizeTier, billableWeightG, "low_price");
       return {
         result: {
           row_number: row.rowNumber,
@@ -1881,20 +2087,57 @@
           sku: row.sku,
           product_name: row.productName,
           category: row.category,
-          status: CA_POLICY.calculation_status,
+          status: "ok",
           currency: CA_POLICY.currency,
+          rule_pack: CA_POLICY.version,
+          size_tier: sizeTier,
+          size_tier_reason: `${CA_POLICY.size_tiers[sizeTier].label} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, shipping_weight_kg=${shippingWeightKg}, length_plus_girth_cm=${lengthPlusGirthCm}`,
+          measurement_rounding_rule: "CA 尺寸按 cm 四舍五入至 2 位用于尺寸比较；体积重量=长x宽x高/5000 kg，四舍五入至 3 位；信封/标准计费重向上取整至 100g，大件向上取整至 500g",
+          length_cm: row.lengthCm,
+          width_cm: row.widthCm,
+          height_cm: row.heightCm,
+          weight_kg: row.weightKg,
+          longest_cm: longestCm,
+          median_cm: medianCm,
+          shortest_cm: shortestCm,
+          length_plus_girth_cm: lengthPlusGirthCm,
+          dimensional_weight_kg: dimensionalWeightKg,
+          shipping_weight_kg: shippingWeightKg,
+          shipping_weight_g: billableWeightG,
+          shipping_weight_basis: `商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 取较大值，再按 ${roundingG} g 向上取整`,
+          shipping_weight_policy_unit: "g",
+          shipping_weight_policy_value: billableWeightG,
+          shipping_weight_band: `${CA_POLICY.size_tiers[sizeTier].label} ${billableWeightG} g`,
           sale_price_local: row.salePriceLocal ?? "",
-          notes: CA_POLICY.note
+          price_band: row.salePriceLocal === null ? "UNKNOWN / ENUMERATED" : (row.salePriceLocal < CA_POLICY.low_price_threshold ? "< CAD 14" : ">= CAD 14"),
+          applied_base_fee_type: [...new Set(scenarios.map(item => item.base_fee_type))].join(", "),
+          applied_base_fee_local_currency: [...new Set(scenarios.map(item => item.base_fee_local_currency))].join(", "),
+          all_fba_fees_local_currency: fees.join(", "),
+          standard_fba_fee_local_currency: standardBase,
+          standard_fba_fee_match: describeCaBaseFeeMatch(sizeTier, billableWeightG, "standard"),
+          low_price_fba_fee_local_currency: lowPriceBase,
+          low_price_fba_fee_match: describeCaBaseFeeMatch(sizeTier, billableWeightG, "low_price"),
+          includes_fuel_logistics_surcharge: CA_POLICY.fuel_logistics_surcharge.enabled ? "Y" : "N",
+          fuel_logistics_surcharge_rate: round4(CA_POLICY.fuel_logistics_surcharge.rate),
+          fuel_logistics_surcharge_percent: formatPercent(CA_POLICY.fuel_logistics_surcharge.rate),
+          days_of_supply_30_input: row.daysOfSupply30 ?? "",
+          days_of_supply_90_input: row.daysOfSupply90 ?? "",
+          low_inventory_evaluation: lowInventoryOptions.map(item => item.band_code).join(", "),
+          low_inventory_fee_bands_local_currency: lowInventoryOptions.filter(item => item.band_code !== "none").map(item => `${item.band_code}=${item.fee}`).join(", "),
+          scenario_count: scenarios.length,
+          min_final_fee_local_currency: cheapest.final_fee_local_currency,
+          max_final_fee_local_currency: highest.final_fee_local_currency,
+          cheapest_scenario: cheapest.scenario_name,
+          highest_scenario: highest.scenario_name,
+          notes: [
+            `已穷举 ${scenarios.length} 个 CA 本地费用场景`,
+            row.salePriceLocal === null ? "售价留空时穷举标准 FBA 与低价商品 FBA" : "",
+            lowInventoryOptions.length > 1 ? "供货天数留空时穷举低库存水平费用档位" : "",
+            "基础费不含燃油/物流附加费，最终场景费单独叠加 3.5%",
+            "CA SIPP 暂未额外叠加折扣，等待逐档折扣表确认"
+          ].filter(Boolean).join("；")
         },
-        scenarios: [{
-          row_number: row.rowNumber,
-          country: row.country,
-          sku: row.sku,
-          product_name: row.productName,
-          currency: CA_POLICY.currency,
-          scenario_name: CA_POLICY.calculation_status,
-          conditions: CA_POLICY.note
-        }]
+        scenarios
       };
     }
 
@@ -1926,28 +2169,31 @@
     const RESULTS_COLUMNS = [
       "row_number", "country", "sku", "product_name", "category", "status", "currency", "rule_pack", "size_tier",
       "size_tier_reason", "measurement_rounding_rule", "length_cm", "width_cm", "height_cm", "weight_kg",
+      "longest_cm", "median_cm", "shortest_cm", "length_plus_girth_cm", "dimensional_weight_kg", "shipping_weight_kg", "shipping_weight_g",
       "raw_longest_in", "raw_median_in", "raw_shortest_in",
       "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
       "shipping_weight_basis", "shipping_weight_policy_unit", "shipping_weight_policy_value", "shipping_weight_band",
       "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb", "dimensional_weight_width_in", "dimensional_weight_height_in",
       "sale_price_local", "price_band", "mx_fee_group", "applied_base_fee_type", "applied_base_fee_local_currency", "all_fba_fees_local_currency", "applied_base_fee_usd", "applicable_fba_fee_including_fuel_usd", "all_fba_fees_usd",
+      "standard_fba_fee_local_currency", "low_price_fba_fee_local_currency",
       "standard_fba_fee_usd", "standard_fba_fee_match",
       "low_price_fba_fee_usd", "low_price_fba_fee_match",
       "high_price_fba_fee_usd", "high_price_fba_fee_match",
       "sipp_discount_supported_usd",
       "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
       "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate", "includes_fuel_logistics_surcharge", "low_inventory_fee_bands_usd",
+      "low_inventory_fee_bands_local_currency", "min_final_fee_local_currency", "max_final_fee_local_currency",
       "days_of_supply_30_input", "days_of_supply_90_input", "low_inventory_evaluation",
       "scenario_count", "min_final_fee_usd", "max_final_fee_usd", "cheapest_scenario", "highest_scenario", "notes"
     ];
 
     const SCENARIO_COLUMNS = [
       "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "currency", "base_fee_type",
-      "base_fee_local_currency", "final_fee_local_currency", "mx_fee_group", "price_band", "shipping_weight_kg",
+      "base_fee_local_currency", "final_fee_local_currency", "mx_fee_group", "price_band", "shipping_weight_kg", "shipping_weight_g",
       "base_fee_usd", "base_fee_match", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_after_sipp_usd",
       "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
-      "fuel_logistics_surcharge_usd", "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate",
-      "days_of_supply_30_input", "days_of_supply_90_input", "low_inventory_band", "low_inventory_fee_usd", "final_fee_usd", "conditions"
+      "fuel_logistics_surcharge_usd", "fuel_logistics_surcharge_local_currency", "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate",
+      "days_of_supply_30_input", "days_of_supply_90_input", "low_inventory_band", "low_inventory_fee_usd", "low_inventory_fee_local_currency", "final_fee_usd", "conditions"
     ];
 
     function calculateRows(rows) {
@@ -1962,7 +2208,7 @@
           return;
         }
         if (row.country === "CA") {
-          const caComputed = calculateCaPendingRow(row);
+          const caComputed = calculateCaRow(row);
           results.push(caComputed.result);
           scenarios.push(...caComputed.scenarios);
           return;
@@ -2275,9 +2521,21 @@
       renderTable("caRuleStatusTable", [
         {
           "站点": "CA 本地 FBA",
-          "状态": "暂不自动计费",
-          "尺寸/计费重口径": "不使用 US 规则；官方尺寸分段帮助正文待获取",
-          "费用政策": "已收录 CA 官方配送费+燃油/物流、低价 FBA、尺寸分段、体积重量、SIPP、低库存水平费用 6 个来源；待表格正文录入后启用"
+          "状态": "已启用",
+          "尺寸/计费重口径": "信封/标准/小号大件/中号大件/大号大件/特殊大件；体积重量=长×宽×高/5000 kg；信封和标准按 100g 进位，大件按 500g 进位",
+          "费用政策": "已启用基础配送费、低价商品 FBA、3.5% 燃油/物流附加费、低库存水平费用；SIPP 暂不额外叠加，等待逐档折扣表确认"
+        },
+        {
+          "站点": "CA 低价商品",
+          "状态": "已启用",
+          "尺寸/计费重口径": "售价 < CAD 14 自动使用低价商品 FBA；售价留空时穷举标准/低价两种价格条件",
+          "费用政策": "低价商品费率按官方低价 FBA 表，不再用统一 CAD 0.80 简单扣减"
+        },
+        {
+          "站点": "CA 低库存水平费用",
+          "状态": "已启用",
+          "尺寸/计费重口径": "仅适用于信封和标准尺寸；填写 30/90 天供货天数时按实际成立档位，不填写时穷举 none、0-14、14-21、21-28",
+          "费用政策": "按官方 CAD 低库存水平费表叠加到场景最终费用"
         }
       ]);
     }
@@ -2422,12 +2680,11 @@
         renderTable("scenariosTable", state.scenarios, SCENARIO_COLUMNS);
         document.getElementById("exportResults").disabled = false;
         document.getElementById("exportScenarios").disabled = false;
-        const hasCaPending = state.results.some(row => row.status === CA_POLICY.calculation_status);
         const hasMxPreview = state.results.some(row => row.status === "ok_pending_dimensional_formula_verification");
         const hasJpPending = state.results.some(row => row.status === JP_POLICY.calculation_status);
         const statusNotes = [
-          hasMxPreview ? "MX 已输出本地基础费预览，体积重公式仍待官方正文复核" : "",
-          hasCaPending ? "CA 官方尺寸分段正文未取得，当前明确提示待启用而不输出猜测费用" : "",
+          hasMxPreview ? "MX 已输出现有本地基础费，官方表格已读取，仍建议逐档抽样核对" : "",
+          state.results.some(row => row.country === "CA") ? "CA 已启用本地基础费、低价费、燃油/物流附加费和低库存水平费" : "",
           hasJpPending ? "JP 官方费率及尺寸正文未取得，当前明确提示待启用而不输出猜测费用" : "",
           state.results.some(row => row.country === "US") ? "US 场景含已配置的折扣/附加费组合" : ""
         ].filter(Boolean).join("；");
