@@ -560,7 +560,7 @@
         <button id="exportResults" class="secondary" disabled>导出 results.csv</button>
         <button id="exportScenarios" class="secondary" disabled>导出 scenarios.csv</button>
       </div>
-      <div id="status" class="status">就绪。当前启用 US、CA、MX、JP、SA、AE 本地规则包；各站点费用严格按本地政策隔离计算。</div>
+      <div id="status" class="status">就绪。当前启用 US、CA、MX、JP、SA、AE 本地规则包；EU/DE 政策来源已登记，待费率表读取完成后再启用计算。</div>
     </section>
 
     <section class="panel">
@@ -578,6 +578,8 @@
               <option value="JP">JP 日本</option>
               <option value="SA">SA 沙特</option>
               <option value="AE">AE 阿联酋</option>
+              <option value="DE">DE 德国（中欧计划）</option>
+              <option value="EU">EU 欧洲本地配送费</option>
             </select>
           </label>
           <span id="ruleMarketplacePill" class="pill">US · LOCAL FBA</span>
@@ -727,6 +729,20 @@
         </div>
         <div class="table-wrap rule-table">
           <table id="menaRuleStatusTable"></table>
+        </div>
+      </div>
+      </div>
+
+      <div id="euRulePanel" hidden>
+      <div class="rule-block">
+        <div class="rule-block-head">
+          <div>
+            <h3>EU / DE 政策来源状态</h3>
+            <p class="hint">欧洲站点规则正在收集；德国按中欧计划口径，其他欧洲站点按各站本地配送费 EU 口径。当前未启用自动计算，避免在未读取完整费率表前产生误导结果。</p>
+          </div>
+        </div>
+        <div class="table-wrap rule-table">
+          <table id="euRuleStatusTable"></table>
         </div>
       </div>
       </div>
@@ -1137,7 +1153,91 @@
       }
     };
 
+    const EU_POLICY_SOURCES = [
+      {
+        marketplace: "EU",
+        group: "EU 2026 fee changes, size tiers, low-inventory cost coverage",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - 2026 Europe selling fee changes",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/GVQP7K49CTH4H5LB?locale=zh-CN",
+        note: "Official Seller Central EU policy source supplied by the user. Covers 2026 fee-change context, product size tiers, and low-inventory cost coverage. Static fetch saved only the page shell, so table values still need visible-page extraction before EU calculation is enabled."
+      },
+      {
+        marketplace: "EU",
+        group: "EU FBA fulfillment fees + fuel/logistics surcharge",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - FBA fulfillment fees",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/G200209150?locale=zh-CN",
+        note: "Official Seller Central EU fulfillment-fee source. Germany must use Central Europe Programme rates; other European marketplaces use local FBA fulfillment fees. Fee tables are registered but not yet embedded."
+      },
+      {
+        marketplace: "EU",
+        group: "EU Low-Price FBA fees",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - Low-Price FBA fees",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/GJTAVU7P2W2VE8Q9?locale=zh-CN",
+        note: "Official Seller Central EU Low-Price FBA source. Registered as a required source for low-price scenarios; calculation remains disabled until the visible fee table is extracted."
+      },
+      {
+        marketplace: "EU",
+        group: "EU product size tiers",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - Product size tiers",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/G2CD5P9TSDYZA2XG",
+        note: "Official Seller Central EU source for product-size-tier classification. This will be the source of truth for EU/DE size-tier logic once table values are extracted."
+      },
+      {
+        marketplace: "EU",
+        group: "EU dimensional weight",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - Dimensional weight",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/GJKUWLPELK47CJS7",
+        note: "Official Seller Central EU dimensional-weight source. Registered for future shipping-weight and size-tier matching logic."
+      },
+      {
+        marketplace: "EU",
+        group: "EU product dimensions and volume",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - Product dimensions and volume",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/GA5AUSM5C6QTG55K?locale=zh-CN",
+        note: "Official Seller Central EU source for product dimension and volume definitions. Registered as supporting policy context."
+      },
+      {
+        marketplace: "EU",
+        group: "EU shipping weight",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - Shipping weight",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/GVF8CY7V8L2XGUEQ?locale=zh-CN",
+        note: "Official Seller Central EU shipping-weight source. Registered for future fee-band matching logic."
+      },
+      {
+        marketplace: "EU",
+        group: "EU product weight",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - Product weight",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/GJ2UN24GLFC8CRQK?locale=zh-CN",
+        note: "Official Seller Central EU product-weight source. Registered as supporting policy context."
+      },
+      {
+        marketplace: "EU",
+        group: "EU SIPP",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - Ships in Product Packaging (SIPP)",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/GDTDMAWM8FG2CX6U?locale=zh-CN",
+        note: "Official Seller Central EU SIPP source. Registered for future EU/DE SIPP discount or surcharge logic."
+      },
+      {
+        marketplace: "DE",
+        group: "DE Germany Central Europe Programme routing note",
+        kind: "official_help_source_registered",
+        title: "Seller Central UK - FBA fulfillment fees",
+        url: "https://sellercentral.amazon.co.uk/help/hub/reference/external/G200209150?locale=zh-CN",
+        note: "Germany must use Central Europe Programme rates rather than the generic local EU fulfillment-fee branch. The source is registered, but DE calculation remains disabled until the Central Europe Programme fee table is extracted and embedded."
+      }
+    ];
+
     const MARKET_SOURCES = [
+      ...EU_POLICY_SOURCES,
       {
         marketplace: "CA",
         group: "CA FBA fulfillment fees + fuel/logistics surcharge",
@@ -3155,6 +3255,29 @@
       ]);
     }
 
+    function renderEuRuleStatus() {
+      renderTable("euRuleStatusTable", [
+        {
+          "站点": "DE 德国",
+          "状态": "政策来源已登记，计算未启用",
+          "配送费口径": "德国需要使用中欧计划（Central Europe Programme）费率，不直接套用其他欧洲站点本地配送费",
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费"
+        },
+        {
+          "站点": "EU 其他欧洲站点",
+          "状态": "政策来源已登记，计算未启用",
+          "配送费口径": "除德国中欧计划外，其他欧洲站点按各站本地配送费 EU 口径读取和计算",
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费"
+        },
+        {
+          "站点": "读取状态",
+          "状态": "等待可见表格读取",
+          "配送费口径": "已保存官方来源链接；当前静态页面抓取只返回 Seller Central 页面框架，未包含可用费率表正文",
+          "已登记政策": "需要在 in-app browser 打开可见政策表格后读取，或由用户贴出表格，再启用 EU/DE 自动测算"
+        }
+      ]);
+    }
+
     function formatMxn(value) {
       return `MXN ${Number(value).toFixed(2)}`;
     }
@@ -3198,13 +3321,16 @@
       renderMxBaseFeeRules();
       renderJpRuleStatus();
       renderMenaRuleStatus();
+      renderEuRuleStatus();
     }
 
     function renderSources(marketplace = document.getElementById("ruleMarketplace").value) {
       const container = document.getElementById("sources");
       const sources = marketplace === "US"
         ? POLICY.sources
-        : MARKET_SOURCES.filter(source => source.marketplace === marketplace);
+        : (marketplace === "DE"
+          ? MARKET_SOURCES.filter(source => source.marketplace === "DE" || source.marketplace === "EU")
+          : MARKET_SOURCES.filter(source => source.marketplace === marketplace));
       container.innerHTML = sources.map(source => `
         <div class="source-item">
           <div class="pill" style="margin-bottom:8px;">${source.kind}</div>
@@ -3217,12 +3343,13 @@
 
     function updateRuleMarketplace() {
       const marketplace = document.getElementById("ruleMarketplace").value;
-      const labels = { US: "US · LOCAL FBA", CA: "CA · LOCAL FBA", MX: "MX · LOCAL FBA", JP: "JP · LOCAL FBA", SA: "SA · LOCAL FBA", AE: "AE · LOCAL FBA" };
+      const labels = { US: "US · LOCAL FBA", CA: "CA · LOCAL FBA", MX: "MX · LOCAL FBA", JP: "JP · LOCAL FBA", SA: "SA · LOCAL FBA", AE: "AE · LOCAL FBA", DE: "DE · CENTRAL EUROPE", EU: "EU · LOCAL SOURCES" };
       document.getElementById("usRulePanel").hidden = marketplace !== "US";
       document.getElementById("caRulePanel").hidden = marketplace !== "CA";
       document.getElementById("mxRulePanel").hidden = marketplace !== "MX";
       document.getElementById("jpRulePanel").hidden = marketplace !== "JP";
       document.getElementById("menaRulePanel").hidden = !["SA", "AE"].includes(marketplace);
+      document.getElementById("euRulePanel").hidden = !["DE", "EU"].includes(marketplace);
       document.getElementById("ruleMarketplacePill").textContent = labels[marketplace];
       document.getElementById("sourceMarketplacePill").textContent = `${marketplace} · SOURCES`;
       renderSources(marketplace);
