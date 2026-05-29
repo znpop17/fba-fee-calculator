@@ -473,7 +473,7 @@
             <div><strong>US 美国</strong><span class="hint">已启用基础费、低价/高价费、SIPP、低量库存费、燃油/物流附加费组合。</span></div>
             <div><strong>MX 墨西哥</strong><span class="hint">已启用官方小数费率和 SIPP；无燃油/物流附加费、无低库存水平费用。</span></div>
             <div><strong>CA 加拿大</strong><span class="hint">已启用基础费、低价费、SIPP、燃油/物流附加费和低库存水平费用。</span></div>
-            <div><strong>JP 日本</strong><span class="hint">已启用本地基础配送费，按三边合计、重量和 1000 日元价格段匹配。</span></div>
+            <div><strong>JP 日本</strong><span class="hint">已启用本地基础配送费和低库存水平费用，按三边合计、重量、1000 日元价格段及供货天数匹配。</span></div>
             <div><strong>SA 沙特 / AE 阿联酋</strong><span class="hint">已启用本地 FBA 基础配送费，按尺寸分段、重量和 25 本地币价格段匹配。</span></div>
           </div>
           <p class="hint">当前 HTML 版为纯本地运行，不依赖 Python。支持在线逐行录入、<span class="inline-code">CSV</span> 批量导入和结果导出。</p>
@@ -1045,7 +1045,14 @@
       version: "2026-04-01_official_seller_central",
       official_fee_source_url: "https://sellercentral.amazon.co.jp/help/hub/reference/external/GRH54FUTD3C5LWWW",
       official_size_tier_source_url: "https://sellercentral.amazon.co.jp/help/hub/reference/external/G201105770",
+      official_low_inventory_source_url: "https://sellercentral.amazon.co.jp/help/hub/reference/external/GV43F6S76Y9DHYRH",
       low_price_threshold: 1000,
+      low_inventory_fee: {
+        small: { "0_7": 9, "7_14": 5 },
+        standard_1: { "0_7": 9, "7_14": 5 },
+        standard_2_to_7: { "0_7": 22, "7_14": 7 },
+        standard_8: { "0_7": 30, "7_14": 8 }
+      },
       fee_rows: [
         { code: "small", label: "小号", group: "small", max_longest_cm: 25, max_median_cm: 18, max_shortest_cm: 2, max_dimension_sum_cm: 45, max_weight_kg: 0.25, over_1000: 288, upto_1000: 222 },
         { code: "standard_1", label: "标准尺寸-1", group: "standard", max_longest_cm: 35, max_median_cm: 30, max_shortest_cm: 3.3, max_dimension_sum_cm: 68.3, max_weight_kg: 1, over_1000: 318, upto_1000: 252 },
@@ -1070,7 +1077,7 @@
         { code: "oversize_4a", label: "超大件-4a", group: "oversize", max_dimension_sum_cm: 260, max_weight_kg: 50, over_1000: 5625, upto_1000: 5559 },
         { code: "oversize_4b", label: "超大件-4b", group: "oversize", max_dimension_sum_cm: 400, max_weight_kg: 50, over_1000: 13950, upto_1000: 13884 }
       ],
-      note: "已按日本 Seller Central 官方表格启用本地 FBA 配送费。日本站按包装后三边合计尺寸、商品重量和 1,000 日元价格段匹配固定费用；不使用 US/CA/MX 体积重规则。"
+      note: "已按日本 Seller Central 官方表格启用本地 FBA 配送费和低库存水平费用。日本站按包装后三边合计尺寸、商品重量和 1,000 日元价格段匹配固定配送费；低库存水平费用仅适用于小号和标准尺寸商品。"
     };
 
     const MENA_POLICY = {
@@ -1200,6 +1207,14 @@
         title: "Seller Central Japan product size tiers",
         url: "https://sellercentral.amazon.co.jp/help/hub/reference/external/G201105770",
         note: "Official Amazon Japan Seller Central product-size-tier page supplied for JP size-tier policy. The visible official table was read and is now used for JP packaged dimension/weight classification."
+      },
+      {
+        marketplace: "JP",
+        group: "JP low-inventory-level fee",
+        kind: "official_help_primary",
+        title: "Seller Central Japan low-inventory-level fee",
+        url: "https://sellercentral.amazon.co.jp/help/hub/reference/external/GV43F6S76Y9DHYRH",
+        note: "Official Amazon Japan Seller Central low-inventory-level fee page. The visible table is now used for JP small and standard-size low-inventory scenarios."
       },
       {
         marketplace: "SA",
@@ -2390,6 +2405,51 @@
       });
     }
 
+    function getJpLowInventoryFeeTable(feeRow) {
+      if (!feeRow) return null;
+      if (feeRow.code === "small") return JP_POLICY.low_inventory_fee.small;
+      if (feeRow.code === "standard_1") return JP_POLICY.low_inventory_fee.standard_1;
+      if (["standard_2a", "standard_2b", "standard_2c", "standard_2d", "standard_2e", "standard_3"].includes(feeRow.code)) {
+        return JP_POLICY.low_inventory_fee.standard_2_to_7;
+      }
+      if (feeRow.code === "standard_4") return JP_POLICY.low_inventory_fee.standard_8;
+      return null;
+    }
+
+    function getJpLowInventoryOptions(feeRow, daysOfSupply30, daysOfSupply90) {
+      const table = getJpLowInventoryFeeTable(feeRow);
+      if (!table) return [{ band_code: "none", fee: 0, reason: "JP 低库存水平费用仅适用于小号和标准尺寸商品；大件/超大件不适用" }];
+      const candidates = {
+        none: { band_code: "none", fee: 0, reason: "30/90 天历史供货天数至少有一个 >= 14 天，不收取 JP 低库存水平费用" },
+        "0_7": { band_code: "0_7", fee: table["0_7"], reason: "30/90 天历史供货天数均 < 14 天，且两者较高值满足 0 <= days < 7" },
+        "7_14": { band_code: "7_14", fee: table["7_14"], reason: "30/90 天历史供货天数均 < 14 天，且两者较高值满足 7 <= days < 14" }
+      };
+      const has30 = daysOfSupply30 !== null;
+      const has90 = daysOfSupply90 !== null;
+      if (has30 && has90) {
+        if (daysOfSupply30 >= 14 || daysOfSupply90 >= 14) return [candidates.none];
+        const historicalDays = Math.max(daysOfSupply30, daysOfSupply90);
+        return [historicalDays < 7 ? candidates["0_7"] : candidates["7_14"]];
+      }
+      if (has30 || has90) {
+        const supplied = has30 ? daysOfSupply30 : daysOfSupply90;
+        if (supplied >= 14) return [candidates.none];
+        const options = [
+          { ...candidates.none, reason: `仅填写一个供货天数 ${supplied} 天；另一周期若 >= 14 天，则不收取 JP 低库存水平费用` }
+        ];
+        if (supplied < 7) {
+          options.push({ ...candidates["0_7"], reason: `仅填写一个供货天数 ${supplied} 天；若另一周期也 < 7 天，则适用 0-7 天档` });
+        }
+        options.push({ ...candidates["7_14"], reason: `仅填写一个供货天数 ${supplied} 天；若两周期均 < 14 天且较高值落入 7-14 天档，则适用该档` });
+        return options;
+      }
+      return [
+        { ...candidates.none, reason: "未填写 30/90 天供货天数，穷举不收取 JP 低库存水平费用场景" },
+        { ...candidates["0_7"], reason: "未填写 30/90 天供货天数，穷举 0-7 天 JP 低库存水平费用场景" },
+        { ...candidates["7_14"], reason: "未填写 30/90 天供货天数，穷举 7-14 天 JP 低库存水平费用场景" }
+      ];
+    }
+
     function calculateJpRow(row) {
       const dimsCm = [row.lengthCm, row.widthCm, row.heightCm].sort((a, b) => b - a).map(round2);
       const [longestCm, medianCm, shortestCm] = dimsCm;
@@ -2413,15 +2473,20 @@
         };
       }
       const priceOptions = getJpPriceOptions(row.salePriceLocal);
-      const scenarios = priceOptions.map((priceOption, index) => {
+      const lowInventoryOptions = getJpLowInventoryOptions(feeRow, row.daysOfSupply30, row.daysOfSupply90);
+      const scenarios = [];
+      let scenarioId = 1;
+      priceOptions.forEach(priceOption => {
+        lowInventoryOptions.forEach(lowInventory => {
         const fee = Number(feeRow[priceOption.field]);
-        return {
-          scenario_id: index + 1,
+        const finalFee = fee + lowInventory.fee;
+        scenarios.push({
+          scenario_id: scenarioId,
           row_number: row.rowNumber,
           country: row.country,
           sku: row.sku,
           product_name: row.productName,
-          scenario_name: `jp_local_fba + ${priceOption.code}`,
+          scenario_name: `jp_local_fba + ${priceOption.code} + low_inventory_${lowInventory.band_code}`,
           currency: JP_POLICY.currency,
           size_tier: feeRow.code,
           shipping_weight_kg: unitWeightKg,
@@ -2429,11 +2494,18 @@
           base_fee_local_currency: fee,
           base_fee_match: `${feeRow.label}: 三边合计 ${dimensionSumCm} cm，重量 ${unitWeightKg} kg，${priceOption.label} => JPY ${fee}`,
           price_band: priceOption.label,
-          final_fee_local_currency: fee,
-          conditions: `${row.salePriceLocal === null ? "售价留空，按政策穷举" : "按实际售价"} ${priceOption.label}；日本站当前仅计入本地 FBA 基础配送费`
-        };
+          days_of_supply_30_input: row.daysOfSupply30 ?? "",
+          days_of_supply_90_input: row.daysOfSupply90 ?? "",
+          low_inventory_band: lowInventory.band_code,
+          low_inventory_fee_local_currency: lowInventory.fee,
+          final_fee_local_currency: finalFee,
+          conditions: `${row.salePriceLocal === null ? "售价留空，按政策穷举" : "按实际售价"} ${priceOption.label}；${lowInventory.reason}；JP 低库存水平费用在 FBA 配送费外按件叠加`
+        });
+        scenarioId += 1;
+        });
       });
       const fees = scenarios.map(item => item.final_fee_local_currency);
+      const baseFees = scenarios.map(item => item.base_fee_local_currency);
       return {
         result: {
           row_number: row.rowNumber,
@@ -2463,14 +2535,22 @@
           sale_price_local: row.salePriceLocal ?? "",
           price_band: row.salePriceLocal === null ? "UNKNOWN / ENUMERATED" : (row.salePriceLocal > JP_POLICY.low_price_threshold ? "> JPY 1000" : "<= JPY 1000"),
           applied_base_fee_type: "jp_local_fba",
-          applied_base_fee_local_currency: [...new Set(fees)].join(", "),
+          applied_base_fee_local_currency: [...new Set(baseFees)].join(", "),
           all_fba_fees_local_currency: fees.join(", "),
+          days_of_supply_30_input: row.daysOfSupply30 ?? "",
+          days_of_supply_90_input: row.daysOfSupply90 ?? "",
+          low_inventory_evaluation: lowInventoryOptions.map(item => item.band_code).join(", "),
+          low_inventory_fee_bands_local_currency: lowInventoryOptions.filter(item => item.band_code !== "none").map(item => `${item.band_code}=${item.fee}`).join(", "),
           scenario_count: scenarios.length,
           min_final_fee_local_currency: Math.min(...fees),
           max_final_fee_local_currency: Math.max(...fees),
           cheapest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency < best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
           highest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency > best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
-          notes: JP_POLICY.note
+          notes: [
+            JP_POLICY.note,
+            `已穷举 ${scenarios.length} 个 JP 本地费用场景`,
+            lowInventoryOptions.length > 1 ? "供货天数留空或仅填一项时，按政策穷举 JP 低库存水平费用可能性" : ""
+          ].filter(Boolean).join("；")
         },
         scenarios
       };
@@ -2984,6 +3064,13 @@
           "币种": "JPY",
           "尺寸/计费重口径": "按包装后三边合计尺寸、商品重量匹配小号/标准/大件/超大件；不使用体积重量",
           "费用政策": "已启用 2026-04-01 起日本本地 FBA 基础配送费；售价留空时穷举 >1000 JPY 与 <=1000 JPY 两个价格段"
+        },
+        {
+          "站点": "JP 低库存水平费用",
+          "状态": "已启用",
+          "币种": "JPY",
+          "尺寸/计费重口径": "仅适用于小号和标准尺寸；大件/超大件不适用；填写 30/90 天供货天数时按两者较高值入档",
+          "费用政策": "30/90 天均 <14 天才收取；0-7 天档与 7-14 天档按官方日元表叠加到最终场景费用"
         }
       ]);
     }
@@ -3142,7 +3229,7 @@
         const statusNotes = [
           state.results.some(row => row.country === "MX") ? "MX 已启用官方小数费率和 SIPP 折扣；无燃油/物流附加费、无低库存水平费用" : "",
           state.results.some(row => row.country === "CA") ? "CA 已启用本地基础费、低价费、燃油/物流附加费和低库存水平费" : "",
-          state.results.some(row => row.country === "JP") ? "JP 已启用本地基础配送费，按三边合计尺寸/重量/1000 日元价格段匹配" : "",
+          state.results.some(row => row.country === "JP") ? "JP 已启用本地基础配送费和低库存水平费用，按三边合计尺寸/重量/1000 日元价格段/供货天数匹配" : "",
           state.results.some(row => row.country === "SA" || row.country === "AE") ? "SA/AE 已启用本地基础配送费，按尺寸/重量/25 本地币价格段匹配" : "",
           state.results.some(row => row.country === "US") ? "US 场景含已配置的折扣/附加费组合" : ""
         ].filter(Boolean).join("；");
