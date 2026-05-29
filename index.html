@@ -592,6 +592,7 @@
         <div class="mini-card">
           <h3>体积重量</h3>
           <p class="hint">公式为 <span class="inline-code">长 x 宽 x 高 / 139</span>。除小号标准和超过 150 lb 的超大件外，适用体积重量的尺寸段在计算时将宽、高最小按 <span class="inline-code">2 in</span>。</p>
+          <p class="hint">口径说明：实测 Amazon 收入计算器在部分大号标准尺寸商品上可能直接使用实际宽/高计算体积重，未体现不足 <span class="inline-code">2 in</span> 按 <span class="inline-code">2 in</span> 的政策口径。本工具不跟随该展示差异，仍按 Seller Central 体积重量政策计算。</p>
         </div>
         <div class="mini-card alt">
           <h3>费用组合</h3>
@@ -913,7 +914,7 @@
         {group:"US FBA 2026 three price-band update",kind:"official_announcement",title:"Update to U.S. Referral and Fulfillment by Amazon fees for 2026",url:"https://sellingpartners.aboutamazon.com/update-to-u-s-referral-and-fulfillment-by-amazon-fees-for-2026",note:"Official Amazon announcement. Confirms the 2026 FBA update and links sellers to the specific fee-change detail page; verified on 2026-05-25."},
         {group:"US FBA three price-band rate transcription",kind:"secondary_verification",title:"2026 Amazon FBA Fee Changes - Full Breakdown",url:"https://goatconsulting.com/blog/2026-amazon-fba-fee-changes-complete-breakdown",note:"Used to transcribe the detailed <$10, $10-$50, and >$50 tier values where the Amazon-linked detailed table is not publicly renderable in this browser. Confirm against Seller Central before production decisions."},
         {group:"US FBA size tiers and shipping-weight rules",kind:"official_help",title:"商品尺寸分段",url:"https://sellercentral.amazon.com/help/hub/reference/external/GG5KW835AHDJCH8W",note:"Seller Central Help. Defines tiers using packaged single-item measurements; for large standard, small bulky, large bulky, and extra large (except over 150 lb), fees use the greater of product weight or dimensional weight. Small standard and extra large over 150 lb use product weight only."},
-        {group:"US FBA dimensional-weight formula",kind:"official_help",title:"体积重量",url:"https://sellercentral.amazon.com/help/hub/reference/external/G53Z9EKF8VVZVH29",note:"Seller Central Help. Dimensional weight is volume divided by 139; for large standard, small bulky, large bulky, oversize and extra-large products, minimum width and height are 2 inches."},
+        {group:"US FBA dimensional-weight formula",kind:"official_help",title:"体积重量",url:"https://sellercentral.amazon.com/help/hub/reference/external/G53Z9EKF8VVZVH29",note:"Seller Central Help. Dimensional weight is volume divided by 139; for large standard, small bulky, large bulky, oversize and extra-large products, minimum width and height are 2 inches. Note: Amazon Revenue Calculator may display actual under-2-inch width/height for some large-standard items; this tool intentionally follows the written Seller Central policy instead of that calculator display variance."},
         {group:"US FBA SIPP fee rates - confirmed official current source",kind:"official_help_primary",title:"Seller Central FBA SIPP fee rates",url:"https://sellercentral.amazon.com/help/hub/reference/external/GFGVB6C7ZF38285W",note:"Confirmed current official Seller Central source for U.S. FBA SIPP fees. The visible table was read in the in-app browser; standard-size discounts and small/large bulky non-SIPP packaging fees are now embedded from this official page."},
         {group:"FBA SIPP program overview",kind:"official_public_context",title:"Custom packaging / SIPP overview",url:"https://sell.amazon.com/programs/custom-packaging",note:"Official public overview used only for program context, not as the SIPP discount rate table."},
         {group:"2026 FBA SIPP bulky change",kind:"official_announcement",title:"2026年亚马逊美国站销售佣金和亚马逊物流费用变更",url:"https://gs.amazon.cn/news/news-notices-251016",note:"Official Amazon announcement. States that from 2026-01-15, SIPP discounts are cancelled for small/large bulky FBA products; non-SIPP bulky products incur a packaging fee. Standard-size SIPP discounts remain unchanged."},
@@ -2961,6 +2962,7 @@
         }
       ];
       renderTable("sizeTierRulesTable", rows);
+      document.getElementById("sizeTierRulesTable").insertAdjacentHTML("afterend", `<div class="rule-note">US 体积重量差异说明：大号标准尺寸及更大尺寸段按 Seller Central 政策使用宽、高最小 <span class="inline-code">2 in</span> 计算体积重；若 Amazon 收入计算器个别结果按实际不足 2 in 的宽/高展示，本工具仍保持官方政策口径，不修改计算逻辑。</div>`);
     }
 
     function describeFormulaRule(formula, tierKey) {
