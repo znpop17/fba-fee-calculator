@@ -1820,9 +1820,9 @@
       }));
     }
 
-    function computeFuelLogisticsSurcharge(fulfillmentFeeAfterSipp) {
+    function computeFuelLogisticsSurcharge(baseFulfillmentFee) {
       if (!POLICY.fuel_logistics_surcharge.enabled) return 0;
-      return round2(fulfillmentFeeAfterSipp * POLICY.fuel_logistics_surcharge.rate);
+      return round2(baseFulfillmentFee * POLICY.fuel_logistics_surcharge.rate);
     }
 
     function buildFeeScenarios(row, sizeTier, shippingWeightLb, standardFee, lowPriceFee, highPriceFee, packagingWeightLb = shippingWeightLb) {
@@ -1884,9 +1884,10 @@
       for (const baseOption of baseFeeOptions) {
         for (const sippOption of sippOptions) {
           for (const lowInventoryOption of lowInventoryOptions) {
-            const fulfillmentFeeAfterSipp = round2(Math.max(baseOption.base_fee - sippOption.discount, 0));
-            const fuelSurcharge = computeFuelLogisticsSurcharge(fulfillmentFeeAfterSipp);
-            const finalFee = round2(fulfillmentFeeAfterSipp + fuelSurcharge + sippOption.packagingFee + lowInventoryOption.fee);
+            const fuelSurcharge = computeFuelLogisticsSurcharge(baseOption.base_fee);
+            const fulfillmentFeeBeforeSipp = round2(baseOption.base_fee + fuelSurcharge + sippOption.packagingFee + lowInventoryOption.fee);
+            const fulfillmentFeeAfterSipp = round2(Math.max(fulfillmentFeeBeforeSipp - sippOption.discount, 0));
+            const finalFee = fulfillmentFeeAfterSipp;
             const scenarioNameParts = [baseOption.base_fee_type];
             if (sippOption.applied) scenarioNameParts.push("sipp");
             if (lowInventoryOption.band_code !== "none") scenarioNameParts.push(`low_inventory_${lowInventoryOption.band_code}`);
@@ -1906,6 +1907,7 @@
               sipp_discount_usd: sippOption.discount,
               bulky_non_sipp_packaging_fee_usd: sippOption.packagingFee,
               bulky_non_sipp_packaging_fee_status: bulkyPackagingFeeStatus,
+              fulfillment_fee_before_sipp_usd: fulfillmentFeeBeforeSipp,
               fulfillment_fee_after_sipp_usd: fulfillmentFeeAfterSipp,
               fuel_logistics_surcharge_usd: fuelSurcharge,
               fuel_logistics_surcharge_rate: round4(POLICY.fuel_logistics_surcharge.rate),
@@ -1916,7 +1918,7 @@
               low_inventory_fee_usd: lowInventoryOption.fee,
               final_fee_usd: finalFee,
               scenario_name: scenarioNameParts.join(" + "),
-              conditions: [baseOption.condition, baseOption.base_fee_match, sippOption.condition, lowInventoryOption.condition].join("；")
+              conditions: [baseOption.condition, baseOption.base_fee_match, `燃油/物流附加费先按基础配送费 ${formatPercent(POLICY.fuel_logistics_surcharge.rate)} 计算，再扣减 SIPP 折扣`, sippOption.condition, lowInventoryOption.condition].join("；")
             });
             scenarioId += 1;
           }
@@ -2692,8 +2694,8 @@
     const SCENARIO_COLUMNS = [
       "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "currency", "base_fee_type",
       "base_fee_local_currency", "final_fee_local_currency", "mx_fee_group", "price_band", "shipping_weight_kg", "shipping_weight_g",
-      "base_fee_usd", "base_fee_match", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_after_sipp_usd",
-      "sipp_discount_local_currency", "fulfillment_fee_after_sipp_local_currency",
+      "base_fee_usd", "base_fee_match", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_before_sipp_usd", "fulfillment_fee_after_sipp_usd",
+      "sipp_discount_local_currency", "fulfillment_fee_before_sipp_local_currency", "fulfillment_fee_after_sipp_local_currency",
       "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
       "fuel_logistics_surcharge_usd", "fuel_logistics_surcharge_local_currency", "fuel_logistics_surcharge_percent", "fuel_logistics_surcharge_rate",
       "days_of_supply_30_input", "days_of_supply_90_input", "low_inventory_band", "low_inventory_fee_usd", "low_inventory_fee_local_currency", "final_fee_usd", "conditions"
@@ -3025,7 +3027,7 @@
         { "规则类型": "低量库存费", "适用范围": "小号标准尺寸", "规则说明": lowInventoryText(lowInventory.small_standard) },
         { "规则类型": "低量库存费", "适用范围": "大号标准尺寸 <= 3 lb", "规则说明": lowInventoryText(lowInventory.large_standard_upto_3lb) },
         { "规则类型": "低量库存费", "适用范围": "大号标准尺寸 > 3 至 20 lb", "规则说明": lowInventoryText(lowInventory.large_standard_3_to_20lb) },
-        { "规则类型": "燃油/物流附加费", "适用范围": "FBA 配送费（SIPP 折扣后）", "规则说明": `${formatPercent(POLICY.fuel_logistics_surcharge.rate)}；自 ${POLICY.fuel_logistics_surcharge.effective_date} 生效；计入场景最终费用` }
+        { "规则类型": "燃油/物流附加费", "适用范围": "FBA 基础配送费", "规则说明": `${formatPercent(POLICY.fuel_logistics_surcharge.rate)}；自 ${POLICY.fuel_logistics_surcharge.effective_date} 生效；先按基础配送费计算，最终场景再扣 SIPP 折扣` }
       ];
       renderTable("adjustmentRulesTable", rows);
       document.getElementById("adjustmentRulesTable").insertAdjacentHTML("afterend", `<div class="rule-note">${sipp.detail_verification_status}</div>`);
