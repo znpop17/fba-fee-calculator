@@ -599,6 +599,7 @@
         <div class="mini-card alt">
           <h3>费用组合</h3>
           <p class="hint">基础 FBA 费按 <span class="inline-code">&lt;$10</span>、<span class="inline-code">$10-$50</span>、<span class="inline-code">&gt;$50</span> 价格段匹配，再穷举标准尺寸 SIPP 折扣或大件非 SIPP 包装费、低量库存费，并在场景最终金额中计入燃油附加费。</p>
+          <p class="hint"><strong>US 公式：</strong>最终费用 = 基础配送费 + 基础配送费 x 3.5% 燃油/物流附加费 + 低量库存费/大件包装费 - SIPP 折扣。</p>
         </div>
       </div>
 
@@ -701,7 +702,7 @@
         <div class="table-wrap rule-table">
           <table id="mxBaseFeeRulesTable"></table>
         </div>
-        <div class="rule-note">MX 官方来源为 Seller Central <span class="inline-code">G200209150</span>；该站点当前不配置燃油/物流附加费和低库存水平费用，已按官方小数费率和 SIPP 折扣计算。</div>
+        <div class="rule-note">MX 官方来源为 Seller Central <span class="inline-code">G200209150</span>；该站点当前不配置燃油/物流附加费和低库存水平费用，已按官方小数费率和 SIPP 折扣计算。<strong>MX 公式：</strong>最终费用 = MX 本地基础配送费 - SIPP 折扣。</div>
       </div>
       </div>
 
@@ -745,6 +746,19 @@
           <table id="euRuleStatusTable"></table>
         </div>
       </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="rule-block-head">
+        <div>
+          <h2>各站点计算逻辑对比</h2>
+          <p class="hint">这里披露每个站点最终费用的组合顺序、已启用项目和暂未启用项目，便于和后台账单逐项核对。</p>
+        </div>
+        <span class="pill">calculation logic</span>
+      </div>
+      <div class="table-wrap rule-table">
+        <table id="logicComparisonTable"></table>
       </div>
     </section>
 
@@ -957,7 +971,7 @@
         province_name: "British Columbia",
         rate: 0.07,
         tax_label: "BC PST",
-        source_note: "按用户提供的 Seller Central 费用明细口径：CA 亚马逊物流费用税费按运营中心所在省份税率征收；当前默认展示 BC 7% PST 估算。GST/HST/QST 为 0 的场景下，仅叠加 BC PST。"
+        source_note: "按用户提供的 Seller Central 费用明细口径：CA 亚马逊物流费用税费按运营中心所在省份税率征收；BC 运营中心会在每一种最终配送费可能性上叠加 7% PST，形成额外的税后可能性。"
       },
       dimensional_weight_divisor_cm3_per_kg: 5000,
       size_tiers: {
@@ -1292,7 +1306,7 @@
         kind: "official_tax_rate_plus_seller_central_evidence",
         title: "British Columbia provincial sales tax (PST)",
         url: "https://www2.gov.bc.ca/gov/content/taxes/sales-taxes/pst",
-        note: "BC government tax-rate source for the 7% PST rate. Combined with user-provided Seller Central fee-detail evidence that CA FBA fee taxes are assessed based on the fulfillment-center province; this calculator exposes BC 7% PST as a separate tax estimate field and does not fold it into the pre-tax FBA fee fields."
+        note: "BC government tax-rate source for the 7% PST rate. Combined with user-provided Seller Central fee-detail evidence that CA FBA fee taxes are assessed based on the fulfillment-center province. The calculator now treats BC PST as an additional possibility: each CA final-fee scenario also has a BC fulfillment-center variant equal to final_fee x 1.07."
       },
       {
         marketplace: "MX",
@@ -2410,13 +2424,11 @@
             const finalFee = fulfillmentFeeAfterSipp;
             const caFeeTax = computeCaFeeTax(finalFee);
             const finalFeeWithTax = round2(finalFee + caFeeTax);
-            scenarios.push({
-              scenario_id: scenarioId,
+            const baseScenario = {
               row_number: row.rowNumber,
               country: row.country,
               sku: row.sku,
               product_name: row.productName,
-              scenario_name: `ca_${priceType.code}_fba${sippOption.applied ? " + sipp" : ""} + fuel + low_inventory_${lowInventory.band_code}`,
               currency: CA_POLICY.currency,
               size_tier: sizeTier,
               shipping_weight_kg: shippingWeightKg,
@@ -2435,26 +2447,47 @@
               days_of_supply_30_input: row.daysOfSupply30 ?? "",
               days_of_supply_90_input: row.daysOfSupply90 ?? "",
               low_inventory_band: lowInventory.band_code,
-              low_inventory_fee_local_currency: lowInventory.fee,
+              low_inventory_fee_local_currency: lowInventory.fee
+            };
+            const baseScenarioName = `ca_${priceType.code}_fba${sippOption.applied ? " + sipp" : ""} + fuel + low_inventory_${lowInventory.band_code}`;
+            scenarios.push({
+              ...baseScenario,
+              scenario_id: scenarioId,
+              scenario_name: `${baseScenarioName} + no_bc_pst`,
               final_fee_local_currency: finalFee,
-              ca_fee_tax_province: CA_POLICY.fee_tax.province_code,
-              ca_fee_tax_label: CA_POLICY.fee_tax.tax_label,
-              ca_fee_tax_rate: round4(CA_POLICY.fee_tax.rate),
-              ca_fee_tax_percent: formatPercent(CA_POLICY.fee_tax.rate),
-              ca_fee_tax_local_currency: caFeeTax,
-              final_fee_with_tax_local_currency: finalFeeWithTax,
-              conditions: `${row.salePriceLocal === null ? "售价留空，按政策穷举" : "按实际售价"} ${priceType.label}；${lowInventory.reason}；燃油/物流附加费先按基础配送费 ${formatPercent(CA_POLICY.fuel_logistics_surcharge.rate)} 计算；再加低库存水平费；最后扣减 SIPP 折扣。${sippOption.condition}`
+              ca_fee_tax_province: "",
+              ca_fee_tax_label: "no BC PST",
+              ca_fee_tax_rate: 0,
+              ca_fee_tax_percent: "0%",
+              ca_fee_tax_local_currency: 0,
+              final_fee_with_tax_local_currency: finalFee,
+              conditions: `${row.salePriceLocal === null ? "售价留空，按政策穷举" : "按实际售价"} ${priceType.label}；${lowInventory.reason}；燃油/物流附加费先按基础配送费 ${formatPercent(CA_POLICY.fuel_logistics_surcharge.rate)} 计算；再加低库存水平费；最后扣减 SIPP 折扣；非 BC 运营中心税率场景不叠加 BC PST。${sippOption.condition}`
             });
             scenarioId += 1;
+            if (CA_POLICY.fee_tax.enabled) {
+              scenarios.push({
+                ...baseScenario,
+                scenario_id: scenarioId,
+                scenario_name: `${baseScenarioName} + ${CA_POLICY.fee_tax.province_code.toLowerCase()}_pst_${formatPercent(CA_POLICY.fee_tax.rate).replace("%", "pct")}`,
+                final_fee_local_currency: finalFeeWithTax,
+                ca_fee_tax_province: CA_POLICY.fee_tax.province_code,
+                ca_fee_tax_label: CA_POLICY.fee_tax.tax_label,
+                ca_fee_tax_rate: round4(CA_POLICY.fee_tax.rate),
+                ca_fee_tax_percent: formatPercent(CA_POLICY.fee_tax.rate),
+                ca_fee_tax_local_currency: caFeeTax,
+                final_fee_with_tax_local_currency: finalFeeWithTax,
+                conditions: `${row.salePriceLocal === null ? "售价留空，按政策穷举" : "按实际售价"} ${priceType.label}；${lowInventory.reason}；燃油/物流附加费先按基础配送费 ${formatPercent(CA_POLICY.fuel_logistics_surcharge.rate)} 计算；再加低库存水平费；最后扣减 SIPP 折扣；若由 BC 运营中心产生费用，则该最终费用再乘以 1.07。${sippOption.condition}`
+              });
+              scenarioId += 1;
+            }
           });
         });
       });
       const fees = scenarios.map(item => item.final_fee_local_currency);
-      const feesWithTax = scenarios.map(item => item.final_fee_with_tax_local_currency);
       const cheapest = scenarios.reduce((best, item) => item.final_fee_local_currency < best.final_fee_local_currency ? item : best, scenarios[0]);
       const highest = scenarios.reduce((best, item) => item.final_fee_local_currency > best.final_fee_local_currency ? item : best, scenarios[0]);
-      const cheapestWithTax = scenarios.reduce((best, item) => item.final_fee_with_tax_local_currency < best.final_fee_with_tax_local_currency ? item : best, scenarios[0]);
-      const highestWithTax = scenarios.reduce((best, item) => item.final_fee_with_tax_local_currency > best.final_fee_with_tax_local_currency ? item : best, scenarios[0]);
+      const taxScenarios = scenarios.filter(item => item.ca_fee_tax_rate > 0);
+      const taxFees = taxScenarios.map(item => item.ca_fee_tax_local_currency);
       const standardBase = computeCaBaseFee(sizeTier, billableWeightG, "standard");
       const lowPriceBase = computeCaBaseFee(sizeTier, billableWeightG, "low_price");
       return {
@@ -2510,11 +2543,11 @@
           ca_fee_tax_label: CA_POLICY.fee_tax.tax_label,
           ca_fee_tax_rate: round4(CA_POLICY.fee_tax.rate),
           ca_fee_tax_percent: formatPercent(CA_POLICY.fee_tax.rate),
-          min_ca_fee_tax_local_currency: cheapestWithTax.ca_fee_tax_local_currency,
-          max_ca_fee_tax_local_currency: highestWithTax.ca_fee_tax_local_currency,
-          min_final_fee_with_tax_local_currency: cheapestWithTax.final_fee_with_tax_local_currency,
-          max_final_fee_with_tax_local_currency: highestWithTax.final_fee_with_tax_local_currency,
-          all_fba_fees_with_tax_local_currency: feesWithTax.join(", "),
+          min_ca_fee_tax_local_currency: taxFees.length ? Math.min(...taxFees) : 0,
+          max_ca_fee_tax_local_currency: taxFees.length ? Math.max(...taxFees) : 0,
+          min_final_fee_with_tax_local_currency: taxScenarios.length ? Math.min(...taxScenarios.map(item => item.final_fee_local_currency)) : "",
+          max_final_fee_with_tax_local_currency: taxScenarios.length ? Math.max(...taxScenarios.map(item => item.final_fee_local_currency)) : "",
+          all_fba_fees_with_tax_local_currency: taxScenarios.map(item => item.final_fee_local_currency).join(", "),
           cheapest_scenario: cheapest.scenario_name,
           highest_scenario: highest.scenario_name,
           notes: [
@@ -2523,7 +2556,7 @@
             sippOptions.some(item => item.applied) ? "存在 CA SIPP 折扣场景" : "",
             lowInventoryOptions.length > 1 ? "供货天数留空时穷举低库存水平费用档位" : "",
             "CA 最终场景费顺序：基础配送费 + 按基础配送费计算的 3.5% 燃油/物流附加费 + 低库存水平费 - SIPP 折扣",
-            `${CA_POLICY.fee_tax.source_note} 税后字段按 final_fee_local_currency x 1.07 单独估算。`
+            `${CA_POLICY.fee_tax.source_note} all_fba_fees_local_currency 已包含未税场景和 BC PST 7% 税后场景。`
           ].filter(Boolean).join("；")
         },
         scenarios
@@ -3050,7 +3083,7 @@
         });
       });
 
-      const isWrapColumn = key => key.includes("conditions") || key.includes("notes") || key.includes("说明") || key.includes("计费重量") || key.includes("尺寸上限");
+      const isWrapColumn = key => key.includes("conditions") || key.includes("notes") || key.includes("说明") || key.includes("计费重量") || key.includes("尺寸上限") || key.includes("公式") || key.includes("口径") || key.includes("政策");
       const thead = `<thead><tr>${keys.map(key => `<th class="${isWrapColumn(key) ? "wrap" : ""}">${key}</th>`).join("")}</tr></thead>`;
       const tbody = `<tbody>${rows.map(row => `<tr>${keys.map(key => `<td class="${isWrapColumn(key) ? "wrap" : ""}">${row[key] ?? ""}</td>`).join("")}</tr>`).join("")}</tbody>`;
       table.innerHTML = thead + tbody;
@@ -3186,7 +3219,8 @@
           "站点": "CA 本地 FBA",
           "状态": "已启用",
           "尺寸/计费重口径": "信封/标准/小号大件/中号大件/大号大件/特殊大件；体积重量=长×宽×高/5000 kg；信封和标准按 100g 进位，大件按 500g 进位",
-          "费用政策": "已启用基础配送费、低价商品 FBA、SIPP 折扣、3.5% 燃油/物流附加费、低库存水平费用"
+          "费用政策": "已启用基础配送费、低价商品 FBA、SIPP 折扣、3.5% 燃油/物流附加费、低库存水平费用",
+          "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 3.5% 燃油/物流附加费 + 低库存水平费 - SIPP 折扣"
         },
         {
           "站点": "CA 低价商品",
@@ -3208,9 +3242,10 @@
         },
         {
           "站点": "CA FBA 税费估算",
-          "状态": "已启用为单独字段",
-          "尺寸/计费重口径": "不改变配送费计算；仅对场景最终未税 FBA 费估算税额",
-          "费用政策": "按用户提供后台口径：亚马逊物流费用按运营中心所在省份税率征收。当前默认展示 BC 7% PST，输出税额和税后 FBA 配送费总额。"
+          "状态": "已启用为额外可能性",
+          "尺寸/计费重口径": "不改变尺寸/重量分段；对每一个 CA 最终费用场景额外生成 BC 运营中心税后场景",
+          "费用政策": "按用户提供后台口径：亚马逊物流费用按运营中心所在省份税率征收；BC 运营中心叠加 7% PST。",
+          "计算公式": "BC 税后可能费用 = 上述最终费用 x 1.07"
         }
       ]);
     }
@@ -3222,14 +3257,16 @@
           "状态": "已启用",
           "币种": "JPY",
           "尺寸/计费重口径": "按包装后三边合计尺寸、商品重量匹配小号/标准/大件/超大件；不使用体积重量",
-          "费用政策": "已启用 2026-04-01 起日本本地 FBA 基础配送费；售价留空时穷举 >1000 JPY 与 <=1000 JPY 两个价格段"
+          "费用政策": "已启用 2026-04-01 起日本本地 FBA 基础配送费；售价留空时穷举 >1000 JPY 与 <=1000 JPY 两个价格段",
+          "计算公式": "最终费用 = JP 本地基础配送费 + JP 低库存水平费用"
         },
         {
           "站点": "JP 低库存水平费用",
           "状态": "已启用",
           "币种": "JPY",
           "尺寸/计费重口径": "仅适用于小号和标准尺寸；大件/超大件不适用；填写 30/90 天供货天数时按两者较高值入档",
-          "费用政策": "30/90 天均 <14 天才收取；0-7 天档与 7-14 天档按官方日元表叠加到最终场景费用"
+          "费用政策": "30/90 天均 <14 天才收取；0-7 天档与 7-14 天档按官方日元表叠加到最终场景费用",
+          "计算公式": "供货天数留空或只填一项时穷举 none / 0-7 / 7-14 可成立场景"
         }
       ]);
     }
@@ -3242,7 +3279,8 @@
           "币种": "SAR",
           "价格段": "sale_price_local <= 25 / > 25；售价留空时穷举两个价格段",
           "尺寸/计费重口径": "小号信封、标准信封、大号信封、标准包裹、大件；按包装后尺寸和商品重量匹配",
-          "费用政策": "仅计入 FBA 基础配送费；不包含页面下方预处理服务费"
+          "费用政策": "仅计入 FBA 基础配送费；不包含页面下方预处理服务费",
+          "计算公式": "最终费用 = SA 本地基础配送费"
         },
         {
           "站点": "AE 阿联酋",
@@ -3250,7 +3288,8 @@
           "币种": "AED",
           "价格段": "sale_price_local <= 25 / > 25；售价留空时穷举两个价格段",
           "尺寸/计费重口径": "小号信封、标准信封、大号信封、标准包裹、大件；按包装后尺寸和商品重量匹配",
-          "费用政策": "仅计入 FBA 基础配送费；不包含页面下方预处理服务费"
+          "费用政策": "仅计入 FBA 基础配送费；不包含页面下方预处理服务费",
+          "计算公式": "最终费用 = AE 本地基础配送费"
         }
       ]);
     }
@@ -3261,19 +3300,90 @@
           "站点": "DE 德国",
           "状态": "政策来源已登记，计算未启用",
           "配送费口径": "德国需要使用中欧计划（Central Europe Programme）费率，不直接套用其他欧洲站点本地配送费",
-          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费"
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费",
+          "计划公式": "待确认费率表后启用；德国最终费用将按中欧计划基础配送费及 EU 页面列示的附加费/折扣组合计算"
         },
         {
           "站点": "EU 其他欧洲站点",
           "状态": "政策来源已登记，计算未启用",
           "配送费口径": "除德国中欧计划外，其他欧洲站点按各站本地配送费 EU 口径读取和计算",
-          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费"
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费",
+          "计划公式": "待确认费率表后启用；其他欧洲站点最终费用将按本地基础配送费及 EU 页面列示的附加费/折扣组合计算"
         },
         {
           "站点": "读取状态",
           "状态": "等待可见表格读取",
           "配送费口径": "已保存官方来源链接；当前静态页面抓取只返回 Seller Central 页面框架，未包含可用费率表正文",
           "已登记政策": "需要在 in-app browser 打开可见政策表格后读取，或由用户贴出表格，再启用 EU/DE 自动测算"
+        }
+      ]);
+    }
+
+    function renderCalculationLogicComparison() {
+      renderTable("logicComparisonTable", [
+        {
+          "站点": "US",
+          "当前状态": "已启用计算",
+          "基础费": "按 <$10 / $10-$50 / >$50 三价格段、尺寸分段、计费重量匹配",
+          "附加/折扣": "燃油/物流附加费 3.5%；低量库存费；标准尺寸 SIPP 折扣；小号/大号大件非 SIPP 包装费",
+          "最终费用公式": "基础配送费 + 基础配送费 x 3.5% + 低量库存费/大件包装费 - SIPP 折扣",
+          "穷举口径": "售价、SIPP、供货天数留空时按政策穷举可成立场景"
+        },
+        {
+          "站点": "CA",
+          "当前状态": "已启用计算",
+          "基础费": "按标准/低价商品 FBA、CA 本地尺寸分段、计费重量匹配",
+          "附加/折扣": "燃油/物流附加费 3.5%；低库存水平费；SIPP 折扣；BC 运营中心 7% PST 税后可能性",
+          "最终费用公式": "未税最终费用 = 基础配送费 + 基础配送费 x 3.5% + 低库存水平费 - SIPP 折扣；BC 税后可能费用 = 未税最终费用 x 1.07",
+          "穷举口径": "每个 CA 未税场景都会额外生成一个 BC PST 7% 税后场景"
+        },
+        {
+          "站点": "MX",
+          "当前状态": "已启用计算",
+          "基础费": "按四个售价区间、MX 类目组、尺寸分段、计费重量匹配",
+          "附加/折扣": "SIPP 折扣；当前无燃油/物流附加费、无低库存水平费用",
+          "最终费用公式": "基础配送费 - SIPP 折扣",
+          "穷举口径": "售价、MX 类目组、SIPP 留空时按政策穷举"
+        },
+        {
+          "站点": "JP",
+          "当前状态": "已启用计算",
+          "基础费": "按日本本地尺寸分段、商品重量、1,000 JPY 价格段匹配",
+          "附加/折扣": "低库存水平费用；当前未配置 SIPP",
+          "最终费用公式": "基础配送费 + 低库存水平费用",
+          "穷举口径": "售价或供货天数留空时按政策穷举"
+        },
+        {
+          "站点": "SA",
+          "当前状态": "已启用计算",
+          "基础费": "按 SA 本地尺寸分段、商品重量、25 SAR 价格段匹配",
+          "附加/折扣": "当前仅计入基础配送费；不含预处理服务费",
+          "最终费用公式": "基础配送费",
+          "穷举口径": "售价留空时穷举 <=25 / >25 两个价格段"
+        },
+        {
+          "站点": "AE",
+          "当前状态": "已启用计算",
+          "基础费": "按 AE 本地尺寸分段、商品重量、25 AED 价格段匹配",
+          "附加/折扣": "当前仅计入基础配送费；不含预处理服务费",
+          "最终费用公式": "基础配送费",
+          "穷举口径": "售价留空时穷举 <=25 / >25 两个价格段"
+        },
+        {
+          "站点": "DE",
+          "当前状态": "政策来源已登记，计算未启用",
+          "基础费": "德国需读取中欧计划（Central Europe Programme）费率",
+          "附加/折扣": "待读取 EU 官方页中的燃油/物流附加费、低价 FBA、低库存成本覆盖费、SIPP",
+          "最终费用公式": "待确认完整费率表后启用，不用其他欧洲站点本地费率代替德国中欧计划",
+          "穷举口径": "来源已登记；等待可见表格读取"
+        },
+        {
+          "站点": "EU 其他欧洲站点",
+          "当前状态": "政策来源已登记，计算未启用",
+          "基础费": "按各站本地配送费 EU 口径读取",
+          "附加/折扣": "待读取 EU 官方页中的燃油/物流附加费、低价 FBA、低库存成本覆盖费、SIPP",
+          "最终费用公式": "待确认完整费率表后启用",
+          "穷举口径": "来源已登记；等待可见表格读取"
         }
       ]);
     }
@@ -3322,6 +3432,7 @@
       renderJpRuleStatus();
       renderMenaRuleStatus();
       renderEuRuleStatus();
+      renderCalculationLogicComparison();
     }
 
     function renderSources(marketplace = document.getElementById("ruleMarketplace").value) {
