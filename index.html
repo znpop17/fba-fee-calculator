@@ -475,7 +475,7 @@
             <div><strong>CA 加拿大</strong><span class="hint">已启用基础费、低价费、SIPP、燃油/物流附加费和低库存水平费用。</span></div>
             <div><strong>JP 日本</strong><span class="hint">已启用本地基础配送费和低库存水平费用，按三边合计、重量、1000 日元价格段及供货天数匹配。</span></div>
             <div><strong>SA 沙特 / AE 阿联酋</strong><span class="hint">已启用本地 FBA 基础配送费，按尺寸分段、重量和 25 本地币价格段匹配。</span></div>
-            <div><strong>UK / EU 欧洲</strong><span class="hint">已启用 UK、DE、FR、IT、ES、NL、SE、PL、BE；DE 默认中欧计划，计入 1.5% 燃油/物流附加费，低库存成本覆盖费暂未计入。</span></div>
+            <div><strong>UK / EU 欧洲</strong><span class="hint">已启用 UK、DE、FR、IT、ES、NL、SE、PL、BE；DE 默认中欧计划，计入 1.5% 燃油/物流附加费和低量库存成本覆盖费。</span></div>
           </div>
           <p class="hint">当前 HTML 版为纯本地运行，不依赖 Python。支持在线逐行录入、<span class="inline-code">CSV</span> 批量导入和结果导出。</p>
         </div>
@@ -2956,6 +2956,47 @@
       return round2(Number(base.v[countryInfo.sippCol]) + steps * Number(increment));
     }
 
+    function getEuLowInventoryFeeTable(sizeTier) {
+      if (["large_envelope", "extra_large_envelope", "small_parcel"].includes(sizeTier)) {
+        return { "0_14": 0.46, "14_21": 0.27, "21_28": 0.18, scope: "large/extra-large envelope and small parcel" };
+      }
+      if (sizeTier === "standard_parcel") {
+        return { "0_14": 0.67, "14_21": 0.35, "21_28": 0.21, scope: "medium/large parcel" };
+      }
+      return null;
+    }
+
+    function getEuLowInventoryOptions(sizeTier, daysOfSupply30, daysOfSupply90) {
+      const table = getEuLowInventoryFeeTable(sizeTier);
+      if (!table) return [{ band_code: "none", fee: 0, reason: "EU/UK 低量库存成本覆盖费来源表未覆盖该尺寸分段" }];
+      const candidates = {
+        none: { band_code: "none", fee: 0, reason: "30/90 天历史供货天数至少有一个 >= 28 天，不收取 EU/UK 低量库存成本覆盖费" },
+        "0_14": { band_code: "0_14", fee: table["0_14"], reason: "30/90 天历史供货天数均 < 28 天，且较高值落入 0-14 天档" },
+        "14_21": { band_code: "14_21", fee: table["14_21"], reason: "30/90 天历史供货天数均 < 28 天，且较高值落入 14-21 天档" },
+        "21_28": { band_code: "21_28", fee: table["21_28"], reason: "30/90 天历史供货天数均 < 28 天，且较高值落入 21-28 天档" }
+      };
+      const has30 = daysOfSupply30 !== null;
+      const has90 = daysOfSupply90 !== null;
+      if (has30 && has90) {
+        if (daysOfSupply30 >= 28 || daysOfSupply90 >= 28) return [candidates.none];
+        const historicalDays = Math.max(daysOfSupply30, daysOfSupply90);
+        const band = historicalDays < 14 ? "0_14" : (historicalDays < 21 ? "14_21" : "21_28");
+        return [candidates[band]];
+      }
+      if (has30 || has90) {
+        const supplied = has30 ? daysOfSupply30 : daysOfSupply90;
+        if (supplied >= 28) return [candidates.none];
+        const band = supplied < 14 ? "0_14" : (supplied < 21 ? "14_21" : "21_28");
+        return [{ ...candidates[band], reason: `仅填写一个供货天数 ${supplied} 天，按该值入档；如另一周期 >= 28 天，后台可能不收取` }];
+      }
+      return [
+        { ...candidates.none, reason: "未填写 30/90 天供货天数，穷举不收取 EU/UK 低量库存成本覆盖费场景" },
+        { ...candidates["0_14"], reason: "未填写 30/90 天供货天数，穷举 0-14 天 EU/UK 低量库存成本覆盖费场景" },
+        { ...candidates["14_21"], reason: "未填写 30/90 天供货天数，穷举 14-21 天 EU/UK 低量库存成本覆盖费场景" },
+        { ...candidates["21_28"], reason: "未填写 30/90 天供货天数，穷举 21-28 天 EU/UK 低量库存成本覆盖费场景" }
+      ];
+    }
+
     function calculateEuRow(row) {
       const euCountry = normalizeEuCountry(row.country);
       const countryInfo = EU_POLICY.marketplaces[euCountry];
@@ -2967,6 +3008,7 @@
       const sizeTier = determineEuSizeTier(longestCm, medianCm, shortestCm, unitWeightKg, dimensionalWeightKg, lengthPlusGirthCm);
       const priceOptions = getEuPriceOptions(euCountry, row.salePriceLocal, sizeTier, unitWeightKg, longestCm, medianCm, shortestCm);
       const sippChoices = row.sippEligible === true ? [true] : (row.sippEligible === false ? [false] : [false, true]);
+      const lowInventoryOptions = getEuLowInventoryOptions(sizeTier, row.daysOfSupply30, row.daysOfSupply90);
       const scenarios = [];
       let scenarioId = 1;
       priceOptions.forEach(priceOption => {
@@ -2974,17 +3016,18 @@
         const shippingWeightG = Math.ceil(shippingWeightKg * 1000 - 1e-9);
         const feeMatch = computeEuFeeFromTable(priceOption.code === "low_price" ? EU_POLICY.lowPrice : EU_POLICY.standard, priceOption.code === "low_price" ? {} : EU_POLICY.increments, sizeTier, shippingWeightG, countryInfo.feeCol);
         sippChoices.forEach(sippApplied => {
+          lowInventoryOptions.forEach(lowInventory => {
           const sippDiscount = sippApplied ? getEuSippDiscount(countryInfo, priceOption.code, sizeTier, shippingWeightG) : 0;
           const packagingFee = sippApplied ? 0 : getEuNonSippPackagingFee(countryInfo, sizeTier, shippingWeightG);
           const fuel = round2(feeMatch.fee * EU_POLICY.fuelRate);
-          const finalFee = round2(Math.max(feeMatch.fee + fuel + packagingFee - sippDiscount, 0));
+          const finalFee = round2(Math.max(feeMatch.fee + fuel + packagingFee + lowInventory.fee - sippDiscount, 0));
           scenarios.push({
             scenario_id: scenarioId,
             row_number: row.rowNumber,
             country: euCountry,
             sku: row.sku,
             product_name: row.productName,
-            scenario_name: `${euCountry.toLowerCase()}_${priceOption.code}_fba + fuel${sippApplied ? " + sipp" : " + non_sipp"}`,
+            scenario_name: `${euCountry.toLowerCase()}_${priceOption.code}_fba + fuel${sippApplied ? " + sipp" : " + non_sipp"} + low_inventory_${lowInventory.band_code}`,
             currency: countryInfo.currency,
             size_tier: sizeTier,
             shipping_weight_kg: shippingWeightKg,
@@ -3000,10 +3043,15 @@
             fuel_logistics_surcharge_local_currency: fuel,
             fuel_logistics_surcharge_percent: formatPercent(EU_POLICY.fuelRate),
             fuel_logistics_surcharge_rate: EU_POLICY.fuelRate,
+            days_of_supply_30_input: row.daysOfSupply30 ?? "",
+            days_of_supply_90_input: row.daysOfSupply90 ?? "",
+            low_inventory_band: lowInventory.band_code,
+            low_inventory_fee_local_currency: lowInventory.fee,
             final_fee_local_currency: finalFee,
-            conditions: `${euCountry === "DE" ? "DE 默认使用中欧计划费率；" : ""}${row.salePriceLocal === null ? "售价留空，穷举标准/低价可成立场景；" : "按实际售价判断低价资格；"}EU/UK 最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 大件非 SIPP 包装费 - SIPP 折扣。低库存成本覆盖费未计入。`
+            conditions: `${euCountry === "DE" ? "DE 默认使用中欧计划费率；" : ""}${row.salePriceLocal === null ? "售价留空，穷举标准/低价可成立场景；" : "按实际售价判断低价资格；"}${lowInventory.reason}；EU/UK 最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣。`
           });
           scenarioId += 1;
+          });
         });
       });
       const fees = scenarios.map(item => item.final_fee_local_currency);
@@ -3045,13 +3093,16 @@
           includes_fuel_logistics_surcharge: "Y",
           fuel_logistics_surcharge_rate: EU_POLICY.fuelRate,
           fuel_logistics_surcharge_percent: formatPercent(EU_POLICY.fuelRate),
-          low_inventory_evaluation: "not_enabled_for_eu_uk",
+          days_of_supply_30_input: row.daysOfSupply30 ?? "",
+          days_of_supply_90_input: row.daysOfSupply90 ?? "",
+          low_inventory_evaluation: lowInventoryOptions.map(item => item.band_code).join(", "),
+          low_inventory_fee_bands_local_currency: lowInventoryOptions.filter(item => item.band_code !== "none").map(item => `${item.band_code}=${item.fee}`).join(", "),
           scenario_count: scenarios.length,
           min_final_fee_local_currency: Math.min(...fees),
           max_final_fee_local_currency: Math.max(...fees),
           cheapest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency < best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
           highest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency > best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
-          notes: `已按用户提供 Excel 启用 ${euCountry} 标准配送费和 SIPP/大件非 SIPP 包装费；低价 FBA 费率来自 Seller Central 低价商品 FBA 页面；燃油/物流附加费 1.5%；低库存成本覆盖费未计入。`
+          notes: `已按用户提供 Excel 启用 ${euCountry} 标准配送费和 SIPP/大件非 SIPP 包装费；低价 FBA 费率来自 Seller Central 低价商品 FBA 页面；燃油/物流附加费 1.5%；低量库存成本覆盖费来自 Seller Central 2025 年包裹商品尺寸分段费用变更页。`
         },
         scenarios
       };
@@ -3518,20 +3569,20 @@
           "状态": "已启用计算",
           "配送费口径": "德国需要使用中欧计划（Central Europe Programme）费率，不直接套用其他欧洲站点本地配送费",
           "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费",
-          "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 大件非 SIPP 包装费 - SIPP 折扣；低库存成本覆盖费暂未计入"
+          "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣"
         },
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "状态": "已启用计算",
           "配送费口径": "按各站本地配送费列读取；UK 用 GBP，FR/IT/ES/NL/BE 用 EUR，SE 用 SEK，PL 用 PLN",
           "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费",
-          "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 大件非 SIPP 包装费 - SIPP 折扣；SIPP 仅在 Excel 有列的 UK/DE/FR/IT/ES 启用"
+          "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣；SIPP 仅在 Excel 有列的 UK/DE/FR/IT/ES 启用"
         },
         {
           "站点": "低库存成本覆盖费",
-          "状态": "暂未计入",
-          "配送费口径": "来源已登记，但本次两个 Excel 未包含低库存成本覆盖费费率表",
-          "已登记政策": "结果 notes 中会明确提示 EU/UK 低库存成本覆盖费未计入，避免误认为完整最终账单"
+          "状态": "已启用",
+          "配送费口径": "来源页表格仅覆盖大号信封/超大号信封/小包裹/标准包裹；轻型/标准信封和大件当前不收取",
+          "已登记政策": "供货天数留空时穷举 none、0-14、14-21、21-28；填写 30/90 天后按可成立档位计算"
         }
       ]);
     }
@@ -3590,17 +3641,17 @@
           "站点": "DE",
           "当前状态": "已启用计算",
           "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列",
-          "附加/折扣": "燃油/物流附加费 1.5%；SIPP 折扣；大件非 SIPP 包装费；低库存成本覆盖费暂未计入",
-          "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 大件非 SIPP 包装费 - SIPP 折扣",
+          "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣；大件非 SIPP 包装费",
+          "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
           "穷举口径": "售价、SIPP 留空时按政策穷举；DE 默认不使用“仅限德国”列"
         },
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "当前状态": "已启用计算",
           "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列",
-          "附加/折扣": "燃油/物流附加费 1.5%；SIPP 折扣仅 UK/FR/IT/ES；NL/SE/PL/BE 当前无 SIPP 列，不套用",
-          "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 大件非 SIPP 包装费 - SIPP 折扣",
-          "穷举口径": "售价、SIPP 留空时按可成立政策穷举；低库存成本覆盖费暂未计入"
+          "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣仅 UK/FR/IT/ES；NL/SE/PL/BE 当前无 SIPP 列，不套用",
+          "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
+          "穷举口径": "售价、SIPP、供货天数留空时按可成立政策穷举"
         }
       ]);
     }
