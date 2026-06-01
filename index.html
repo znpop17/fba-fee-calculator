@@ -518,6 +518,7 @@
                 <th>售价<small>sale_price_local</small></th>
                 <th>是否服饰<small>US 费率依据</small></th>
                 <th>MX 类目组<small>留空穷举</small></th>
+                <th>AU 分类<small>6/10后 GL</small></th>
                 <th>SIPP<small>留空穷举</small></th>
                 <th>30天供货<small>与90天共同判断</small></th>
                 <th>90天供货<small>两项空才穷举</small></th>
@@ -548,7 +549,7 @@
             <h3>输入列</h3>
             <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">sale_price_local</span></p>
             <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
-            <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。US 使用 <span class="inline-code">is_apparel</span>；MX 可填写 <span class="inline-code">mx_fee_group</span> 为 <span class="inline-code">main</span>、<span class="inline-code">health_grocery</span> 或 <span class="inline-code">other</span>。</p>
+            <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。US 使用 <span class="inline-code">is_apparel</span>；MX 可填写 <span class="inline-code">mx_fee_group</span> 为 <span class="inline-code">main</span>、<span class="inline-code">health_grocery</span> 或 <span class="inline-code">other</span>；AU 2026-06-10 后可填写 <span class="inline-code">au_fee_category</span> 为 <span class="inline-code">home_kitchen</span>、<span class="inline-code">pet_supplies</span>、<span class="inline-code">grocery</span>、<span class="inline-code">sports_outdoors</span> 或 <span class="inline-code">other</span>。</p>
           </div>
         </div>
         <label style="margin-top:16px;">
@@ -963,7 +964,9 @@
       low_inventory_fee: {
         small_standard: {"0_14":0.89,"14_21":0.63,"21_28":0.32},
         large_standard_upto_3lb: {"0_14":0.97,"14_21":0.70,"21_28":0.36},
-        large_standard_3_to_20lb: {"0_14":1.11,"14_21":0.87,"21_28":0.47}
+        large_standard_3_to_20lb: {"0_14":1.11,"14_21":0.87,"21_28":0.47},
+        small_bulky: {"0_14":1.85,"14_21":1.02,"21_28":0.51},
+        large_bulky: {"0_14":2.09,"14_21":1.15,"21_28":0.57}
       },
       sources: [
         {group:"US FBA 2026 three price-band update",kind:"official_announcement",title:"Update to U.S. Referral and Fulfillment by Amazon fees for 2026",url:"https://sellingpartners.aboutamazon.com/update-to-u-s-referral-and-fulfillment-by-amazon-fees-for-2026",note:"Official Amazon announcement. Confirms the 2026 FBA update and links sellers to the specific fee-change detail page; verified on 2026-05-25."},
@@ -974,7 +977,8 @@
         {group:"FBA SIPP program overview",kind:"official_public_context",title:"Custom packaging / SIPP overview",url:"https://sell.amazon.com/programs/custom-packaging",note:"Official public overview used only for program context, not as the SIPP discount rate table."},
         {group:"2026 FBA SIPP bulky change",kind:"official_announcement",title:"2026年亚马逊美国站销售佣金和亚马逊物流费用变更",url:"https://gs.amazon.cn/news/news-notices-251016",note:"Official Amazon announcement. States that from 2026-01-15, SIPP discounts are cancelled for small/large bulky FBA products; non-SIPP bulky products incur a packaging fee. Standard-size SIPP discounts remain unchanged."},
         {group:"Not used for FBA calculation: MCF / Buy with Prime SIPP table",kind:"excluded_source",title:"Ships in product packaging - Amazon Buy with Prime",url:"https://buywithprime.amazon.com/knowledge-center/ships-in-product-packaging",note:"Official table for MCF and Buy with Prime orders. An earlier version incorrectly used its brackets for this FBA calculator; it is now explicitly excluded from FBA calculations."},
-        {group:"Low-inventory-level fee",kind:"official_forum_explainer",title:"Seller Forums: Low-inventory-level fee further explained",url:"https://sellercentral.amazon.com/seller-forums/discussions/t/aa9f98e5-fa91-4949-af8f-6cf918c86a77",note:"Official Amazon Seller Forums post. Used for historical-days-of-supply logic and fee tiers."},
+        {group:"Low-inventory-level fee",kind:"official_forum_explainer",title:"Seller Forums: Low-inventory-level fee further explained",url:"https://sellercentral.amazon.com/seller-forums/discussions/t/aa9f98e5-fa91-4949-af8f-6cf918c86a77",note:"Official Amazon Seller Forums post. Used for historical-days-of-supply logic. Current 2026 eligibility includes standard-size, small bulky, and large bulky products when both 30/90 day supply metrics are below 28 days; Grocery category is exempt."},
+        {group:"US 2026 low-inventory-level fee bulky table transcription",kind:"secondary_verification",title:"2026 Amazon FBA Fee Changes - Low-Inventory-Level Fee",url:"https://www.goatconsulting.com/blog/amazon-fba-fee-changes-for-2026",note:"Used to transcribe 2026 small bulky and large bulky low-inventory-level fee values where the current Seller Central detail table is not publicly renderable in this browser. Confirm against Seller Central before production decisions."},
         {group:"Fuel and logistics-related surcharge",kind:"official_forum_announcement",title:"Fuel and logistics-related surcharge: FBA, MCF, and BWP in US and CA",url:"https://sellercentral.amazon.com/seller-forums/discussions/t/7cbc0233-ee5b-4359-978a-dee7cad5c6f4",note:"Official Amazon Seller Forums announcement. States a 3.5% surcharge applies to FBA fulfillment fees in the US starting April 17, 2026."}
       ]
     };
@@ -1211,8 +1215,16 @@
       currency: "AUD",
       version: "AU_2026_current_before_2026_06_10_official_seller_central",
       low_price_threshold: 13,
+      after_effective_date: "2026-06-10",
       gst_rate: 0.10,
       dimensional_divisor_cm: 4000,
+      category_groups: {
+        home_kitchen: "家居及厨房用品",
+        pet_supplies: "宠物用品",
+        grocery: "食品",
+        sports_outdoors: "运动户外用品",
+        other: "所有其他分类"
+      },
       official_fee_source_url: "https://sellercentral.amazon.com.au/help/hub/reference/external/G4UU2ZQNHJNKAG5Y",
       size_tiers: [
         { code: "small_envelope", label: "小号信封", max_longest_cm: 20, max_median_cm: 15, max_shortest_cm: 1, weight_basis: "unit", max_weight_g: 75 },
@@ -1239,6 +1251,22 @@
         standard_oversize: { threshold_g: 22000, high_base: 19.39, low_base: 18.48, per_kg: 0.01 },
         large_oversize: { threshold_g: 35000, high_base: 38.59, low_base: 37.68, per_kg: 0.10 },
         extra_oversize: { threshold_g: 35000, high_base: 90.00, low_base: 89.09, per_kg: 0.10 }
+      },
+      fees_after_2026_06_10: {
+        small_envelope: [[75,3.20,3.64,4.55,4.55,4.55]],
+        standard_envelope: [[75,3.30,3.67,4.58,4.58,4.58],[225,3.44,4.35,4.60,5.26,5.26],[475,3.72,4.70,5.06,5.61,5.61]],
+        large_envelope: [[225,3.72,5.87,5.06,6.78,6.78],[475,3.98,6.11,5.06,7.02,7.02],[975,3.98,6.33,5.06,7.24,7.24]],
+        parcel: [[250,3.98,6.14,5.48,7.05,7.05],[500,4.18,6.14,5.48,7.05,7.05],[1000,4.36,6.33,5.48,7.24,7.24],[1500,6.19,7.97,6.19,8.88,8.88],[2000,6.64,8.90,6.64,9.81,9.81],[3000,8.95,8.95,9.86,9.86,9.86],[4000,9.27,9.27,10.18,10.18,10.18],[5000,9.28,9.28,10.19,10.19,10.19],[6000,10.19,10.19,11.10,11.10,11.10],[7000,10.35,10.35,11.26,11.26,11.26],[8000,10.35,10.35,11.26,11.26,11.26],[9000,10.36,10.36,11.27,11.27,11.27],[10000,10.36,10.36,11.27,11.27,11.27],[11000,12.89,12.89,13.80,13.80,13.80],[12000,13.02,13.02,13.93,13.93,13.93]],
+        small_oversize: [[1000,5.33,9.03,7.48,9.94,9.94],[1250,6.27,9.50,8.41,10.41,10.41],[1500,9.74,9.74,10.65,10.65,10.65],[1750,9.75,9.75,10.66,10.66,10.66],[2000,9.75,9.75,10.66,10.66,10.66]],
+        standard_oversize: [[1000,11.39,11.39,12.30,12.30,12.30],[2000,12.04,12.04,12.95,12.95,12.95],[3000,12.13,12.13,13.04,13.04,13.04],[4000,12.27,12.27,13.18,13.18,13.18],[5000,12.50,12.50,13.41,13.41,13.41],[6000,13.40,13.40,14.31,14.31,14.31],[7000,13.55,13.55,14.46,14.46,14.46],[8000,13.57,13.57,14.48,14.48,14.48],[9000,13.61,13.61,14.52,14.52,14.52],[10000,13.61,13.61,14.52,14.52,14.52],[15000,14.95,14.95,15.86,15.86,15.86],[20000,15.51,15.51,16.42,16.42,16.42],[22000,15.51,15.51,16.42,16.42,16.42]],
+        large_oversize: [[5000,16.89,16.89,17.80,17.80,17.80],[10000,18.44,18.44,19.35,19.35,19.35],[15000,20.24,20.24,21.15,21.15,21.15],[20000,20.57,20.57,21.48,21.48,21.48],[25000,21.61,21.61,22.52,22.52,22.52],[30000,25.97,25.97,26.88,26.88,26.88],[35000,26.00,26.00,26.91,26.91,26.91]],
+        extra_oversize: [[35000,89.09,89.09,90.00,90.00,90.00]]
+      },
+      increments_after_2026_06_10: {
+        small_oversize: { threshold_g: 2000, under_special_base: 10.52, under_other_base: 10.52, mid_special_base: 11.43, mid_other_base: 11.43, over_20_base: 11.43, per_kg: 0.01 },
+        standard_oversize: { threshold_g: 22000, under_special_base: 18.48, under_other_base: 18.48, mid_special_base: 19.39, mid_other_base: 19.39, over_20_base: 19.39, per_kg: 0.01 },
+        large_oversize: { threshold_g: 35000, under_special_base: 37.68, under_other_base: 37.68, mid_special_base: 38.59, mid_other_base: 38.59, over_20_base: 38.59, per_kg: 0.10 },
+        extra_oversize: { threshold_g: 35000, under_special_base: 89.09, under_other_base: 89.09, mid_special_base: 90.00, mid_other_base: 90.00, over_20_base: 90.00, per_kg: 0.10 }
       },
       note: "已按澳大利亚 Seller Central 官方页面启用当前 FBA 基础配送费。信封仅用商品重量；包裹、大件和超大件使用商品重量与体积重量二者较大值，体积重量=长x宽x高/4000。最终实际费用按基础配送费叠加 10% GST。"
     };
@@ -1408,7 +1436,7 @@
         kind: "official_help_primary",
         title: "Seller Central Australia FBA fees",
         url: "https://sellercentral.amazon.com.au/help/hub/reference/external/G4UU2ZQNHJNKAG5Y",
-        note: "Official Seller Central Australia source. The visible official table was read in the in-app browser and saved to policy_snapshots/au/G4UU2ZQNHJNKAG5Y.txt. Calculator uses the current columns before 2026-06-10 for AU base fulfillment fees."
+        note: "Official Seller Central Australia source. The visible official table was read in the in-app browser and saved to policy_snapshots/au/G4UU2ZQNHJNKAG5Y.txt. Calculator uses the pre-2026-06-10 columns before the effective date, then automatically switches to the post-2026-06-10 three-price-band table with GL/category-specific columns."
       },
       {
         marketplace: "AU",
@@ -1502,16 +1530,16 @@
 
     const TEMPLATE_HEADERS = [
       "country", "sku", "product_name", "category", "length_cm", "width_cm", "height_cm",
-      "weight_kg", "sale_price_local", "is_apparel", "mx_fee_group", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
+      "weight_kg", "sale_price_local", "is_apparel", "mx_fee_group", "au_fee_category", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
     ];
     const TEMPLATE_ROWS = [
-      ["US", "SKU-001", "示例普通品", "", "22", "13", "2", "0.18", "9.99", "N", "", "", "", ""],
-      ["MX", "SKU-MX-001", "示例墨西哥普通品", "", "30", "20", "10", "0.5", "249", "N", "main", "", "", ""],
-      ["AU", "SKU-AU-001", "示例澳洲商品", "", "30", "20", "10", "0.5", "12.99", "N", "", "", "", ""],
-      ["SA", "SKU-SA-001", "示例沙特普通品", "", "35.1", "22.9", "1.8", "0.081", "15", "N", "", "", "", ""],
-      ["AE", "SKU-AE-001", "示例阿联酋普通品", "", "32", "16.9", "14", "1.608", "24", "N", "", "", "", ""],
-      ["DE", "SKU-DE-001", "示例德国中欧计划商品", "", "30", "20", "10", "0.3", "9.99", "N", "", "", "", ""],
-      ["UK", "SKU-UK-001", "示例英国商品", "", "30", "20", "10", "0.3", "9.99", "N", "", "", "", ""]
+      ["US", "SKU-001", "示例普通品", "", "22", "13", "2", "0.18", "9.99", "N", "", "", "", "", ""],
+      ["MX", "SKU-MX-001", "示例墨西哥普通品", "", "30", "20", "10", "0.5", "249", "N", "main", "", "", "", ""],
+      ["AU", "SKU-AU-001", "示例澳洲商品", "", "30", "20", "10", "0.5", "12.99", "N", "", "home_kitchen", "", "", ""],
+      ["SA", "SKU-SA-001", "示例沙特普通品", "", "35.1", "22.9", "1.8", "0.081", "15", "N", "", "", "", "", ""],
+      ["AE", "SKU-AE-001", "示例阿联酋普通品", "", "32", "16.9", "14", "1.608", "24", "N", "", "", "", "", ""],
+      ["DE", "SKU-DE-001", "示例德国中欧计划商品", "", "30", "20", "10", "0.3", "9.99", "N", "", "", "", "", ""],
+      ["UK", "SKU-UK-001", "示例英国商品", "", "30", "20", "10", "0.3", "9.99", "N", "", "", "", "", ""]
     ];
     const TEMPLATE_CSV = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
 
@@ -1561,6 +1589,16 @@
           </select>
         </td>
         <td>
+          <select data-field="au_fee_category" aria-label="澳大利亚费率分类">
+            <option value="">AU 留空穷举</option>
+            <option value="home_kitchen">家居及厨房</option>
+            <option value="pet_supplies">宠物用品</option>
+            <option value="grocery">食品</option>
+            <option value="sports_outdoors">运动户外</option>
+            <option value="other">其他分类</option>
+          </select>
+        </td>
+        <td>
           <select data-field="sipp_eligible" aria-label="SIPP">
             <option value="">留空穷举</option>
             <option value="Y">适配</option>
@@ -1597,7 +1635,7 @@
         return TEMPLATE_HEADERS.map(field => row.querySelector(`[data-field="${field}"]`).value.trim());
       });
       const activeRows = rows.filter(values => {
-        return values.some((value, index) => !["country", "is_apparel", "mx_fee_group"].includes(TEMPLATE_HEADERS[index]) && value !== "");
+        return values.some((value, index) => !["country", "is_apparel", "mx_fee_group", "au_fee_category"].includes(TEMPLATE_HEADERS[index]) && value !== "");
       });
       if (!activeRows.length) throw new Error("请先在在线录入表格中填写至少一个商品。");
       return [TEMPLATE_HEADERS, ...activeRows].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
@@ -1629,6 +1667,7 @@
       sale_price_usd: ["sale_price_usd", "售价usd", "price_usd"],
       is_apparel: ["is_apparel", "apparel", "服饰", "服装"],
       mx_fee_group: ["mx_fee_group", "mx_category_group", "墨西哥类目组", "mx类目组"],
+      au_fee_category: ["au_fee_category", "au_category", "au_gl", "gl", "gl_category", "澳洲分类", "澳洲gl", "au分类"],
       sipp_eligible: ["sipp_eligible", "sipp", "sioc", "ships_in_product_packaging"],
       days_of_supply_30: ["days_of_supply_30", "dos_30", "30天库存天数", "30d_supply"],
       days_of_supply_90: ["days_of_supply_90", "dos_90", "90天库存天数", "90d_supply"]
@@ -1801,6 +1840,7 @@
           salePriceUsd: country === "US" ? (salePriceLocal ?? legacySalePriceUsd) : null,
           isApparel: safeBool(row.is_apparel) || category.toLowerCase().includes("apparel"),
           mxFeeGroup: String(row.mx_fee_group || "").trim().toLowerCase(),
+          auFeeCategory: String(row.au_fee_category || "").trim().toLowerCase(),
           sippEligible: safeOptionalBool(row.sipp_eligible),
           daysOfSupply30,
           daysOfSupply90
@@ -2055,11 +2095,20 @@
       ];
     }
 
-    function getLowInventoryBands(sizeTier, shippingWeightLb, daysOfSupply30, daysOfSupply90) {
+    function isGroceryCategoryText(category) {
+      return /grocery|food|食品|杂货|生鲜|超市/i.test(String(category || ""));
+    }
+
+    function getLowInventoryBands(sizeTier, shippingWeightLb, daysOfSupply30, daysOfSupply90, category = "") {
+      if (isGroceryCategoryText(category)) {
+        return [{ band_code: "none", fee: 0, condition: "Grocery/食品类目按当前 US 低量库存费政策豁免" }];
+      }
       let table = null;
       if (sizeTier === "small_standard") table = POLICY.low_inventory_fee.small_standard;
       else if (sizeTier === "large_standard" && shippingWeightLb <= 3) table = POLICY.low_inventory_fee.large_standard_upto_3lb;
       else if (sizeTier === "large_standard" && shippingWeightLb <= 20) table = POLICY.low_inventory_fee.large_standard_3_to_20lb;
+      else if (sizeTier === "small_bulky") table = POLICY.low_inventory_fee.small_bulky;
+      else if (sizeTier === "large_bulky") table = POLICY.low_inventory_fee.large_bulky;
       if (!table) {
         return [{ band_code: "none", fee: 0, condition: "该尺寸/重量档当前未配置低量库存费" }];
       }
@@ -3019,7 +3068,35 @@
       return { ...AU_POLICY.size_tiers.find(tier => tier.code === "extra_oversize"), policyWeightG: Math.max(unitWeightG, dimensionalWeightG) };
     }
 
-    function getAuPriceOptions(salePriceLocal) {
+    function getAuRatePeriod() {
+      const today = new Date();
+      const effective = new Date(`${AU_POLICY.after_effective_date}T00:00:00`);
+      return today >= effective ? "after_2026_06_10" : "before_2026_06_10";
+    }
+
+    function normalizeAuFeeCategory(value, fallbackCategory = "") {
+      const text = `${value || ""} ${fallbackCategory || ""}`.toLowerCase();
+      if (/home[_\s-]*kitchen|home\s*&\s*kitchen|kitchen|家居|厨房/.test(text)) return "home_kitchen";
+      if (/pet|宠物/.test(text)) return "pet_supplies";
+      if (/grocery|food|食品|杂货|生鲜|超市/.test(text)) return "grocery";
+      if (/sport|outdoor|运动|户外/.test(text)) return "sports_outdoors";
+      if (/other|others|其他/.test(text)) return "other";
+      return "";
+    }
+
+    function getAuPriceOptions(salePriceLocal, ratePeriod = getAuRatePeriod()) {
+      if (ratePeriod === "after_2026_06_10") {
+        if (salePriceLocal === null) {
+          return [
+            { code: "under_13", label: "< AUD 13" },
+            { code: "13_20", label: ">= AUD 13 and < AUD 20" },
+            { code: "over_20", label: ">= AUD 20" }
+          ];
+        }
+        if (salePriceLocal < 13) return [{ code: "under_13", label: "< AUD 13" }];
+        if (salePriceLocal < 20) return [{ code: "13_20", label: ">= AUD 13 and < AUD 20" }];
+        return [{ code: "over_20", label: ">= AUD 20" }];
+      }
       if (salePriceLocal === null) {
         return [
           { code: "standard_price", label: `>= AUD ${AU_POLICY.low_price_threshold}`, index: 1 },
@@ -3031,7 +3108,52 @@
         : [{ code: "standard_price", label: `>= AUD ${AU_POLICY.low_price_threshold}`, index: 1 }];
     }
 
-    function computeAuFee(sizeTierCode, shippingWeightG, priceOption) {
+    function getAuCategoryOptions(priceOption, inputCategory, fallbackCategory) {
+      if (!["under_13", "13_20"].includes(priceOption.code)) {
+        return [{ code: "all", label: "所有费用分类", columnIndex: 5 }];
+      }
+      const normalized = normalizeAuFeeCategory(inputCategory, fallbackCategory);
+      const specialSet = priceOption.code === "under_13"
+        ? ["home_kitchen", "pet_supplies"]
+        : ["home_kitchen", "pet_supplies", "grocery", "sports_outdoors"];
+      const specialLabel = priceOption.code === "under_13"
+        ? "家居及厨房用品/宠物用品"
+        : "家居及厨房用品/宠物用品/食品/运动户外用品";
+      if (!normalized) {
+        return [
+          { code: "special_gl", label: specialLabel, columnIndex: priceOption.code === "under_13" ? 1 : 3 },
+          { code: "other_gl", label: "所有其他费用分类", columnIndex: priceOption.code === "under_13" ? 2 : 4 }
+        ];
+      }
+      return specialSet.includes(normalized)
+        ? [{ code: normalized, label: AU_POLICY.category_groups[normalized], columnIndex: priceOption.code === "under_13" ? 1 : 3 }]
+        : [{ code: normalized === "other" ? "other" : `${normalized}_as_other`, label: `${AU_POLICY.category_groups[normalized] || normalized}（按其他费用分类列）`, columnIndex: priceOption.code === "under_13" ? 2 : 4 }];
+    }
+
+    function computeAuFee(sizeTierCode, shippingWeightG, priceOption, categoryOption = { columnIndex: 1 }, ratePeriod = getAuRatePeriod()) {
+      if (ratePeriod === "after_2026_06_10") {
+        const table = AU_POLICY.fees_after_2026_06_10[sizeTierCode];
+        const band = table.find(item => shippingWeightG <= item[0] + 1e-9);
+        if (band) {
+          return {
+            fee: Number(band[categoryOption.columnIndex]),
+            band: `<= ${band[0]} g`
+          };
+        }
+        const increment = AU_POLICY.increments_after_2026_06_10[sizeTierCode];
+        if (!increment) throw new Error(`AU 找不到 ${sizeTierCode} ${shippingWeightG} g 的 2026-06-10 后费率`);
+        const baseKey = priceOption.code === "over_20"
+          ? "over_20_base"
+          : (priceOption.code === "under_13"
+            ? (categoryOption.columnIndex === 1 ? "under_special_base" : "under_other_base")
+            : (categoryOption.columnIndex === 3 ? "mid_special_base" : "mid_other_base"));
+        const base = increment[baseKey];
+        const excessKg = Math.max(shippingWeightG - increment.threshold_g, 0) / 1000;
+        return {
+          fee: round2(base + excessKg * increment.per_kg),
+          band: `> ${increment.threshold_g} g；${base.toFixed(2)} + ${(excessKg).toFixed(3)} kg x ${increment.per_kg.toFixed(2)}`
+        };
+      }
       const table = AU_POLICY.fees_before_2026_06_10[sizeTierCode];
       const band = table.find(item => shippingWeightG <= item[0] + 1e-9);
       if (band) {
@@ -3063,33 +3185,44 @@
       }
       const shippingWeightG = tier.weight_basis === "unit" ? unitWeightG : Math.max(unitWeightG, dimensionalWeightG);
       const shippingWeightKg = round3(shippingWeightG / 1000);
-      const priceOptions = getAuPriceOptions(row.salePriceLocal);
-      const scenarios = priceOptions.map((priceOption, index) => {
-        const feeMatch = computeAuFee(tier.code, shippingWeightG, priceOption);
-        const gstAmount = round2(feeMatch.fee * AU_POLICY.gst_rate);
-        const finalFee = round2(feeMatch.fee + gstAmount);
-        return {
-          scenario_id: index + 1,
-          row_number: row.rowNumber,
-          country: "AU",
-          sku: row.sku,
-          product_name: row.productName,
-          scenario_name: `au_local_fba + ${priceOption.code}`,
-          currency: AU_POLICY.currency,
-          size_tier: tier.code,
-          shipping_weight_kg: shippingWeightKg,
-          shipping_weight_g: shippingWeightG,
-          base_fee_type: "au_local_fba",
-          base_fee_local_currency: feeMatch.fee.toFixed(2),
-          base_fee_match: `${tier.label}: ${shippingWeightG} g => ${feeMatch.band}；${priceOption.label} => AUD ${feeMatch.fee.toFixed(2)}`,
-          price_band: priceOption.label,
-          gst_local_currency: gstAmount.toFixed(2),
-          gst_rate: AU_POLICY.gst_rate,
-          gst_percent: formatPercent(AU_POLICY.gst_rate),
-          includes_gst: "Y",
-          final_fee_local_currency: finalFee.toFixed(2),
-          conditions: `${row.salePriceLocal === null ? "售价留空，按政策穷举" : "按实际售价"} ${priceOption.label}；AU 当前无内置 SIPP、燃油/物流附加费或低库存费；最终费用 = 基础配送费 AUD ${feeMatch.fee.toFixed(2)} + 10% GST AUD ${gstAmount.toFixed(2)}。`
-        };
+      const ratePeriod = getAuRatePeriod();
+      const priceOptions = getAuPriceOptions(row.salePriceLocal, ratePeriod);
+      const scenarios = [];
+      let scenarioId = 1;
+      priceOptions.forEach(priceOption => {
+        const categoryOptions = ratePeriod === "after_2026_06_10"
+          ? getAuCategoryOptions(priceOption, row.auFeeCategory, row.category)
+          : [{ code: "not_applicable", label: "2026-06-10 前不按 GL 分类", columnIndex: priceOption.index }];
+        categoryOptions.forEach(categoryOption => {
+          const feeMatch = computeAuFee(tier.code, shippingWeightG, priceOption, categoryOption, ratePeriod);
+          const gstAmount = round2(feeMatch.fee * AU_POLICY.gst_rate);
+          const finalFee = round2(feeMatch.fee + gstAmount);
+          scenarios.push({
+            scenario_id: scenarioId,
+            row_number: row.rowNumber,
+            country: "AU",
+            sku: row.sku,
+            product_name: row.productName,
+            scenario_name: `au_local_fba + ${priceOption.code}${categoryOption.code === "not_applicable" ? "" : ` + ${categoryOption.code}`}`,
+            currency: AU_POLICY.currency,
+            size_tier: tier.code,
+            shipping_weight_kg: shippingWeightKg,
+            shipping_weight_g: shippingWeightG,
+            base_fee_type: "au_local_fba",
+            base_fee_local_currency: feeMatch.fee.toFixed(2),
+            base_fee_match: `${tier.label}: ${shippingWeightG} g => ${feeMatch.band}；${priceOption.label}${categoryOption.code === "not_applicable" ? "" : `；${categoryOption.label}`} => AUD ${feeMatch.fee.toFixed(2)}`,
+            price_band: priceOption.label,
+            au_fee_category: categoryOption.label,
+            au_rate_period: ratePeriod,
+            gst_local_currency: gstAmount.toFixed(2),
+            gst_rate: AU_POLICY.gst_rate,
+            gst_percent: formatPercent(AU_POLICY.gst_rate),
+            includes_gst: "Y",
+            final_fee_local_currency: finalFee.toFixed(2),
+            conditions: `${row.salePriceLocal === null ? "售价留空，按政策穷举" : "按实际售价"} ${priceOption.label}；${categoryOption.code === "not_applicable" ? "2026-06-10 前不按 GL 分类" : `${row.auFeeCategory || row.category ? "按输入/备注识别" : "AU 分类留空，按可成立 GL 分类穷举"}：${categoryOption.label}`}；AU 当前无内置 SIPP、燃油/物流附加费或低库存费；最终费用 = 基础配送费 AUD ${feeMatch.fee.toFixed(2)} + 10% GST AUD ${gstAmount.toFixed(2)}。`
+          });
+          scenarioId += 1;
+        });
       });
       const fees = scenarios.map(item => Number(item.final_fee_local_currency));
       return {
@@ -3121,6 +3254,9 @@
           shipping_weight_band: [...new Set(scenarios.map(item => item.base_fee_match))].join(" | "),
           sale_price_local: row.salePriceLocal ?? "",
           price_band: row.salePriceLocal === null ? "UNKNOWN / ENUMERATED" : priceOptions.map(item => item.label).join(", "),
+          au_fee_category_input: row.auFeeCategory || "",
+          au_fee_category: [...new Set(scenarios.map(item => item.au_fee_category))].join(", "),
+          au_rate_period: ratePeriod,
           applied_base_fee_type: "au_local_fba",
           applied_base_fee_local_currency: [...new Set(scenarios.map(item => item.base_fee_local_currency))].join(", "),
           gst_local_currency: [...new Set(scenarios.map(item => item.gst_local_currency))].join(", "),
@@ -3497,7 +3633,7 @@
         const appliedPolicyInfo = getShippingWeightPolicyInfo(sizeTier, shippingWeightLb, row.isApparel, appliedPriceBandCode);
         const sippPackagingWeightLb = ["small_bulky", "large_bulky"].includes(sizeTier) ? dimensionalWeight.weightLb : shippingWeightLb;
         const sippOptions = getSippOptions(sizeTier, shippingWeightLb, row.isApparel, row.sippEligible, sippPackagingWeightLb);
-        const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb, row.daysOfSupply30, row.daysOfSupply90);
+        const lowInventoryOptions = getLowInventoryBands(sizeTier, shippingWeightLb, row.daysOfSupply30, row.daysOfSupply90, row.category);
         const bulkyPackagingFeeStatus = ["small_bulky", "large_bulky"].includes(sizeTier)
           ? "若未通过 SIPP，按计费重计算包装费；已计入相应场景金额"
           : "不适用";
@@ -3739,6 +3875,8 @@
         { "规则类型": "低量库存费", "适用范围": "小号标准尺寸", "规则说明": lowInventoryText(lowInventory.small_standard) },
         { "规则类型": "低量库存费", "适用范围": "大号标准尺寸 <= 3 lb", "规则说明": lowInventoryText(lowInventory.large_standard_upto_3lb) },
         { "规则类型": "低量库存费", "适用范围": "大号标准尺寸 > 3 至 20 lb", "规则说明": lowInventoryText(lowInventory.large_standard_3_to_20lb) },
+        { "规则类型": "低量库存费", "适用范围": "小号大件 <= 50 lb", "规则说明": `${lowInventoryText(lowInventory.small_bulky)}；Grocery/食品类目豁免` },
+        { "规则类型": "低量库存费", "适用范围": "大号大件 <= 50 lb", "规则说明": `${lowInventoryText(lowInventory.large_bulky)}；Grocery/食品类目豁免` },
         { "规则类型": "燃油/物流附加费", "适用范围": "FBA 基础配送费", "规则说明": `${formatPercent(POLICY.fuel_logistics_surcharge.rate)}；自 ${POLICY.fuel_logistics_surcharge.effective_date} 生效；先按基础配送费计算，最终场景再扣 SIPP 折扣` }
       ];
       renderTable("adjustmentRulesTable", rows);
@@ -3809,9 +3947,9 @@
           "站点": "AU 澳大利亚",
           "状态": "已启用",
           "币种": "AUD",
-          "价格段": `sale_price_local < ${AU_POLICY.low_price_threshold} / >= ${AU_POLICY.low_price_threshold}；售价留空时穷举两个价格段`,
+          "价格段": `2026-06-10 前：sale_price_local < ${AU_POLICY.low_price_threshold} / >= ${AU_POLICY.low_price_threshold}；2026-06-10 起：<13 / 13-20 / >=20，售价留空时穷举`,
           "尺寸/计费重口径": "小号/标准/大号信封仅用商品重量；包裹、小号大件、标准大件、大号大件、超大件使用商品重量与体积重量二者较大值",
-          "费用政策": "当前使用官方页面 2026-06-10 前费率列；每单配送费按 10% GST 叠加为最终实际费用",
+          "费用政策": "当前日期在 2026-06-10 前时使用旧费率列；到 2026-06-10 起自动切换新表。新表在 <13 和 13-20 价格段按 GL/费用分类区分，au_fee_category 留空时穷举特殊分类与其他分类。每单配送费按 10% GST 叠加为最终实际费用",
           "计算公式": "最终费用 = AU 本地基础配送费 + 基础配送费 x 10% GST"
         },
         {
@@ -3911,10 +4049,10 @@
         {
           "站点": "AU",
           "当前状态": "已启用计算",
-          "基础费": "按澳大利亚当前 FBA 配送费表、尺寸分段、计费重量和 AUD 13 价格段匹配",
+          "基础费": "按澳大利亚 FBA 配送费表、尺寸分段、计费重量和生效日期匹配；2026-06-10 起按 <13 / 13-20 / >=20 三价格段，并在前两个价格段读取 au_fee_category 对应 GL 分类列",
           "附加/折扣": "当前未内置 AU SIPP、燃油/物流附加费或低库存费；每单配送费叠加 10% GST",
           "最终费用公式": "基础配送费 + 基础配送费 x 10% GST",
-          "穷举口径": "售价留空时穷举 < AUD 13 与 >= AUD 13 两个价格段"
+          "穷举口径": "售价留空时穷举价格段；2026-06-10 起 au_fee_category 留空时穷举特殊 GL 分类与其他分类"
         },
         {
           "站点": "SA",
