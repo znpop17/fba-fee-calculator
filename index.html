@@ -517,7 +517,7 @@
                 <th>重量 kg<small>包装后</small></th>
                 <th>售价<small>sale_price_local</small></th>
                 <th>是否服饰<small>US 费率依据</small></th>
-                <th>MX 类目组<small>留空穷举</small></th>
+                <th>MX 费率类目<small>留空穷举</small></th>
                 <th>AU 分类<small>6/10后 GL</small></th>
                 <th>低价 GL 大类<small>仅 EU/UK 低价用</small></th>
                 <th>SIPP<small>留空穷举</small></th>
@@ -551,7 +551,7 @@
             <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">sale_price_local</span></p>
             <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
             <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 会按 sale price / your price ÷ 1.1 倒推不含 10% GST 的海关完税价值；完税价值超过 1,000 AUD 时不叠加低价值进口商品 GST。</p>
-            <p class="hint"><strong>可选字段建议：</strong>US 建议填 <span class="inline-code">is_apparel</span>，用于服饰/非服饰费率表；MX 建议填 <span class="inline-code">mx_fee_group</span>，用于四价位区间下的类目费率组；AU 2026-06-10 后建议填 <span class="inline-code">au_fee_category</span>，用于 GL 分类列；EU/UK 仅在判断低价配送费资格时建议填 <span class="inline-code">low_price_category</span> 作为 GL 大类分组（<span class="inline-code">general</span> / <span class="inline-code">restricted</span>）。CA、JP、SA、AE 当前不需要填写 <span class="inline-code">low_price_category</span>。可选字段留空时，工具会按政策穷举可成立场景。</p>
+            <p class="hint"><strong>可选字段建议：</strong>US 建议填 <span class="inline-code">is_apparel</span>，用于服饰/非服饰费率表；MX 建议填 <span class="inline-code">mx_fee_category</span>，用于四价位区间下的类目费率表；AU 2026-06-10 后建议填 <span class="inline-code">au_fee_category</span>，用于 GL 分类列；EU/UK 仅在判断低价配送费资格时建议填 <span class="inline-code">low_price_category</span> 作为 GL 大类分组（<span class="inline-code">general</span> / <span class="inline-code">restricted</span>）。CA、JP、SA、AE 当前不需要填写 <span class="inline-code">low_price_category</span>。可选字段留空时，工具会按政策穷举可成立场景。</p>
           </div>
         </div>
         <label style="margin-top:16px;">
@@ -697,7 +697,7 @@
             <p class="hint">金额单位 MXN，不含 IVA；仅显示并计算官方公开费率页已列示的本地基础配送费。</p>
           </div>
           <div class="rule-selectors">
-            <label>MX 类目组
+            <label>MX 费率类目
               <select id="mxRuleCategory">
                 <option value="main">主要类目</option>
                 <option value="health_grocery">健康/食品</option>
@@ -1095,7 +1095,7 @@
           large_above_1kg: { interval_kg: 0.5, increment: [0.25,0.50,0.75,3.75] }
         },
         other: {
-          label: "其他/未指定类目（同通用价目表，建议用 mx_fee_group 明确类目）",
+          label: "其他/未指定类目（同通用价目表，建议用 mx_fee_category 明确类目）",
           envelope: [[0.1,27.00,33.00,49.00,60.00],[0.2,27.20,34.00,50.00,60.40],[0.3,27.40,35.00,51.00,60.80],[0.4,27.60,36.00,52.00,61.20],[Infinity,27.80,37.00,53.00,61.50]],
           standard: [[0.1,28.00,33.00,50.00,61.80],[0.2,28.05,34.00,51.00,63.00],[0.3,28.10,35.00,52.00,64.00],[0.4,28.15,36.00,53.00,66.00],[0.5,28.20,37.00,54.00,67.00],[0.6,28.25,37.50,55.00,68.30],[0.7,28.30,38.00,56.00,69.60],[0.8,28.35,38.50,57.00,71.00],[0.9,28.40,39.00,58.00,72.00],[1,28.45,39.50,59.00,72.70]],
           standard_above_1kg: { base: [28.50,40.00,60.00,72.80], first_band_max_kg: 1, interval_kg: 0.25, increment: [1.15,1.15,1.75,1.50] },
@@ -1542,7 +1542,7 @@
 
     const TEMPLATE_HEADERS = [
       "country", "sku", "product_name", "category", "length_cm", "width_cm", "height_cm",
-      "weight_kg", "sale_price_local", "is_apparel", "mx_fee_group", "au_fee_category", "low_price_category", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
+      "weight_kg", "sale_price_local", "is_apparel", "mx_fee_category", "au_fee_category", "low_price_category", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
     ];
     const TEMPLATE_ROWS = [
       ["US", "SKU-001", "示例普通品", "", "22", "13", "2", "0.18", "9.99", "N", "", "", "", "", "", ""],
@@ -1593,7 +1593,7 @@
           </select>
         </td>
         <td>
-          <select data-field="mx_fee_group" aria-label="墨西哥费率类目组">
+          <select data-field="mx_fee_category" aria-label="墨西哥费率类目">
             <option value="">MX 留空穷举</option>
             <option value="main">主要类目</option>
             <option value="health_grocery">健康/食品</option>
@@ -1654,7 +1654,7 @@
         return TEMPLATE_HEADERS.map(field => row.querySelector(`[data-field="${field}"]`).value.trim());
       });
       const activeRows = rows.filter(values => {
-        return values.some((value, index) => !["country", "is_apparel", "mx_fee_group", "au_fee_category", "low_price_category"].includes(TEMPLATE_HEADERS[index]) && value !== "");
+        return values.some((value, index) => !["country", "is_apparel", "mx_fee_category", "au_fee_category", "low_price_category"].includes(TEMPLATE_HEADERS[index]) && value !== "");
       });
       if (!activeRows.length) throw new Error("请先在在线录入表格中填写至少一个商品。");
       return [TEMPLATE_HEADERS, ...activeRows].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
@@ -1685,7 +1685,7 @@
       sale_price_local: ["sale_price_local", "sale_price", "price", "售价", "local_price", "price_local"],
       sale_price_usd: ["sale_price_usd", "售价usd", "price_usd"],
       is_apparel: ["is_apparel", "apparel", "服饰", "服装"],
-      mx_fee_group: ["mx_fee_group", "mx_category_group", "墨西哥类目组", "mx类目组"],
+      mx_fee_category: ["mx_fee_category", "mx_fee_group", "mx_category_group", "墨西哥费率类目", "墨西哥类目组", "mx类目", "mx类目组"],
       au_fee_category: ["au_fee_category", "au_category", "au_gl", "gl", "gl_category", "澳洲分类", "澳洲gl", "au分类"],
       low_price_category: ["low_price_category", "low_price_group", "low_price_gl", "低价gl", "低价gl大类", "低价类目", "低价分类", "低价商品类目组"],
       sipp_eligible: ["sipp_eligible", "sipp", "sioc", "ships_in_product_packaging"],
@@ -1859,7 +1859,7 @@
           salePriceLocal: salePriceLocal ?? (country === "US" ? legacySalePriceUsd : null),
           salePriceUsd: country === "US" ? (salePriceLocal ?? legacySalePriceUsd) : null,
           isApparel: safeBool(row.is_apparel) || category.toLowerCase().includes("apparel"),
-          mxFeeGroup: String(row.mx_fee_group || "").trim().toLowerCase(),
+          mxFeeCategory: String(row.mx_fee_category || "").trim().toLowerCase(),
           auFeeCategory: String(row.au_fee_category || "").trim().toLowerCase(),
           lowPriceCategory: String(row.low_price_category || "").trim().toLowerCase(),
           sippEligible: safeOptionalBool(row.sipp_eligible),
@@ -2313,8 +2313,8 @@
       return [{ ...MX_POLICY.price_bands[index], index }];
     }
 
-    function getMxFeeGroupOptions(mxFeeGroup) {
-      if (mxFeeGroup && MX_POLICY.fee_groups[mxFeeGroup]) return [mxFeeGroup];
+    function getMxFeeGroupOptions(mxFeeCategory) {
+      if (mxFeeCategory && MX_POLICY.fee_groups[mxFeeCategory]) return [mxFeeCategory];
       return ["main", "health_grocery"];
     }
 
@@ -2398,7 +2398,7 @@
       const unitWeightKg = round3(row.weightKg);
       const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / MX_POLICY.dimensional_weight_divisor_cm3_per_kg);
       const shippingWeightKg = round3(Math.max(unitWeightKg, dimensionalWeightKg));
-      const categoryGroups = getMxFeeGroupOptions(row.mxFeeGroup);
+      const categoryGroups = getMxFeeGroupOptions(row.mxFeeCategory);
       const priceBands = getMxPriceBandOptions(row.salePriceLocal);
       const sippOptions = getMxSippOptions(sizeTier, row.sippEligible);
       const scenarios = [];
@@ -2421,13 +2421,13 @@
               base_fee_type: "mx_local_fba",
               base_fee_local_currency: fee.toFixed(2),
               base_fee_match: describeMxFeeMatch(sizeTier, shippingWeightKg, groupCode, priceBand),
-              mx_fee_group: groupCode,
+              mx_fee_category: groupCode,
               price_band: priceBand.label,
               sipp_applied: sippOption.applied ? "Y" : "N",
               sipp_discount_local_currency: sippOption.discount.toFixed(2),
               fulfillment_fee_after_sipp_local_currency: feeAfterSipp.toFixed(2),
               final_fee_local_currency: feeAfterSipp.toFixed(2),
-              conditions: `${row.mxFeeGroup ? "已指定" : "若适用"} MX 类目组 ${groupCode}；${row.salePriceLocal === null ? "若售价落入" : "实际售价落入"} ${priceBand.label}；${sippOption.condition}；MX 无燃油/物流附加费、无低库存水平费用`
+              conditions: `${row.mxFeeCategory ? "已指定" : "若适用"} MX 费率类目 ${groupCode}；${row.salePriceLocal === null ? "若售价落入" : "实际售价落入"} ${priceBand.label}；${sippOption.condition}；MX 无燃油/物流附加费、无低库存水平费用`
             });
             scenarioId += 1;
           });
@@ -2460,7 +2460,7 @@
           shipping_weight_basis: `商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 取较大值`,
           dimensional_weight_formula_note: MX_POLICY.dimensional_formula_verification,
           sale_price_local: row.salePriceLocal ?? "",
-          mx_fee_group: row.mxFeeGroup || "UNKNOWN / ENUMERATED",
+          mx_fee_category: row.mxFeeCategory || "UNKNOWN / ENUMERATED",
           applied_base_fee_type: "mx_local_fba",
           applied_base_fee_local_currency: [...new Set(scenarios.map(item => item.base_fee_local_currency))].join(", "),
           all_fba_fees_local_currency: fees.map(item => item.toFixed(2)).join(", "),
@@ -3591,7 +3591,7 @@
       "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
       "shipping_weight_basis", "shipping_weight_policy_unit", "shipping_weight_policy_value", "shipping_weight_band",
       "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb", "dimensional_weight_width_in", "dimensional_weight_height_in",
-      "sale_price_local", "price_band", "low_price_category_input", "low_price_category", "low_price_threshold_local_currency", "mx_fee_group", "au_fee_category_input", "au_fee_category", "au_rate_period", "au_gst_condition", "au_customs_value_aud", "applied_base_fee_type", "applied_base_fee_local_currency", "all_fba_fees_local_currency", "applied_base_fee_usd", "applicable_fba_fee_including_fuel_usd", "all_fba_fees_usd",
+      "sale_price_local", "price_band", "low_price_category_input", "low_price_category", "low_price_threshold_local_currency", "mx_fee_category", "au_fee_category_input", "au_fee_category", "au_rate_period", "au_gst_condition", "au_customs_value_aud", "applied_base_fee_type", "applied_base_fee_local_currency", "all_fba_fees_local_currency", "applied_base_fee_usd", "applicable_fba_fee_including_fuel_usd", "all_fba_fees_usd",
       "standard_fba_fee_local_currency", "low_price_fba_fee_local_currency", "sipp_discount_supported_local_currency",
       "standard_fba_fee_usd", "standard_fba_fee_match",
       "low_price_fba_fee_usd", "low_price_fba_fee_match",
@@ -3612,7 +3612,7 @@
 
     const SCENARIO_COLUMNS = [
       "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "currency", "base_fee_type",
-      "base_fee_local_currency", "final_fee_local_currency", "mx_fee_group", "price_band", "low_price_category", "low_price_category_code", "low_price_threshold_local_currency", "au_fee_category", "au_rate_period", "au_gst_condition", "au_customs_value_aud", "gst_local_currency", "gst_rate", "gst_percent", "includes_gst", "shipping_weight_kg", "shipping_weight_g",
+      "base_fee_local_currency", "final_fee_local_currency", "mx_fee_category", "price_band", "low_price_category", "low_price_category_code", "low_price_threshold_local_currency", "au_fee_category", "au_rate_period", "au_gst_condition", "au_customs_value_aud", "gst_local_currency", "gst_rate", "gst_percent", "includes_gst", "shipping_weight_kg", "shipping_weight_g",
       "base_fee_usd", "base_fee_match", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_before_sipp_usd", "fulfillment_fee_after_sipp_usd",
       "sipp_discount_local_currency", "fulfillment_fee_before_sipp_local_currency", "fulfillment_fee_after_sipp_local_currency",
       "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
@@ -4118,10 +4118,10 @@
         {
           "站点": "MX",
           "当前状态": "已启用计算",
-          "基础费": "按四个售价区间、MX 类目组、尺寸分段、计费重量匹配",
+          "基础费": "按四个售价区间、MX 费率类目、尺寸分段、计费重量匹配",
           "附加/折扣": "SIPP 折扣；当前无燃油/物流附加费、无低库存水平费用",
           "最终费用公式": "基础配送费 - SIPP 折扣",
-          "穷举口径": "售价、MX 类目组、SIPP 留空时按政策穷举"
+          "穷举口径": "售价、MX 费率类目、SIPP 留空时按政策穷举"
         },
         {
           "站点": "JP",
