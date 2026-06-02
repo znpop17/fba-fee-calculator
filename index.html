@@ -517,9 +517,6 @@
                 <th>重量 kg<small>包装后</small></th>
                 <th>售价<small>sale_price_local</small></th>
                 <th>US 服饰覆盖<small>不填用 category</small></th>
-                <th>MX 覆盖<small>不填用 category</small></th>
-                <th>AU 覆盖<small>不填用 category</small></th>
-                <th>低价覆盖<small>不填用 category</small></th>
                 <th>SIPP<small>留空穷举</small></th>
                 <th>30天供货<small>与90天共同判断</small></th>
                 <th>90天供货<small>两项空才穷举</small></th>
@@ -551,7 +548,7 @@
             <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">sale_price_local</span></p>
             <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
             <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 会按 sale price / your price ÷ 1.1 倒推不含 10% GST 的海关完税价值；完税价值超过 1,000 AUD 时不叠加低价值进口商品 GST。</p>
-            <p class="hint"><strong>可选字段建议：</strong><span class="inline-code">category</span> 已按 GL 大类处理，会作为各站点分类判断的默认来源。<span class="inline-code">mx_fee_category</span>、<span class="inline-code">au_fee_category</span>、<span class="inline-code">low_price_category</span> 都只是覆盖 <span class="inline-code">category</span> 的站点专用口径：MX 覆盖四价位区间下的费率类目；AU 覆盖 2026-06-10 后 GL 分类列；EU/UK 覆盖低价配送资格的 GL 大类分组（<span class="inline-code">general</span> / <span class="inline-code">restricted</span>）。US 可用 <span class="inline-code">category</span> 自动识别服饰/非服饰，或用 <span class="inline-code">is_apparel</span> 覆盖。CA、JP、SA、AE 当前不需要填写 <span class="inline-code">low_price_category</span>。可选字段留空时，工具会按政策穷举可成立场景。</p>
+            <p class="hint"><strong>可选字段建议：</strong><span class="inline-code">category</span> 已按 GL 大类处理，会作为 US、MX、AU、EU/UK 等站点分类判断的默认来源。新模板不再展示站点专用分类列；如果同一商品跨站 GL 口径不同，旧 CSV 中保留的专用列仍可被工具兼容读取。US 可用 <span class="inline-code">category</span> 自动识别服饰/非服饰，或用 <span class="inline-code">is_apparel</span> 覆盖。</p>
           </div>
         </div>
         <label style="margin-top:16px;">
@@ -570,7 +567,7 @@
 
     <section class="panel">
       <h2>GL 大类填写指南</h2>
-      <p><span class="inline-code">category</span> 是默认 GL 大类来源，会影响部分站点的费率分支和穷举范围。能确认 GL 时建议填写；站点专用覆盖字段只在同一商品跨站 GL 口径不同、或 category 无法被工具准确识别时再填。</p>
+      <p><span class="inline-code">category</span> 是默认 GL 大类来源，会影响部分站点的费率分支和穷举范围。能确认 GL 时建议填写；新模板只保留这一列作为分类输入。</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -578,7 +575,6 @@
               <th>站点</th>
               <th>建议填写范围</th>
               <th>影响的规则</th>
-              <th>专用覆盖字段</th>
             </tr>
           </thead>
           <tbody>
@@ -586,36 +582,31 @@
               <td>US</td>
               <td><span class="inline-code">apparel</span> / <span class="inline-code">clothing</span> / <span class="inline-code">服饰</span> / <span class="inline-code">服装</span>；食品类可填 <span class="inline-code">grocery</span> / <span class="inline-code">food</span> / <span class="inline-code">食品</span></td>
               <td>识别服饰/非服饰费率表；食品类会影响低量库存费豁免判断。</td>
-              <td><span class="inline-code">is_apparel</span> 可直接覆盖服饰判断。</td>
             </tr>
             <tr>
               <td>MX</td>
               <td><span class="inline-code">health</span> / <span class="inline-code">personal_care</span> / <span class="inline-code">beauty</span> / <span class="inline-code">grocery</span> / <span class="inline-code">food</span> / <span class="inline-code">健康</span> / <span class="inline-code">个护</span> / <span class="inline-code">美妆</span> / <span class="inline-code">食品</span>；其他普通类目可填 <span class="inline-code">main</span> / <span class="inline-code">general</span> / <span class="inline-code">other</span></td>
               <td>映射到 MX 官方基础配送费的费率类目表。</td>
-              <td><span class="inline-code">mx_fee_category</span> 可填写 <span class="inline-code">main</span> / <span class="inline-code">health_grocery</span> 覆盖。</td>
             </tr>
             <tr>
               <td>AU</td>
               <td><span class="inline-code">home_kitchen</span> / <span class="inline-code">pet_supplies</span> / <span class="inline-code">grocery</span> / <span class="inline-code">sports_outdoors</span> / <span class="inline-code">other</span>，也可用中文：家居、厨房、宠物、食品、运动、户外、其他。</td>
               <td>2026-06-10 起，低价价格段按 GL 分类列匹配 AU 本地 FBA 费率。</td>
-              <td><span class="inline-code">au_fee_category</span> 可填写同名标准值覆盖。</td>
             </tr>
             <tr>
               <td>EU / UK</td>
               <td>受限低价 GL：<span class="inline-code">beauty</span>、<span class="inline-code">health</span>、<span class="inline-code">personal_care</span>、<span class="inline-code">commercial</span>、<span class="inline-code">industrial</span>、<span class="inline-code">scientific</span>、<span class="inline-code">office</span>、<span class="inline-code">grocery</span>、<span class="inline-code">food</span>、<span class="inline-code">books</span>、<span class="inline-code">amazon_device_accessories</span>、<span class="inline-code">kitchen</span>；其他填 <span class="inline-code">general</span> / <span class="inline-code">other</span>。</td>
               <td>判断低价配送费资格的价格阈值：普通 GL 与受限/特定 GL 阈值不同。</td>
-              <td><span class="inline-code">low_price_category</span> 可填写 <span class="inline-code">general</span> / <span class="inline-code">restricted</span> 覆盖。</td>
             </tr>
             <tr>
               <td>CA / JP / SA / AE</td>
               <td>当前可不填，除非你希望保留内部 GL 备注。</td>
               <td>当前规则包不依赖低价 GL 大类分组。</td>
-              <td>无。</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="rule-note">填写优先级：站点专用覆盖字段优先，其次使用 <span class="inline-code">category</span> 自动识别；如果仍无法识别，工具会按政策穷举可成立场景。不同站点 GL 命名不一致时，建议保留 <span class="inline-code">category</span> 为主 GL，并只对差异站点填写覆盖字段。</div>
+      <div class="rule-note">填写优先级：优先使用 <span class="inline-code">category</span> 自动识别；如果无法识别，工具会按政策穷举可成立场景。历史 CSV 中的 <span class="inline-code">mx_fee_category</span>、<span class="inline-code">au_fee_category</span>、<span class="inline-code">low_price_category</span> 仍可兼容读取，但新模板不再展示这三列。</div>
     </section>
 
     <section class="panel">
@@ -1592,16 +1583,16 @@
 
     const TEMPLATE_HEADERS = [
       "country", "sku", "product_name", "category", "length_cm", "width_cm", "height_cm",
-      "weight_kg", "sale_price_local", "is_apparel", "mx_fee_category", "au_fee_category", "low_price_category", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
+      "weight_kg", "sale_price_local", "is_apparel", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
     ];
     const TEMPLATE_ROWS = [
-      ["US", "SKU-001", "示例普通品", "", "22", "13", "2", "0.18", "9.99", "", "", "", "", "", "", ""],
-      ["MX", "SKU-MX-001", "示例墨西哥普通品", "", "30", "20", "10", "0.5", "249", "N", "main", "", "", "", "", ""],
-      ["AU", "SKU-AU-001", "示例澳洲商品", "", "30", "20", "10", "0.5", "12.99", "N", "", "home_kitchen", "", "", "", ""],
-      ["SA", "SKU-SA-001", "示例沙特普通品", "", "35.1", "22.9", "1.8", "0.081", "15", "N", "", "", "", "", "", ""],
-      ["AE", "SKU-AE-001", "示例阿联酋普通品", "", "32", "16.9", "14", "1.608", "24", "N", "", "", "", "", "", ""],
-      ["DE", "SKU-DE-001", "示例德国中欧计划普通低价 GL 大类", "", "30", "20", "10", "0.3", "19.99", "N", "", "", "general", "", "", ""],
-      ["UK", "SKU-UK-001", "示例英国受限低价 GL 大类", "grocery", "30", "20", "10", "0.3", "9.99", "N", "", "", "restricted", "", "", ""]
+      ["US", "SKU-001", "示例普通品", "general", "22", "13", "2", "0.18", "9.99", "", "", "", ""],
+      ["MX", "SKU-MX-001", "示例墨西哥健康食品", "food", "30", "20", "10", "0.5", "249", "", "", "", ""],
+      ["AU", "SKU-AU-001", "示例澳洲家居商品", "home_kitchen", "30", "20", "10", "0.5", "12.99", "", "", "", ""],
+      ["SA", "SKU-SA-001", "示例沙特普通品", "general", "35.1", "22.9", "1.8", "0.081", "15", "", "", "", ""],
+      ["AE", "SKU-AE-001", "示例阿联酋普通品", "general", "32", "16.9", "14", "1.608", "24", "", "", "", ""],
+      ["DE", "SKU-DE-001", "示例德国普通低价 GL", "general", "30", "20", "10", "0.3", "19.99", "", "", "", ""],
+      ["UK", "SKU-UK-001", "示例英国受限低价 GL", "grocery", "30", "20", "10", "0.3", "9.99", "", "", "", ""]
     ];
     const TEMPLATE_CSV = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
 
@@ -1644,31 +1635,6 @@
           </select>
         </td>
         <td>
-          <select data-field="mx_fee_category" aria-label="墨西哥费率类目覆盖">
-            <option value="">不填，用 category</option>
-            <option value="main">主要类目</option>
-            <option value="health_grocery">健康/食品</option>
-            <option value="other">其他类目</option>
-          </select>
-        </td>
-        <td>
-          <select data-field="au_fee_category" aria-label="澳大利亚 GL 分类覆盖">
-            <option value="">不填，用 category</option>
-            <option value="home_kitchen">家居及厨房</option>
-            <option value="pet_supplies">宠物用品</option>
-            <option value="grocery">食品</option>
-            <option value="sports_outdoors">运动户外</option>
-            <option value="other">其他分类</option>
-          </select>
-        </td>
-        <td>
-          <select data-field="low_price_category" aria-label="低价配送 GL 大类分组覆盖">
-            <option value="">不填，用 category</option>
-            <option value="general">普通低价 GL 大类</option>
-            <option value="restricted">受限/特定低价 GL 大类</option>
-          </select>
-        </td>
-        <td>
           <select data-field="sipp_eligible" aria-label="SIPP">
             <option value="">留空穷举</option>
             <option value="Y">适配</option>
@@ -1705,7 +1671,7 @@
         return TEMPLATE_HEADERS.map(field => row.querySelector(`[data-field="${field}"]`).value.trim());
       });
       const activeRows = rows.filter(values => {
-        return values.some((value, index) => !["country", "is_apparel", "mx_fee_category", "au_fee_category", "low_price_category"].includes(TEMPLATE_HEADERS[index]) && value !== "");
+        return values.some((value, index) => !["country", "is_apparel"].includes(TEMPLATE_HEADERS[index]) && value !== "");
       });
       if (!activeRows.length) throw new Error("请先在在线录入表格中填写至少一个商品。");
       return [TEMPLATE_HEADERS, ...activeRows].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
