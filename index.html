@@ -478,6 +478,7 @@
             <div><strong>AU 澳大利亚</strong><span class="hint">已启用本地 FBA 基础配送费；当前按官方页面 2026-06-10 前费率计算。</span></div>
             <div><strong>UK / EU 欧洲</strong><span class="hint">已启用 UK、DE、FR、IT、ES、NL、SE、PL、BE；DE 默认中欧计划，计入 1.5% 燃油/物流附加费和低量库存成本覆盖费。</span></div>
           </div>
+          <p class="hint"><strong>日期切换说明：</strong>已内置完整生效日和费率表的规则会按浏览器当前日期自动切换，例如 AU 将在 <span class="inline-code">2026-06-10</span> 起切换到新价格段与 GL 分类费率。旺季配送费或临时附加费只有在已补入官方开始/结束时间和费率表后才会自动切换；本页面不会自动联网抓取新政策。</p>
           <p class="hint">当前 HTML 版为纯本地运行，不依赖 Python。支持在线逐行录入、<span class="inline-code">CSV</span> 批量导入和结果导出。</p>
         </div>
       </div>
@@ -4374,6 +4375,28 @@
     document.getElementById("downloadTemplateTop").addEventListener("click", downloadTemplate);
     document.getElementById("exportResults").addEventListener("click", () => exportCsv("fba_fee_results.csv", state.results, RESULTS_COLUMNS));
     document.getElementById("exportScenarios").addEventListener("click", () => exportCsv("fba_fee_scenarios.csv", state.scenarios, SCENARIO_COLUMNS));
+    window.addEventListener("message", event => {
+      const message = event.data || {};
+      if (message.type !== "amazon:fba:calculate") return;
+      try {
+        const rows = parseInputRows(message.csv || "");
+        const computed = calculateRows(rows);
+        event.source?.postMessage({
+          type: "amazon:fba:calculate:result",
+          requestId: message.requestId,
+          ok: true,
+          results: computed.results,
+          scenarios: computed.scenarios
+        }, "*");
+      } catch (error) {
+        event.source?.postMessage({
+          type: "amazon:fba:calculate:result",
+          requestId: message.requestId,
+          ok: false,
+          error: error.message
+        }, "*");
+      }
+    });
     document.querySelectorAll('input[name="inputMethod"]').forEach(input => input.addEventListener("change", updateInputMethod));
     document.getElementById("addOnlineRow").addEventListener("click", () => addOnlineRow());
     document.getElementById("loadOnlineSample").addEventListener("click", () => setOnlineRows(TEMPLATE_ROWS));
