@@ -519,6 +519,7 @@
                 <th>是否服饰<small>US 费率依据</small></th>
                 <th>MX 类目组<small>留空穷举</small></th>
                 <th>AU 分类<small>6/10后 GL</small></th>
+                <th>低价类目<small>EU/UK</small></th>
                 <th>SIPP<small>留空穷举</small></th>
                 <th>30天供货<small>与90天共同判断</small></th>
                 <th>90天供货<small>两项空才穷举</small></th>
@@ -549,7 +550,7 @@
             <h3>输入列</h3>
             <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">sale_price_local</span></p>
             <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
-            <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 若 sale price / your price <span class="inline-code">&gt; 1100 AUD</span>，则不叠加低价值进口商品 GST；售价留空时会穷举 GST 适用/不适用可能性。US 使用 <span class="inline-code">is_apparel</span>；MX 可填写 <span class="inline-code">mx_fee_group</span> 为 <span class="inline-code">main</span>、<span class="inline-code">health_grocery</span> 或 <span class="inline-code">other</span>；AU 2026-06-10 后可填写 <span class="inline-code">au_fee_category</span> 为 <span class="inline-code">home_kitchen</span>、<span class="inline-code">pet_supplies</span>、<span class="inline-code">grocery</span>、<span class="inline-code">sports_outdoors</span> 或 <span class="inline-code">other</span>。</p>
+            <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 若 sale price / your price <span class="inline-code">&gt; 1100 AUD</span>，则不叠加低价值进口商品 GST；售价留空时会穷举 GST 适用/不适用可能性。US 使用 <span class="inline-code">is_apparel</span>；MX 可填写 <span class="inline-code">mx_fee_group</span>；AU 2026-06-10 后可填写 <span class="inline-code">au_fee_category</span>；EU/UK 低价资格可填写 <span class="inline-code">low_price_category</span> 为 <span class="inline-code">general</span> 或 <span class="inline-code">restricted</span>，留空时按两组阈值穷举。</p>
           </div>
         </div>
         <label style="margin-top:16px;">
@@ -1274,6 +1275,15 @@
 
     const EU_POLICY = {"marketplaces":{"UK":{"currency":"GBP","feeCol":"UK","sippCol":"UK"},"GB":{"currency":"GBP","feeCol":"UK","sippCol":"UK"},"DE":{"currency":"EUR","feeCol":"DE_CE","sippCol":"DE"},"FR":{"currency":"EUR","feeCol":"FR","sippCol":"FR"},"IT":{"currency":"EUR","feeCol":"IT","sippCol":"IT"},"ES":{"currency":"EUR","feeCol":"ES","sippCol":"ES"},"NL":{"currency":"EUR","feeCol":"NL","sippCol":null},"SE":{"currency":"SEK","feeCol":"SE","sippCol":null},"PL":{"currency":"PLN","feeCol":"PL","sippCol":null},"BE":{"currency":"EUR","feeCol":"BE","sippCol":null}},"fuelRate":0.015,"lowPriceThresholds":{"UK":10,"GB":10,"DE":11,"FR":12,"IT":12,"ES":12,"NL":12,"BE":12,"SE":140,"PL":55},"standard":[{"t":"light_envelope","g":20,"v":{"UK":1.832624,"DE_CE":2.070933,"DE_ONLY":2.330933,"FR":2.747056,"IT":3.23225,"ES":2.772461,"NL":2.29,"SE":33.35,"PL":3.04,"BE":2.26}},{"t":"light_envelope","g":40,"v":{"UK":1.869408,"DE_CE":2.111043,"DE_ONLY":2.371043,"FR":2.763382,"IT":3.261697,"ES":2.844924,"NL":2.33,"SE":33.52,"PL":3.05,"BE":2.31}},{"t":"light_envelope","g":60,"v":{"UK":1.892972,"DE_CE":2.129163,"DE_ONLY":2.389163,"FR":2.781503,"IT":3.279817,"ES":2.872105,"NL":2.34,"SE":33.7,"PL":3.06,"BE":2.31}},{"t":"light_envelope","g":80,"v":{"UK":2.068412,"DE_CE":2.256007,"DE_ONLY":2.516007,"FR":3.299984,"IT":3.388541,"ES":3.207335,"NL":2.43,"SE":35.08,"PL":3.13,"BE":2.41}},{"t":"light_envelope","g":100,"v":{"UK":2.077807,"DE_CE":2.282059,"DE_ONLY":2.542059,"FR":3.322555,"IT":3.414892,"ES":3.232796,"NL":2.45,"SE":35.2,"PL":3.14,"BE":2.43}},{"t":"standard_envelope","g":210,"v":{"UK":2.097571,"DE_CE":2.306423,"DE_ONLY":2.566423,"FR":3.33053,"IT":3.446236,"ES":3.256675,"NL":2.49,"SE":35.47,"PL":3.16,"BE":2.47}},{"t":"standard_envelope","g":460,"v":{"UK":2.156863,"DE_CE":2.42107,"DE_ONLY":2.68107,"FR":3.7685,"IT":3.636893,"ES":3.44907,"NL":2.58,"SE":41.09,"PL":3.36,"BE":2.56}},{"t":"large_envelope","g":960,"v":{"UK":2.721823,"DE_CE":2.77562,"DE_ONLY":3.03562,"FR":4.390006,"IT":3.939967,"ES":3.600345,"NL":3.24,"SE":42.35,"PL":3.49,"BE":3.21}},{"t":"extra_large_envelope","g":960,"v":{"UK":2.940903,"DE_CE":3.16056,"DE_ONLY":3.42056,"FR":4.723064,"IT":4.172324,"ES":3.846359,"NL":3.59,"SE":45.62,"PL":3.58,"BE":3.53}},{"t":"small_parcel","g":150,"v":{"UK":2.91,"DE_CE":3.12,"DE_ONLY":3.38,"FR":4.56,"IT":4.13,"ES":3.52,"NL":3.468645,"SE":45.41,"PL":3.61,"BE":3.39}},{"t":"small_parcel","g":400,"v":{"UK":3.0,"DE_CE":3.13,"DE_ONLY":3.39,"FR":5.07,"IT":4.54,"ES":3.74,"NL":3.508053,"SE":47.29,"PL":3.67,"BE":3.67}},{"t":"small_parcel","g":900,"v":{"UK":3.04,"DE_CE":3.14,"DE_ONLY":3.4,"FR":5.79,"IT":4.95,"ES":3.95,"NL":4.028484,"SE":48.19,"PL":3.71,"BE":4.15}},{"t":"small_parcel","g":1400,"v":{"UK":3.05,"DE_CE":3.15,"DE_ONLY":3.41,"FR":5.87,"IT":5.11,"ES":4.21,"NL":4.499712,"SE":52.68,"PL":3.76,"BE":4.63}},{"t":"small_parcel","g":1900,"v":{"UK":3.25,"DE_CE":3.17,"DE_ONLY":3.43,"FR":6.1,"IT":5.14,"ES":4.27,"NL":4.822895,"SE":54.49,"PL":3.81,"BE":4.95}},{"t":"small_parcel","g":3900,"v":{"UK":3.27,"DE_CE":4.28,"DE_ONLY":4.54,"FR":7.8,"IT":5.16,"ES":5.5,"NL":5.895323,"SE":64.1,"PL":3.93,"BE":6.38}},{"t":"standard_parcel","g":150,"v":{"UK":2.94,"DE_CE":3.13,"DE_ONLY":3.39,"FR":4.58,"IT":4.29,"ES":3.55,"NL":3.62,"SE":48.58,"PL":3.67,"BE":3.46}},{"t":"standard_parcel","g":400,"v":{"UK":3.01,"DE_CE":3.16,"DE_ONLY":3.42,"FR":5.22,"IT":4.7,"ES":3.77,"NL":3.97,"SE":51.7,"PL":3.73,"BE":3.85}},{"t":"standard_parcel","g":900,"v":{"UK":3.06,"DE_CE":3.18,"DE_ONLY":3.44,"FR":6.01,"IT":5.15,"ES":3.99,"NL":4.32,"SE":52.04,"PL":3.8,"BE":4.39}},{"t":"standard_parcel","g":1400,"v":{"UK":3.26,"DE_CE":3.67,"DE_ONLY":3.93,"FR":6.41,"IT":5.26,"ES":4.85,"NL":4.65,"SE":58.46,"PL":3.89,"BE":4.99}},{"t":"standard_parcel","g":1900,"v":{"UK":3.48,"DE_CE":3.69,"DE_ONLY":3.95,"FR":6.44,"IT":5.29,"ES":4.94,"NL":4.69,"SE":61.53,"PL":3.97,"BE":5.406797}},{"t":"standard_parcel","g":2900,"v":{"UK":3.49,"DE_CE":4.29,"DE_ONLY":4.55,"FR":7.08,"IT":5.3,"ES":4.98,"NL":4.75,"SE":65.36,"PL":4.1,"BE":6.274154}},{"t":"standard_parcel","g":3900,"v":{"UK":3.54,"DE_CE":4.83,"DE_ONLY":5.09,"FR":7.81,"IT":5.35,"ES":5.53,"NL":5.08,"SE":65.71,"PL":4.15,"BE":6.300046}},{"t":"standard_parcel","g":5900,"v":{"UK":3.56,"DE_CE":4.96,"DE_ONLY":5.22,"FR":8.22,"IT":5.38,"ES":5.96,"NL":5.23,"SE":70.2,"PL":4.19,"BE":6.542181}},{"t":"standard_parcel","g":8900,"v":{"UK":3.57,"DE_CE":5.77,"DE_ONLY":6.03,"FR":8.84,"IT":5.41,"ES":7.24,"NL":5.67,"SE":72.2,"PL":4.24,"BE":6.903722}},{"t":"standard_parcel","g":11900,"v":{"UK":3.58,"DE_CE":6.39,"DE_ONLY":6.65,"FR":9.38,"IT":6.25,"ES":7.85,"NL":6.24,"SE":87.92,"PL":4.37,"BE":7.356854}},{"t":"small_oversize","g":760,"v":{"UK":3.489992,"DE_CE":4.299771,"DE_ONLY":4.559771,"FR":7.045393,"IT":7.208851,"ES":5.678839,"NL":7.02,"SE":82.32,"PL":4.13,"BE":6.63}},{"t":"standard_oversize_light","g":760,"v":{"UK":4.347516,"DE_CE":4.330888,"DE_ONLY":4.590888,"FR":7.288015,"IT":7.451585,"ES":6.554632,"NL":7.12,"SE":82.59,"PL":4.15,"BE":6.66}},{"t":"standard_oversize_heavy","g":15760,"v":{"UK":6.577516,"DE_CE":6.990888,"DE_ONLY":7.250888,"FR":10.418015,"IT":10.631585,"ES":11.716697,"NL":10.24,"SE":129.09,"PL":6.15,"BE":10.15}},{"t":"standard_oversize_large","g":760,"v":{"UK":5.669862,"DE_CE":5.803182,"DE_ONLY":6.063182,"FR":8.46585,"IT":9.128675,"ES":6.763018,"NL":7.22,"SE":83.09,"PL":4.18,"BE":6.69}},{"t":"large_oversize","g":760,"v":{"UK":10.198003,"DE_CE":7.976869,"DE_ONLY":8.236869,"FR":15.377584,"IT":9.592519,"ES":9.951972,"NL":9.96,"SE":118.02,"PL":6.27,"BE":9.5}},{"t":"heavy_oversize","g":31500,"v":{"UK":13.038731,"DE_CE":12.741486,"DE_ONLY":13.001486,"FR":15.587649,"IT":16.85,"ES":14.0,"NL":16.215167,"SE":192.14,"PL":10.21,"BE":15.466274}},{"t":"special_oversize","g":30000,"v":{"UK":16.22308,"DE_CE":null,"DE_ONLY":21.299384,"FR":24.875349,"IT":21.700277,"ES":19.934756,"NL":null,"SE":null,"PL":null,"BE":null}},{"t":"special_oversize","g":40000,"v":{"UK":17.243594,"DE_CE":null,"DE_ONLY":24.190562,"FR":28.769891,"IT":24.096561,"ES":20.801,"NL":null,"SE":null,"PL":null,"BE":null}},{"t":"special_oversize","g":50000,"v":{"UK":34.38319,"DE_CE":null,"DE_ONLY":47.975131,"FR":46.658074,"IT":32.186368,"ES":34.324488,"NL":null,"SE":null,"PL":null,"BE":null}},{"t":"special_oversize","g":60000,"v":{"UK":42.036509,"DE_CE":null,"DE_ONLY":51.993558,"FR":50.544319,"IT":32.820185,"ES":36.931705,"NL":null,"SE":null,"PL":null,"BE":null}}],"lowPrice":[{"t":"light_envelope","g":20,"v":{"UK":1.46,"DE_CE":1.61,"DE_ONLY":1.87,"FR":2.24,"IT":2.64,"ES":2.15,"NL":1.96,"SE":28.71,"PL":1.68,"BE":1.74}},{"t":"light_envelope","g":40,"v":{"UK":1.5,"DE_CE":1.64,"DE_ONLY":1.9,"FR":2.26,"IT":2.65,"ES":2.21,"NL":2.0,"SE":28.91,"PL":1.7,"BE":1.77}},{"t":"light_envelope","g":60,"v":{"UK":1.52,"DE_CE":1.66,"DE_ONLY":1.92,"FR":2.27,"IT":2.67,"ES":2.23,"NL":2.0,"SE":29.07,"PL":1.7,"BE":1.78}},{"t":"light_envelope","g":80,"v":{"UK":1.67,"DE_CE":1.8,"DE_ONLY":2.06,"FR":2.79,"IT":2.79,"ES":2.55,"NL":2.08,"SE":30.56,"PL":1.72,"BE":1.83}},{"t":"light_envelope","g":100,"v":{"UK":1.7,"DE_CE":1.83,"DE_ONLY":2.09,"FR":2.81,"IT":2.81,"ES":2.59,"NL":2.11,"SE":30.74,"PL":1.73,"BE":1.86}},{"t":"standard_envelope","g":210,"v":{"UK":1.73,"DE_CE":1.86,"DE_ONLY":2.12,"FR":2.81,"IT":2.81,"ES":2.61,"NL":2.16,"SE":31.56,"PL":1.74,"BE":1.98}},{"t":"standard_envelope","g":460,"v":{"UK":1.87,"DE_CE":2.02,"DE_ONLY":2.28,"FR":3.31,"IT":3.04,"ES":2.85,"NL":2.25,"SE":36.61,"PL":1.83,"BE":2.12}},{"t":"large_envelope","g":960,"v":{"UK":2.42,"DE_CE":2.39,"DE_ONLY":2.65,"FR":3.96,"IT":3.35,"ES":3.0,"NL":2.91,"SE":37.79,"PL":1.89,"BE":2.66}},{"t":"extra_large_envelope","g":960,"v":{"UK":2.65,"DE_CE":2.78,"DE_ONLY":3.04,"FR":4.31,"IT":3.59,"ES":3.23,"NL":3.26,"SE":40.84,"PL":1.91,"BE":2.96}},{"t":"small_parcel","g":150,"v":{"UK":2.67,"DE_CE":2.78,"DE_ONLY":3.04,"FR":4.31,"IT":3.59,"ES":3.23,"NL":3.13,"SE":41.23,"PL":1.81,"BE":2.64}},{"t":"small_parcel","g":400,"v":{"UK":2.7,"DE_CE":2.99,"DE_ONLY":3.25,"FR":4.71,"IT":3.91,"ES":3.46,"NL":3.17,"SE":43.31,"PL":1.86,"BE":2.96}}],"increments":{"small_oversize":{"UK":0.22,"DE_CE":0.18,"DE_ONLY":0.18,"FR":0.2,"IT":0.08,"ES":0.04,"NL":0.07,"SE":0.73,"PL":0.03,"BE":0.04},"standard_oversize_light":{"UK":0.15,"DE_CE":0.18,"DE_ONLY":0.18,"FR":0.21,"IT":0.22,"ES":0.34,"NL":0.22,"SE":3.1,"PL":0.14,"BE":0.23},"standard_oversize_heavy":{"UK":0.08,"DE_CE":0.07,"DE_ONLY":0.07,"FR":0.11,"IT":0.08,"ES":0.27,"NL":0.22,"SE":4.0,"PL":0.15,"BE":0.24},"standard_oversize_large":{"UK":0.07,"DE_CE":0.08,"DE_ONLY":0.08,"FR":0.13,"IT":0.09,"ES":0.33,"NL":0.23,"SE":4.0,"PL":0.16,"BE":0.29},"large_oversize":{"UK":0.24,"DE_CE":0.27,"DE_ONLY":0.27,"FR":0.45,"IT":0.3,"ES":0.43,"NL":0.32,"SE":4.9,"PL":0.16,"BE":0.35},"heavy_oversize":{"UK":0.09,"DE_CE":0.15,"DE_ONLY":0.15,"FR":0.18,"IT":0.15,"ES":0.12,"NL":0.62,"SE":9.49,"PL":0.39,"BE":0.68},"special_oversize":{"UK":0.35,"DE_CE":null,"DE_ONLY":0.36,"FR":0.49,"IT":0.65,"ES":0.45,"NL":null,"SE":null,"PL":null,"BE":null}},"sippDiscounts":[{"m":"low_price","t":"light_envelope","g":20,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"low_price","t":"light_envelope","g":40,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"low_price","t":"light_envelope","g":60,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"low_price","t":"light_envelope","g":80,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"low_price","t":"light_envelope","g":100,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"low_price","t":"standard_envelope","g":210,"v":{"UK":0.01,"DE":0.02,"FR":0.02,"IT":0.03,"ES":0.02}},{"m":"low_price","t":"standard_envelope","g":460,"v":{"UK":0.01,"DE":0.02,"FR":0.02,"IT":0.03,"ES":0.03}},{"m":"low_price","t":"large_envelope","g":960,"v":{"UK":0.02,"DE":0.03,"FR":0.03,"IT":0.04,"ES":0.04}},{"m":"low_price","t":"extra_large_envelope","g":960,"v":{"UK":0.04,"DE":0.05,"FR":0.05,"IT":0.06,"ES":0.06}},{"m":"low_price","t":"small_parcel","g":150,"v":{"UK":0.06,"DE":0.07,"FR":0.07,"IT":0.08,"ES":0.08}},{"m":"low_price","t":"small_parcel","g":400,"v":{"UK":0.06,"DE":0.07,"FR":0.08,"IT":0.08,"ES":0.08}},{"m":"standard","t":"light_envelope","g":20,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"standard","t":"light_envelope","g":40,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"standard","t":"light_envelope","g":60,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"standard","t":"light_envelope","g":80,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"standard","t":"light_envelope","g":100,"v":{"UK":0.007855,"DE":0.00906,"FR":0.00906,"IT":0.00906,"ES":0.00906}},{"m":"standard","t":"standard_envelope","g":210,"v":{"UK":0.01,"DE":0.02,"FR":0.02,"IT":0.03,"ES":0.02}},{"m":"standard","t":"standard_envelope","g":460,"v":{"UK":0.01,"DE":0.02,"FR":0.02,"IT":0.03,"ES":0.03}},{"m":"standard","t":"large_envelope","g":960,"v":{"UK":0.02,"DE":0.03,"FR":0.03,"IT":0.04,"ES":0.04}},{"m":"standard","t":"extra_large_envelope","g":960,"v":{"UK":0.04,"DE":0.05,"FR":0.05,"IT":0.06,"ES":0.06}},{"m":"standard","t":"small_parcel","g":150,"v":{"UK":0.06,"DE":0.07,"FR":0.07,"IT":0.08,"ES":0.08}},{"m":"standard","t":"small_parcel","g":400,"v":{"UK":0.06,"DE":0.07,"FR":0.08,"IT":0.08,"ES":0.08}},{"m":"standard","t":"small_parcel","g":900,"v":{"UK":0.07,"DE":0.08,"FR":0.08,"IT":0.09,"ES":0.09}},{"m":"standard","t":"small_parcel","g":1400,"v":{"UK":0.07,"DE":0.08,"FR":0.08,"IT":0.09,"ES":0.1}},{"m":"standard","t":"small_parcel","g":1900,"v":{"UK":0.08,"DE":0.09,"FR":0.09,"IT":0.1,"ES":0.1}},{"m":"standard","t":"small_parcel","g":3900,"v":{"UK":0.09,"DE":0.1,"FR":0.1,"IT":0.12,"ES":0.11}},{"m":"standard","t":"standard_parcel","g":150,"v":{"UK":0.08,"DE":0.09,"FR":0.1,"IT":0.12,"ES":0.11}},{"m":"standard","t":"standard_parcel","g":400,"v":{"UK":0.09,"DE":0.1,"FR":0.11,"IT":0.12,"ES":0.12}},{"m":"standard","t":"standard_parcel","g":900,"v":{"UK":0.1,"DE":0.11,"FR":0.12,"IT":0.13,"ES":0.13}},{"m":"standard","t":"standard_parcel","g":1400,"v":{"UK":0.11,"DE":0.13,"FR":0.14,"IT":0.15,"ES":0.15}},{"m":"standard","t":"standard_parcel","g":1900,"v":{"UK":0.13,"DE":0.15,"FR":0.15,"IT":0.17,"ES":0.17}},{"m":"standard","t":"standard_parcel","g":2900,"v":{"UK":0.15,"DE":0.18,"FR":0.18,"IT":0.2,"ES":0.2}},{"m":"standard","t":"standard_parcel","g":3900,"v":{"UK":0.17,"DE":0.19,"FR":0.21,"IT":0.23,"ES":0.23}},{"m":"standard","t":"standard_parcel","g":5900,"v":{"UK":0.18,"DE":0.21,"FR":0.23,"IT":0.25,"ES":0.25}},{"m":"standard","t":"standard_parcel","g":8900,"v":{"UK":0.24,"DE":0.28,"FR":0.29,"IT":0.31,"ES":0.32}},{"m":"standard","t":"standard_parcel","g":11900,"v":{"UK":0.27,"DE":0.31,"FR":0.33,"IT":0.35,"ES":0.35}}],"sippPackagingBase":[{"t":"small_oversize","g":760,"v":{"UK":0.587684,"DE":0.67,"FR":0.67,"IT":0.67,"ES":0.67}},{"t":"standard_oversize_light","g":760,"v":{"UK":0.803416,"DE":0.92,"FR":0.92,"IT":0.92,"ES":0.92}},{"t":"standard_oversize_heavy","g":15760,"v":{"UK":2.254028,"DE":2.58,"FR":2.58,"IT":2.58,"ES":2.58}},{"t":"standard_oversize_large","g":760,"v":{"UK":0.870367,"DE":1.0,"FR":1.0,"IT":1.0,"ES":1.0}},{"t":"large_oversize","g":760,"v":{"UK":1.755613,"DE":2.01,"FR":2.01,"IT":2.01,"ES":2.01}}],"sippPackagingIncrements":{"small_oversize":{"UK":0.01,"DE":0.01,"FR":0.01,"IT":0.01,"ES":0.01},"standard_oversize_light":{"UK":0.1,"DE":0.11,"FR":0.11,"IT":0.11,"ES":0.11},"standard_oversize_heavy":{"UK":0.42,"DE":0.49,"FR":0.49,"IT":0.49,"ES":0.49},"standard_oversize_large":{"UK":0.21,"DE":0.24,"FR":0.24,"IT":0.24,"ES":0.24},"large_oversize":{"UK":0.22,"DE":0.25,"FR":0.25,"IT":0.25,"ES":0.25}}};
 
+    EU_POLICY.lowPriceCategoryThresholds = {
+      general: { UK: 20, GB: 20, DE: 20, FR: 20, IT: 20, ES: 20, NL: 20, BE: 20, SE: 230, PL: 85 },
+      restricted: { UK: 10, GB: 10, DE: 11, FR: 12, IT: 12, ES: 12, NL: 12, BE: 12, SE: 140, PL: 55 }
+    };
+    EU_POLICY.lowPriceCategoryLabels = {
+      general: "普通低价类目：除美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品以外的低价轻小商品",
+      restricted: "受限/特定低价类目：美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品"
+    };
+
     const EU_POLICY_SOURCES = [
       {
         marketplace: "EU",
@@ -1531,16 +1541,16 @@
 
     const TEMPLATE_HEADERS = [
       "country", "sku", "product_name", "category", "length_cm", "width_cm", "height_cm",
-      "weight_kg", "sale_price_local", "is_apparel", "mx_fee_group", "au_fee_category", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
+      "weight_kg", "sale_price_local", "is_apparel", "mx_fee_group", "au_fee_category", "low_price_category", "sipp_eligible", "days_of_supply_30", "days_of_supply_90"
     ];
     const TEMPLATE_ROWS = [
-      ["US", "SKU-001", "示例普通品", "", "22", "13", "2", "0.18", "9.99", "N", "", "", "", "", ""],
-      ["MX", "SKU-MX-001", "示例墨西哥普通品", "", "30", "20", "10", "0.5", "249", "N", "main", "", "", "", ""],
-      ["AU", "SKU-AU-001", "示例澳洲商品", "", "30", "20", "10", "0.5", "12.99", "N", "", "home_kitchen", "", "", ""],
-      ["SA", "SKU-SA-001", "示例沙特普通品", "", "35.1", "22.9", "1.8", "0.081", "15", "N", "", "", "", "", ""],
-      ["AE", "SKU-AE-001", "示例阿联酋普通品", "", "32", "16.9", "14", "1.608", "24", "N", "", "", "", "", ""],
-      ["DE", "SKU-DE-001", "示例德国中欧计划商品", "", "30", "20", "10", "0.3", "9.99", "N", "", "", "", "", ""],
-      ["UK", "SKU-UK-001", "示例英国商品", "", "30", "20", "10", "0.3", "9.99", "N", "", "", "", "", ""]
+      ["US", "SKU-001", "示例普通品", "", "22", "13", "2", "0.18", "9.99", "N", "", "", "", "", "", ""],
+      ["MX", "SKU-MX-001", "示例墨西哥普通品", "", "30", "20", "10", "0.5", "249", "N", "main", "", "", "", "", ""],
+      ["AU", "SKU-AU-001", "示例澳洲商品", "", "30", "20", "10", "0.5", "12.99", "N", "", "home_kitchen", "", "", "", ""],
+      ["SA", "SKU-SA-001", "示例沙特普通品", "", "35.1", "22.9", "1.8", "0.081", "15", "N", "", "", "", "", "", ""],
+      ["AE", "SKU-AE-001", "示例阿联酋普通品", "", "32", "16.9", "14", "1.608", "24", "N", "", "", "", "", "", ""],
+      ["DE", "SKU-DE-001", "示例德国中欧计划普通低价类目", "", "30", "20", "10", "0.3", "19.99", "N", "", "", "general", "", "", ""],
+      ["UK", "SKU-UK-001", "示例英国受限低价类目", "grocery", "30", "20", "10", "0.3", "9.99", "N", "", "", "restricted", "", "", ""]
     ];
     const TEMPLATE_CSV = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
 
@@ -1600,6 +1610,13 @@
           </select>
         </td>
         <td>
+          <select data-field="low_price_category" aria-label="低价配送类目组">
+            <option value="">低价类目留空穷举</option>
+            <option value="general">普通低价类目</option>
+            <option value="restricted">受限/特定低价类目</option>
+          </select>
+        </td>
+        <td>
           <select data-field="sipp_eligible" aria-label="SIPP">
             <option value="">留空穷举</option>
             <option value="Y">适配</option>
@@ -1636,7 +1653,7 @@
         return TEMPLATE_HEADERS.map(field => row.querySelector(`[data-field="${field}"]`).value.trim());
       });
       const activeRows = rows.filter(values => {
-        return values.some((value, index) => !["country", "is_apparel", "mx_fee_group", "au_fee_category"].includes(TEMPLATE_HEADERS[index]) && value !== "");
+        return values.some((value, index) => !["country", "is_apparel", "mx_fee_group", "au_fee_category", "low_price_category"].includes(TEMPLATE_HEADERS[index]) && value !== "");
       });
       if (!activeRows.length) throw new Error("请先在在线录入表格中填写至少一个商品。");
       return [TEMPLATE_HEADERS, ...activeRows].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
@@ -1669,6 +1686,7 @@
       is_apparel: ["is_apparel", "apparel", "服饰", "服装"],
       mx_fee_group: ["mx_fee_group", "mx_category_group", "墨西哥类目组", "mx类目组"],
       au_fee_category: ["au_fee_category", "au_category", "au_gl", "gl", "gl_category", "澳洲分类", "澳洲gl", "au分类"],
+      low_price_category: ["low_price_category", "low_price_group", "low_price_gl", "低价类目", "低价分类", "低价商品类目组"],
       sipp_eligible: ["sipp_eligible", "sipp", "sioc", "ships_in_product_packaging"],
       days_of_supply_30: ["days_of_supply_30", "dos_30", "30天库存天数", "30d_supply"],
       days_of_supply_90: ["days_of_supply_90", "dos_90", "90天库存天数", "90d_supply"]
@@ -1842,6 +1860,7 @@
           isApparel: safeBool(row.is_apparel) || category.toLowerCase().includes("apparel"),
           mxFeeGroup: String(row.mx_fee_group || "").trim().toLowerCase(),
           auFeeCategory: String(row.au_fee_category || "").trim().toLowerCase(),
+          lowPriceCategory: String(row.low_price_category || "").trim().toLowerCase(),
           sippEligible: safeOptionalBool(row.sipp_eligible),
           daysOfSupply30,
           daysOfSupply90
@@ -3324,19 +3343,43 @@
         || baseFeeType === "low_price";
     }
 
-    function getEuPriceOptions(country, salePriceLocal, sizeTier, unitWeightKg, longestCm, medianCm, shortestCm) {
-      const threshold = EU_POLICY.lowPriceThresholds[country];
+    function normalizeEuLowPriceCategory(value, fallbackCategory = "") {
+      const text = `${value || ""} ${fallbackCategory || ""}`.toLowerCase();
+      if (/restricted|special|excluded|特定|受限|排除|beauty|健康|health|personal\s*care|个人护理|commercial|business|industrial|scientific|商业|工业|科学|office|办公|grocery|food|食品|杂货|book|图书|amazon\s*device|device\s*accessor|设备配件|kitchen|厨房/.test(text)) return "restricted";
+      if (/general|ordinary|standard|normal|eligible|普通|一般|其他|非受限|非特定/.test(text)) return "general";
+      return "";
+    }
+
+    function getEuLowPriceCategoryOptions(country, inputCategory, fallbackCategory) {
+      const normalized = normalizeEuLowPriceCategory(inputCategory, fallbackCategory);
+      const build = code => ({
+        code,
+        label: EU_POLICY.lowPriceCategoryLabels[code],
+        threshold: EU_POLICY.lowPriceCategoryThresholds[code]?.[country]
+      });
+      if (normalized) return [build(normalized)];
+      return [build("general"), build("restricted")].filter(item => item.threshold !== undefined);
+    }
+
+    function getEuPriceOptions(country, salePriceLocal, sizeTier, unitWeightKg, longestCm, medianCm, shortestCm, lowPriceCategoryOption) {
+      const threshold = lowPriceCategoryOption?.threshold ?? EU_POLICY.lowPriceThresholds[country];
+      const categoryCode = lowPriceCategoryOption?.code || "";
+      const categoryLabel = lowPriceCategoryOption?.label || "";
       const lowPricePossible = threshold !== undefined
         && unitWeightKg <= 0.4
         && longestCm <= 35
         && medianCm <= 25
         && shortestCm <= 12
         && ["light_envelope", "standard_envelope", "large_envelope", "extra_large_envelope", "small_parcel"].includes(sizeTier);
-      if (!lowPricePossible) return [{ code: "standard", label: "standard_fba" }];
-      if (salePriceLocal === null) return [{ code: "standard", label: "standard_fba" }, { code: "low_price", label: `low_price_fba <= ${threshold}` }];
+      const decorate = option => ({ ...option, lowPriceCategoryCode: categoryCode, lowPriceCategoryLabel: categoryLabel, lowPriceThreshold: threshold });
+      if (!lowPricePossible) return [decorate({ code: "standard", label: "standard_fba" })];
+      if (salePriceLocal === null) return [
+        decorate({ code: "standard", label: `standard_fba (${categoryCode || "low_price_category"} threshold ${threshold})` }),
+        decorate({ code: "low_price", label: `low_price_fba <= ${threshold} (${categoryCode})` })
+      ];
       return salePriceLocal <= threshold
-        ? [{ code: "low_price", label: `low_price_fba <= ${threshold}` }]
-        : [{ code: "standard", label: `standard_fba > ${threshold}` }];
+        ? [decorate({ code: "low_price", label: `low_price_fba <= ${threshold} (${categoryCode})` })]
+        : [decorate({ code: "standard", label: `standard_fba > ${threshold} (${categoryCode})` })];
     }
 
     function computeEuFeeFromTable(table, increments, sizeTier, shippingWeightG, feeCol) {
@@ -3419,7 +3462,10 @@
       const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / 5000);
       const lengthPlusGirthCm = round2(longestCm + 2 * (medianCm + shortestCm));
       const sizeTier = determineEuSizeTier(longestCm, medianCm, shortestCm, unitWeightKg, dimensionalWeightKg, lengthPlusGirthCm);
-      const priceOptions = getEuPriceOptions(euCountry, row.salePriceLocal, sizeTier, unitWeightKg, longestCm, medianCm, shortestCm);
+      const lowPriceCategoryOptions = getEuLowPriceCategoryOptions(euCountry, row.lowPriceCategory, row.category);
+      const priceOptions = lowPriceCategoryOptions.flatMap(option =>
+        getEuPriceOptions(euCountry, row.salePriceLocal, sizeTier, unitWeightKg, longestCm, medianCm, shortestCm, option)
+      );
       const sippChoices = row.sippEligible === true ? [true] : (row.sippEligible === false ? [false] : [false, true]);
       const lowInventoryOptions = getEuLowInventoryOptions(sizeTier, row.daysOfSupply30, row.daysOfSupply90);
       const scenarios = [];
@@ -3449,6 +3495,9 @@
             base_fee_local_currency: feeMatch.fee,
             base_fee_match: `${sizeTier}: ${shippingWeightG} g => ${feeMatch.band} => ${countryInfo.currency} ${feeMatch.fee}`,
             price_band: priceOption.label,
+            low_price_category: priceOption.lowPriceCategoryLabel || "",
+            low_price_category_code: priceOption.lowPriceCategoryCode || "",
+            low_price_threshold_local_currency: priceOption.lowPriceThreshold ?? "",
             sipp_applied: sippApplied ? "Y" : "N",
             sipp_discount_local_currency: sippDiscount,
             bulky_non_sipp_packaging_fee_usd: "",
@@ -3461,7 +3510,7 @@
             low_inventory_band: lowInventory.band_code,
             low_inventory_fee_local_currency: lowInventory.fee,
             final_fee_local_currency: finalFee,
-            conditions: `${euCountry === "DE" ? "DE 默认使用中欧计划费率；" : ""}${row.salePriceLocal === null ? "售价留空，穷举标准/低价可成立场景；" : "按实际售价判断低价资格；"}${lowInventory.reason}；EU/UK 最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣。`
+            conditions: `${euCountry === "DE" ? "DE 默认使用中欧计划费率；" : ""}${row.salePriceLocal === null ? "售价留空，穷举标准/低价可成立场景；" : "按实际售价判断低价资格；"}低价类目组：${priceOption.lowPriceCategoryLabel || "不适用"}，阈值 ${countryInfo.currency} ${priceOption.lowPriceThreshold ?? "N/A"}；${lowInventory.reason}；EU/UK 最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣。`
           });
           scenarioId += 1;
           });
@@ -3498,6 +3547,9 @@
           shipping_weight_band: [...new Set(scenarios.map(item => item.base_fee_match))].join(" | "),
           sale_price_local: row.salePriceLocal ?? "",
           price_band: row.salePriceLocal === null ? "UNKNOWN / ENUMERATED" : priceOptions.map(item => item.label).join(", "),
+          low_price_category_input: row.lowPriceCategory || "",
+          low_price_category: [...new Set(scenarios.map(item => item.low_price_category).filter(Boolean))].join(" | "),
+          low_price_threshold_local_currency: [...new Set(scenarios.map(item => item.low_price_threshold_local_currency).filter(value => value !== ""))].join(", "),
           applied_base_fee_type: [...new Set(scenarios.map(item => item.base_fee_type))].join(", "),
           applied_base_fee_local_currency: [...new Set(scenarios.map(item => item.base_fee_local_currency))].join(", "),
           all_fba_fees_local_currency: fees.join(", "),
@@ -3515,7 +3567,7 @@
           max_final_fee_local_currency: Math.max(...fees),
           cheapest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency < best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
           highest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency > best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
-          notes: `已按用户提供 Excel 启用 ${euCountry} 标准配送费和 SIPP/大件非 SIPP 包装费；低价 FBA 费率来自 Seller Central 低价商品 FBA 页面；燃油/物流附加费 1.5%；低量库存成本覆盖费来自 Seller Central 2025 年包裹商品尺寸分段费用变更页。`
+          notes: `已按用户提供 Excel 启用 ${euCountry} 标准配送费和 SIPP/大件非 SIPP 包装费；低价 FBA 费率来自 Seller Central 低价商品 FBA 页面，且按普通低价类目/受限特定类目分别判断适用价格阈值；燃油/物流附加费 1.5%；低量库存成本覆盖费来自 Seller Central 2025 年包裹商品尺寸分段费用变更页。`
         },
         scenarios
       };
@@ -3529,7 +3581,7 @@
       "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
       "shipping_weight_basis", "shipping_weight_policy_unit", "shipping_weight_policy_value", "shipping_weight_band",
       "standard_dimensional_weight_lb", "bulky_dimensional_weight_lb", "dimensional_weight_width_in", "dimensional_weight_height_in",
-      "sale_price_local", "price_band", "mx_fee_group", "au_fee_category_input", "au_fee_category", "au_rate_period", "au_gst_condition", "applied_base_fee_type", "applied_base_fee_local_currency", "all_fba_fees_local_currency", "applied_base_fee_usd", "applicable_fba_fee_including_fuel_usd", "all_fba_fees_usd",
+      "sale_price_local", "price_band", "low_price_category_input", "low_price_category", "low_price_threshold_local_currency", "mx_fee_group", "au_fee_category_input", "au_fee_category", "au_rate_period", "au_gst_condition", "applied_base_fee_type", "applied_base_fee_local_currency", "all_fba_fees_local_currency", "applied_base_fee_usd", "applicable_fba_fee_including_fuel_usd", "all_fba_fees_usd",
       "standard_fba_fee_local_currency", "low_price_fba_fee_local_currency", "sipp_discount_supported_local_currency",
       "standard_fba_fee_usd", "standard_fba_fee_match",
       "low_price_fba_fee_usd", "low_price_fba_fee_match",
@@ -3550,7 +3602,7 @@
 
     const SCENARIO_COLUMNS = [
       "scenario_id", "row_number", "country", "sku", "product_name", "scenario_name", "currency", "base_fee_type",
-      "base_fee_local_currency", "final_fee_local_currency", "mx_fee_group", "price_band", "au_fee_category", "au_rate_period", "au_gst_condition", "gst_local_currency", "gst_rate", "gst_percent", "includes_gst", "shipping_weight_kg", "shipping_weight_g",
+      "base_fee_local_currency", "final_fee_local_currency", "mx_fee_group", "price_band", "low_price_category", "low_price_category_code", "low_price_threshold_local_currency", "au_fee_category", "au_rate_period", "au_gst_condition", "gst_local_currency", "gst_rate", "gst_percent", "includes_gst", "shipping_weight_kg", "shipping_weight_g",
       "base_fee_usd", "base_fee_match", "sipp_applied", "sipp_discount_usd", "fulfillment_fee_before_sipp_usd", "fulfillment_fee_after_sipp_usd",
       "sipp_discount_local_currency", "fulfillment_fee_before_sipp_local_currency", "fulfillment_fee_after_sipp_local_currency",
       "bulky_non_sipp_packaging_fee_usd", "bulky_non_sipp_packaging_fee_status",
@@ -4016,14 +4068,14 @@
           "站点": "DE 德国",
           "状态": "已启用计算",
           "配送费口径": "德国需要使用中欧计划（Central Europe Programme）费率，不直接套用其他欧洲站点本地配送费",
-          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费",
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 按 low_price_category 区分普通类目和受限/特定类目阈值",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣"
         },
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "状态": "已启用计算",
           "配送费口径": "按各站本地配送费列读取；UK 用 GBP，FR/IT/ES/NL/BE 用 EUR，SE 用 SEK，PL 用 PLN",
-          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费",
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 按 low_price_category 区分普通类目和受限/特定类目阈值",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣；SIPP 仅在 Excel 有列的 UK/DE/FR/IT/ES 启用"
         },
         {
@@ -4096,18 +4148,18 @@
         {
           "站点": "DE",
           "当前状态": "已启用计算",
-          "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列",
+          "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列，并按 low_price_category 判断普通/受限类目价格阈值",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣；大件非 SIPP 包装费",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
-          "穷举口径": "售价、SIPP 留空时按政策穷举；DE 默认不使用“仅限德国”列"
+          "穷举口径": "售价、SIPP、low_price_category 留空时按政策穷举；DE 默认不使用“仅限德国”列"
         },
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "当前状态": "已启用计算",
-          "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列",
+          "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列，并按 low_price_category 判断普通/受限类目价格阈值",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣仅 UK/FR/IT/ES；NL/SE/PL/BE 当前无 SIPP 列，不套用",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
-          "穷举口径": "售价、SIPP、供货天数留空时按可成立政策穷举"
+          "穷举口径": "售价、SIPP、供货天数、low_price_category 留空时按可成立政策穷举"
         }
       ]);
     }
