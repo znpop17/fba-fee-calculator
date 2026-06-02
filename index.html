@@ -548,7 +548,7 @@
             <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">sale_price_local</span></p>
             <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
             <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 会按 sale price / your price ÷ 1.1 倒推不含 10% GST 的海关完税价值；完税价值超过 1,000 AUD 时不叠加低价值进口商品 GST。</p>
-            <p class="hint"><strong>可选字段建议：</strong><span class="inline-code">category</span> 已按 GL 大类处理，会作为 US、MX、AU、EU/UK 等站点分类判断的默认来源。新模板不再展示站点专用分类列；如果同一商品跨站 GL 口径不同，旧 CSV 中保留的专用列仍可被工具兼容读取。US 可用 <span class="inline-code">category</span> 自动识别服饰/非服饰，或用 <span class="inline-code">is_apparel</span> 覆盖。</p>
+            <p class="hint"><strong>可选字段建议：</strong><span class="inline-code">category</span> 已按 GL 大类处理，会作为 US、MX、AU、EU/UK 等站点分类判断的默认来源。请优先填写各站点对应的 GL 大类；如果工具无法识别，会按政策穷举可成立场景。US 可用 <span class="inline-code">category</span> 自动识别服饰/非服饰，或用 <span class="inline-code">is_apparel</span> 覆盖。</p>
           </div>
         </div>
         <label style="margin-top:16px;">
@@ -606,7 +606,7 @@
           </tbody>
         </table>
       </div>
-      <div class="rule-note">填写优先级：优先使用 <span class="inline-code">category</span> 自动识别；如果无法识别，工具会按政策穷举可成立场景。历史 CSV 中的 <span class="inline-code">mx_fee_category</span>、<span class="inline-code">au_fee_category</span>、<span class="inline-code">low_price_category</span> 仍可兼容读取，但新模板不再展示这三列。</div>
+      <div class="rule-note">填写优先级：优先使用 <span class="inline-code">category</span> 自动识别；如果无法识别，工具会按政策穷举可成立场景。不同站点 GL 命名不一致时，请按当前测算站点填写对应 GL 大类。</div>
     </section>
 
     <section class="panel">
