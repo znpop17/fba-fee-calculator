@@ -510,7 +510,7 @@
                 <th class="narrow">国家<small>country</small></th>
                 <th class="wide">SKU<small>必填</small></th>
                 <th class="wide">品名<small>product_name</small></th>
-                <th>分类备注<small>可选</small></th>
+                <th>GL 大类<small>category</small></th>
                 <th>长 cm<small>包装后</small></th>
                 <th>宽 cm<small>包装后</small></th>
                 <th>高 cm<small>包装后</small></th>
@@ -551,7 +551,7 @@
             <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">sale_price_local</span></p>
             <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
             <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 会按 sale price / your price ÷ 1.1 倒推不含 10% GST 的海关完税价值；完税价值超过 1,000 AUD 时不叠加低价值进口商品 GST。</p>
-            <p class="hint"><strong>可选字段建议：</strong>US 建议填 <span class="inline-code">is_apparel</span>，用于服饰/非服饰费率表；MX 建议填 <span class="inline-code">mx_fee_category</span>，用于四价位区间下的类目费率表；AU 2026-06-10 后建议填 <span class="inline-code">au_fee_category</span>，用于 GL 分类列；EU/UK 仅在判断低价配送费资格时建议填 <span class="inline-code">low_price_category</span> 作为 GL 大类分组（<span class="inline-code">general</span> / <span class="inline-code">restricted</span>）。CA、JP、SA、AE 当前不需要填写 <span class="inline-code">low_price_category</span>。可选字段留空时，工具会按政策穷举可成立场景。</p>
+            <p class="hint"><strong>可选字段建议：</strong><span class="inline-code">category</span> 已按 GL 大类处理，会作为各站点分类判断的默认来源。US 建议填 <span class="inline-code">is_apparel</span>，用于服饰/非服饰费率表；MX 可用 <span class="inline-code">category</span> 自动识别，或填写 <span class="inline-code">mx_fee_category</span> 覆盖四价位区间下的类目费率表；AU 2026-06-10 后可用 <span class="inline-code">category</span> 自动识别，或填写 <span class="inline-code">au_fee_category</span> 覆盖 GL 分类列；EU/UK 低价配送资格可用 <span class="inline-code">category</span> 自动识别，或填写 <span class="inline-code">low_price_category</span> 覆盖 GL 大类分组（<span class="inline-code">general</span> / <span class="inline-code">restricted</span>）。CA、JP、SA、AE 当前不需要填写 <span class="inline-code">low_price_category</span>。可选字段留空时，工具会按政策穷举可成立场景。</p>
           </div>
         </div>
         <label style="margin-top:16px;">
@@ -1580,7 +1580,7 @@
         </td>
         <td><input data-field="sku" type="text" aria-label="SKU" placeholder="SKU-001"></td>
         <td><input data-field="product_name" type="text" aria-label="品名" placeholder="商品名称"></td>
-        <td><input data-field="category" type="text" aria-label="分类备注" placeholder="可选"></td>
+        <td><input data-field="category" type="text" aria-label="GL 大类" placeholder="GL category"></td>
         <td><input data-field="length_cm" type="number" step="any" min="0" aria-label="长 cm"></td>
         <td><input data-field="width_cm" type="number" step="any" min="0" aria-label="宽 cm"></td>
         <td><input data-field="height_cm" type="number" step="any" min="0" aria-label="高 cm"></td>
@@ -1677,7 +1677,7 @@
       country: ["country", "国家", "站点", "marketplace", "market"],
       sku: ["sku", "msku", "merchant_sku", "merchant sku"],
       product_name: ["product_name", "品名", "名称", "product", "title"],
-      category: ["category", "分类", "类目"],
+      category: ["category", "gl_category", "gl", "gl大类", "gl 大类", "分类", "类目"],
       length_cm: ["length_cm", "长", "length"],
       width_cm: ["width_cm", "宽", "width"],
       height_cm: ["height_cm", "高", "height"],
@@ -2313,8 +2313,18 @@
       return [{ ...MX_POLICY.price_bands[index], index }];
     }
 
-    function getMxFeeGroupOptions(mxFeeCategory) {
-      if (mxFeeCategory && MX_POLICY.fee_groups[mxFeeCategory]) return [mxFeeCategory];
+    function normalizeMxFeeCategory(value) {
+      const text = String(value || "").toLowerCase();
+      if (/health|personal\s*care|beauty|grocery|food|食品|杂货|生鲜|超市|健康|个护|个人护理|美妆|美容/.test(text)) return "health_grocery";
+      if (/main|general|standard|ordinary|other|通用|主要|普通|一般|其他/.test(text)) return "main";
+      return "";
+    }
+
+    function getMxFeeGroupOptions(mxFeeCategory, fallbackCategory = "") {
+      const explicit = normalizeMxFeeCategory(mxFeeCategory);
+      if (explicit && MX_POLICY.fee_groups[explicit]) return [explicit];
+      const fallback = normalizeMxFeeCategory(fallbackCategory);
+      if (fallback && MX_POLICY.fee_groups[fallback]) return [fallback];
       return ["main", "health_grocery"];
     }
 
@@ -2398,7 +2408,7 @@
       const unitWeightKg = round3(row.weightKg);
       const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / MX_POLICY.dimensional_weight_divisor_cm3_per_kg);
       const shippingWeightKg = round3(Math.max(unitWeightKg, dimensionalWeightKg));
-      const categoryGroups = getMxFeeGroupOptions(row.mxFeeCategory);
+      const categoryGroups = getMxFeeGroupOptions(row.mxFeeCategory, row.category);
       const priceBands = getMxPriceBandOptions(row.salePriceLocal);
       const sippOptions = getMxSippOptions(sizeTier, row.sippEligible);
       const scenarios = [];
@@ -2427,7 +2437,7 @@
               sipp_discount_local_currency: sippOption.discount.toFixed(2),
               fulfillment_fee_after_sipp_local_currency: feeAfterSipp.toFixed(2),
               final_fee_local_currency: feeAfterSipp.toFixed(2),
-              conditions: `${row.mxFeeCategory ? "已指定" : "若适用"} MX 费率类目 ${groupCode}；${row.salePriceLocal === null ? "若售价落入" : "实际售价落入"} ${priceBand.label}；${sippOption.condition}；MX 无燃油/物流附加费、无低库存水平费用`
+              conditions: `${row.mxFeeCategory ? "已指定 mx_fee_category" : (row.category ? "按 category GL 大类识别" : "若适用")} MX 费率类目 ${groupCode}；${row.salePriceLocal === null ? "若售价落入" : "实际售价落入"} ${priceBand.label}；${sippOption.condition}；MX 无燃油/物流附加费、无低库存水平费用`
             });
             scenarioId += 1;
           });
@@ -2460,7 +2470,7 @@
           shipping_weight_basis: `商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 取较大值`,
           dimensional_weight_formula_note: MX_POLICY.dimensional_formula_verification,
           sale_price_local: row.salePriceLocal ?? "",
-          mx_fee_category: row.mxFeeCategory || "UNKNOWN / ENUMERATED",
+          mx_fee_category: [...new Set(scenarios.map(item => item.mx_fee_category))].join(", "),
           applied_base_fee_type: "mx_local_fba",
           applied_base_fee_local_currency: [...new Set(scenarios.map(item => item.base_fee_local_currency))].join(", "),
           all_fba_fees_local_currency: fees.map(item => item.toFixed(2)).join(", "),
@@ -4121,7 +4131,7 @@
           "基础费": "按四个售价区间、MX 费率类目、尺寸分段、计费重量匹配",
           "附加/折扣": "SIPP 折扣；当前无燃油/物流附加费、无低库存水平费用",
           "最终费用公式": "基础配送费 - SIPP 折扣",
-          "穷举口径": "售价、MX 费率类目、SIPP 留空时按政策穷举"
+          "穷举口径": "mx_fee_category 优先；未填时用 category 这个 GL 大类自动识别；仍无法识别时穷举 MX 费率类目。售价、SIPP 留空时也按政策穷举"
         },
         {
           "站点": "JP",
@@ -4137,7 +4147,7 @@
           "基础费": "按澳大利亚 FBA 配送费表、尺寸分段、计费重量和生效日期匹配；2026-06-10 起按 <13 / 13-20 / >=20 三价格段，并在前两个价格段读取 au_fee_category 对应 GL 分类列",
           "附加/折扣": "当前未内置 AU SIPP、燃油/物流附加费或低库存费；低价值进口商品场景叠加 10% GST；工具按 sale price / your price ÷ 1.1 得到海关完税价值，完税价值 >1000 AUD 不加 GST",
           "最终费用公式": "先用包装后尺寸 + 商品实重判定尺寸分段；再用发货重量匹配费用档。最终费用 = 基础配送费 + 适用时的基础配送费 x 10% GST",
-          "穷举口径": "售价留空时穷举价格段；GST 条件无法由售价确定时同时穷举适用/不适用；2026-06-10 起 au_fee_category 留空时穷举特殊 GL 分类与其他分类"
+          "穷举口径": "au_fee_category 优先；未填时用 category 这个 GL 大类自动识别；仍无法识别时穷举特殊 GL 分类与其他分类。售价留空时穷举价格段；GST 条件无法由售价确定时同时穷举适用/不适用"
         },
         {
           "站点": "SA",
@@ -4161,7 +4171,7 @@
           "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列，并按 low_price_category 这个 GL 大类分组判断普通/受限类目价格阈值",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣；大件非 SIPP 包装费",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
-          "穷举口径": "售价、SIPP、low_price_category 留空时按政策穷举；DE 默认不使用“仅限德国”列"
+          "穷举口径": "low_price_category 优先；未填时用 category 这个 GL 大类自动识别；仍无法识别时穷举普通/受限低价 GL 大类。售价、SIPP 留空时按政策穷举；DE 默认不使用“仅限德国”列"
         },
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
@@ -4169,7 +4179,7 @@
           "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列，并按 low_price_category 这个 GL 大类分组判断普通/受限类目价格阈值",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣仅 UK/FR/IT/ES；NL/SE/PL/BE 当前无 SIPP 列，不套用",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
-          "穷举口径": "售价、SIPP、供货天数、low_price_category 留空时按可成立政策穷举"
+          "穷举口径": "low_price_category 优先；未填时用 category 这个 GL 大类自动识别；仍无法识别时穷举普通/受限低价 GL 大类。售价、SIPP、供货天数留空时按可成立政策穷举"
         }
       ]);
     }
