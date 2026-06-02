@@ -598,47 +598,53 @@
 
     <section class="panel">
       <h2>GL 大类填写指南</h2>
-      <p><span class="inline-code">category</span> 是默认 GL 大类来源，会影响部分站点的费率分支和穷举范围。能确认 GL 时建议填写；新模板只保留这一列作为分类输入。</p>
-      <p class="hint">如果你的后台 GL 大类不在下方建议范围里，仍然按后台原始 GL/category 填写，不要硬改成相近值；工具无法识别时会按政策穷举可成立分支，并在结果条件里说明。</p>
+      <p><span class="inline-code">category</span> 是默认 GL 大类/分类输入。由于官方不一定提供统一公开的完整 GL 清单，这里只列出本工具中会被 GL 影响的政策分支；无影响的站点可以不填。</p>
+      <p class="hint">如果你的后台 GL 大类不在下方口径里，仍然按后台原始 GL/category 填写，不要硬改成相近值；工具无法识别时会按政策穷举可成立分支，并在结果条件里说明。</p>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>站点</th>
-              <th>建议填写范围</th>
-              <th>影响的规则</th>
+              <th>GL 影响的规则</th>
+              <th>建议填写口径</th>
+              <th>识别不到时</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>US</td>
-              <td><span class="inline-code">apparel</span> / <span class="inline-code">clothing</span> / <span class="inline-code">服饰</span> / <span class="inline-code">服装</span>；食品类可填 <span class="inline-code">grocery</span> / <span class="inline-code">food</span> / <span class="inline-code">食品</span></td>
               <td>识别服饰/非服饰费率表；食品类会影响低量库存费豁免判断。</td>
+              <td>只需要判断两类：服饰可填 <span class="inline-code">apparel</span> / <span class="inline-code">clothing</span> / <span class="inline-code">服饰</span> / <span class="inline-code">服装</span>；食品可填 <span class="inline-code">grocery</span> / <span class="inline-code">food</span> / <span class="inline-code">食品</span>。也可用 <span class="inline-code">is_apparel</span> 明确覆盖服饰判断。</td>
+              <td>未识别为服饰时按非服饰；未识别为食品时不触发食品低库存豁免。</td>
             </tr>
             <tr>
               <td>MX</td>
-              <td><span class="inline-code">health</span> / <span class="inline-code">personal_care</span> / <span class="inline-code">beauty</span> / <span class="inline-code">grocery</span> / <span class="inline-code">food</span> / <span class="inline-code">健康</span> / <span class="inline-code">个护</span> / <span class="inline-code">美妆</span> / <span class="inline-code">食品</span>；其他普通类目可填 <span class="inline-code">main</span> / <span class="inline-code">general</span> / <span class="inline-code">other</span></td>
               <td>映射到 MX 官方基础配送费的费率类目表。</td>
+              <td>健康/个护/美妆/食品类可填 <span class="inline-code">health</span> / <span class="inline-code">personal_care</span> / <span class="inline-code">beauty</span> / <span class="inline-code">grocery</span> / <span class="inline-code">food</span> / 中文同义词；普通类目可填 <span class="inline-code">main</span> / <span class="inline-code">general</span> / <span class="inline-code">other</span>。</td>
+              <td>穷举 MX 费率类目可能性。</td>
             </tr>
             <tr>
               <td>AU</td>
-              <td><span class="inline-code">home_kitchen</span> / <span class="inline-code">pet_supplies</span> / <span class="inline-code">grocery</span> / <span class="inline-code">sports_outdoors</span> / <span class="inline-code">other</span>，也可用中文：家居、厨房、宠物、食品、运动、户外、其他。</td>
               <td>2026-06-10 起，低价价格段按 GL 分类列匹配 AU 本地 FBA 费率。</td>
+              <td>只在低价价格段需要区分：<span class="inline-code">home_kitchen</span> / <span class="inline-code">pet_supplies</span> / <span class="inline-code">grocery</span> / <span class="inline-code">sports_outdoors</span> / <span class="inline-code">other</span>，也可用中文：家居、厨房、宠物、食品、运动、户外、其他。</td>
+              <td>穷举特殊 GL 分类与其他分类。</td>
             </tr>
             <tr>
               <td>EU / UK</td>
-              <td>受限低价 GL：<span class="inline-code">beauty</span>、<span class="inline-code">health</span>、<span class="inline-code">personal_care</span>、<span class="inline-code">commercial</span>、<span class="inline-code">industrial</span>、<span class="inline-code">scientific</span>、<span class="inline-code">office</span>、<span class="inline-code">grocery</span>、<span class="inline-code">food</span>、<span class="inline-code">books</span>、<span class="inline-code">amazon_device_accessories</span>、<span class="inline-code">kitchen</span>；其他填 <span class="inline-code">general</span> / <span class="inline-code">other</span>。</td>
               <td>判断低价配送费资格的价格阈值：普通 GL 与受限/特定 GL 阈值不同。</td>
+              <td>受限/特定低价 GL 可填：<span class="inline-code">beauty</span>、<span class="inline-code">health</span>、<span class="inline-code">personal_care</span>、<span class="inline-code">commercial</span>、<span class="inline-code">industrial</span>、<span class="inline-code">scientific</span>、<span class="inline-code">office</span>、<span class="inline-code">grocery</span>、<span class="inline-code">food</span>、<span class="inline-code">books</span>、<span class="inline-code">amazon_device_accessories</span>、<span class="inline-code">kitchen</span>；其他填真实后台 GL 或 <span class="inline-code">general</span> / <span class="inline-code">other</span>。</td>
+              <td>穷举普通低价 GL 与受限/特定低价 GL。</td>
             </tr>
             <tr>
               <td>CA / JP / SA / AE</td>
-              <td>当前可不填，除非你希望保留内部 GL 备注。</td>
               <td>当前规则包不依赖低价 GL 大类分组。</td>
+              <td>可以不填；如果要保留内部分类备注，可填真实后台 GL。</td>
+              <td>不影响当前计算。</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="rule-note">填写优先级：优先使用 <span class="inline-code">category</span> 自动识别；如果无法识别，工具会按政策穷举可成立场景。不同站点 GL 命名不一致时，请按当前测算站点填写对应 GL 大类；不在建议范围内的 GL 请保留原值填写。</div>
+      <div class="rule-note">填写优先级：优先使用 <span class="inline-code">category</span> 自动识别；如果无法识别，工具会按政策穷举可成立场景。不同站点 GL 命名不一致时，请按当前测算站点填写对应 GL 大类；不在上述口径内的 GL 请保留原值填写。</div>
     </section>
 
     <section class="panel">
