@@ -3847,8 +3847,7 @@
         { label: "SKU 行数", value: results.length },
         { label: "场景总数", value: scenarios.length },
         { label: "最低可能费", value: amountField && validResults.length ? `${Math.min(...validResults.map(r => r[amountField]))} ${singleCurrency}` : (validResults.length ? "分币种查看" : "-") },
-        { label: "最高可能费", value: maxAmountField && validResults.length ? `${Math.max(...validResults.map(r => r[maxAmountField]))} ${singleCurrency}` : (validResults.length ? "分币种查看" : "-") },
-        { label: "US 燃油附加费", value: POLICY.fuel_logistics_surcharge.enabled ? formatPercent(POLICY.fuel_logistics_surcharge.rate) : "未启用" }
+        { label: "最高可能费", value: maxAmountField && validResults.length ? `${Math.max(...validResults.map(r => r[maxAmountField]))} ${singleCurrency}` : (validResults.length ? "分币种查看" : "-") }
       ];
       const container = document.getElementById("stats");
       container.innerHTML = stats.map(item => `<div class="stat"><strong>${item.value}</strong><span>${item.label}</span></div>`).join("");
