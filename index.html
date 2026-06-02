@@ -519,7 +519,7 @@
                 <th>是否服饰<small>US 费率依据</small></th>
                 <th>MX 类目组<small>留空穷举</small></th>
                 <th>AU 分类<small>6/10后 GL</small></th>
-                <th>低价类目<small>EU/UK</small></th>
+                <th>低价 GL 大类<small>EU/UK</small></th>
                 <th>SIPP<small>留空穷举</small></th>
                 <th>30天供货<small>与90天共同判断</small></th>
                 <th>90天供货<small>两项空才穷举</small></th>
@@ -550,7 +550,7 @@
             <h3>输入列</h3>
             <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">sale_price_local</span></p>
             <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
-            <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 会按 sale price / your price ÷ 1.1 倒推不含 10% GST 的海关完税价值；完税价值超过 1,000 AUD 时不叠加低价值进口商品 GST，售价留空时会穷举 GST 适用/不适用可能性。US 使用 <span class="inline-code">is_apparel</span>；MX 可填写 <span class="inline-code">mx_fee_group</span>；AU 2026-06-10 后可填写 <span class="inline-code">au_fee_category</span>；EU/UK 低价资格可填写 <span class="inline-code">low_price_category</span> 为 <span class="inline-code">general</span> 或 <span class="inline-code">restricted</span>，留空时按两组阈值穷举。</p>
+            <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 会按 sale price / your price ÷ 1.1 倒推不含 10% GST 的海关完税价值；完税价值超过 1,000 AUD 时不叠加低价值进口商品 GST，售价留空时会穷举 GST 适用/不适用可能性。US 使用 <span class="inline-code">is_apparel</span>；MX 可填写 <span class="inline-code">mx_fee_group</span>；AU 2026-06-10 后可填写 <span class="inline-code">au_fee_category</span>；EU/UK 低价资格可填写 <span class="inline-code">low_price_category</span> 作为 GL 大类分组：<span class="inline-code">general</span> 或 <span class="inline-code">restricted</span>，留空时按两组阈值穷举。</p>
           </div>
         </div>
         <label style="margin-top:16px;">
@@ -1280,8 +1280,8 @@
       restricted: { UK: 10, GB: 10, DE: 11, FR: 12, IT: 12, ES: 12, NL: 12, BE: 12, SE: 140, PL: 55 }
     };
     EU_POLICY.lowPriceCategoryLabels = {
-      general: "普通低价类目：除美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品以外的低价轻小商品",
-      restricted: "受限/特定低价类目：美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品"
+      general: "普通低价 GL 大类：除美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品以外的低价轻小商品",
+      restricted: "受限/特定低价 GL 大类：美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品"
     };
 
     const EU_POLICY_SOURCES = [
@@ -1549,8 +1549,8 @@
       ["AU", "SKU-AU-001", "示例澳洲商品", "", "30", "20", "10", "0.5", "12.99", "N", "", "home_kitchen", "", "", "", ""],
       ["SA", "SKU-SA-001", "示例沙特普通品", "", "35.1", "22.9", "1.8", "0.081", "15", "N", "", "", "", "", "", ""],
       ["AE", "SKU-AE-001", "示例阿联酋普通品", "", "32", "16.9", "14", "1.608", "24", "N", "", "", "", "", "", ""],
-      ["DE", "SKU-DE-001", "示例德国中欧计划普通低价类目", "", "30", "20", "10", "0.3", "19.99", "N", "", "", "general", "", "", ""],
-      ["UK", "SKU-UK-001", "示例英国受限低价类目", "grocery", "30", "20", "10", "0.3", "9.99", "N", "", "", "restricted", "", "", ""]
+      ["DE", "SKU-DE-001", "示例德国中欧计划普通低价 GL 大类", "", "30", "20", "10", "0.3", "19.99", "N", "", "", "general", "", "", ""],
+      ["UK", "SKU-UK-001", "示例英国受限低价 GL 大类", "grocery", "30", "20", "10", "0.3", "9.99", "N", "", "", "restricted", "", "", ""]
     ];
     const TEMPLATE_CSV = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
 
@@ -1610,10 +1610,10 @@
           </select>
         </td>
         <td>
-          <select data-field="low_price_category" aria-label="低价配送类目组">
-            <option value="">低价类目留空穷举</option>
-            <option value="general">普通低价类目</option>
-            <option value="restricted">受限/特定低价类目</option>
+          <select data-field="low_price_category" aria-label="低价配送 GL 大类分组">
+            <option value="">低价 GL 大类留空穷举</option>
+            <option value="general">普通低价 GL 大类</option>
+            <option value="restricted">受限/特定低价 GL 大类</option>
           </select>
         </td>
         <td>
@@ -1686,7 +1686,7 @@
       is_apparel: ["is_apparel", "apparel", "服饰", "服装"],
       mx_fee_group: ["mx_fee_group", "mx_category_group", "墨西哥类目组", "mx类目组"],
       au_fee_category: ["au_fee_category", "au_category", "au_gl", "gl", "gl_category", "澳洲分类", "澳洲gl", "au分类"],
-      low_price_category: ["low_price_category", "low_price_group", "low_price_gl", "低价类目", "低价分类", "低价商品类目组"],
+      low_price_category: ["low_price_category", "low_price_group", "low_price_gl", "低价gl", "低价gl大类", "低价类目", "低价分类", "低价商品类目组"],
       sipp_eligible: ["sipp_eligible", "sipp", "sioc", "ships_in_product_packaging"],
       days_of_supply_30: ["days_of_supply_30", "dos_30", "30天库存天数", "30d_supply"],
       days_of_supply_90: ["days_of_supply_90", "dos_90", "90天库存天数", "90d_supply"]
@@ -3519,7 +3519,7 @@
             low_inventory_band: lowInventory.band_code,
             low_inventory_fee_local_currency: lowInventory.fee,
             final_fee_local_currency: finalFee,
-            conditions: `${euCountry === "DE" ? "DE 默认使用中欧计划费率；" : ""}${row.salePriceLocal === null ? "售价留空，穷举标准/低价可成立场景；" : "按实际售价判断低价资格；"}低价类目组：${priceOption.lowPriceCategoryLabel || "不适用"}，阈值 ${countryInfo.currency} ${priceOption.lowPriceThreshold ?? "N/A"}；${lowInventory.reason}；EU/UK 最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣。`
+            conditions: `${euCountry === "DE" ? "DE 默认使用中欧计划费率；" : ""}${row.salePriceLocal === null ? "售价留空，穷举标准/低价可成立场景；" : "按实际售价判断低价资格；"}低价 GL 大类分组：${priceOption.lowPriceCategoryLabel || "不适用"}，阈值 ${countryInfo.currency} ${priceOption.lowPriceThreshold ?? "N/A"}；${lowInventory.reason}；EU/UK 最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣。`
           });
           scenarioId += 1;
           });
@@ -3576,7 +3576,7 @@
           max_final_fee_local_currency: Math.max(...fees),
           cheapest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency < best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
           highest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency > best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
-          notes: `已按用户提供 Excel 启用 ${euCountry} 标准配送费和 SIPP/大件非 SIPP 包装费；低价 FBA 费率来自 Seller Central 低价商品 FBA 页面，且按普通低价类目/受限特定类目分别判断适用价格阈值；燃油/物流附加费 1.5%；低量库存成本覆盖费来自 Seller Central 2025 年包裹商品尺寸分段费用变更页。`
+          notes: `已按用户提供 Excel 启用 ${euCountry} 标准配送费和 SIPP/大件非 SIPP 包装费；低价 FBA 费率来自 Seller Central 低价商品 FBA 页面，且按普通低价 GL 大类/受限特定低价 GL 大类分别判断适用价格阈值；燃油/物流附加费 1.5%；低量库存成本覆盖费来自 Seller Central 2025 年包裹商品尺寸分段费用变更页。`
         },
         scenarios
       };
@@ -4077,14 +4077,14 @@
           "站点": "DE 德国",
           "状态": "已启用计算",
           "配送费口径": "德国需要使用中欧计划（Central Europe Programme）费率，不直接套用其他欧洲站点本地配送费",
-          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 按 low_price_category 区分普通类目和受限/特定类目阈值",
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 按 low_price_category 这个 GL 大类分组区分普通类目和受限/特定类目阈值",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣"
         },
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "状态": "已启用计算",
           "配送费口径": "按各站本地配送费列读取；UK 用 GBP，FR/IT/ES/NL/BE 用 EUR，SE 用 SEK，PL 用 PLN",
-          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 按 low_price_category 区分普通类目和受限/特定类目阈值",
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 按 low_price_category 这个 GL 大类分组区分普通类目和受限/特定类目阈值",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣；SIPP 仅在 Excel 有列的 UK/DE/FR/IT/ES 启用"
         },
         {
@@ -4157,7 +4157,7 @@
         {
           "站点": "DE",
           "当前状态": "已启用计算",
-          "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列，并按 low_price_category 判断普通/受限类目价格阈值",
+          "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列，并按 low_price_category 这个 GL 大类分组判断普通/受限类目价格阈值",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣；大件非 SIPP 包装费",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
           "穷举口径": "售价、SIPP、low_price_category 留空时按政策穷举；DE 默认不使用“仅限德国”列"
@@ -4165,7 +4165,7 @@
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "当前状态": "已启用计算",
-          "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列，并按 low_price_category 判断普通/受限类目价格阈值",
+          "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列，并按 low_price_category 这个 GL 大类分组判断普通/受限类目价格阈值",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣仅 UK/FR/IT/ES；NL/SE/PL/BE 当前无 SIPP 列，不套用",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
           "穷举口径": "售价、SIPP、供货天数、low_price_category 留空时按可成立政策穷举"
