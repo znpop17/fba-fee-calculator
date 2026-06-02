@@ -519,7 +519,7 @@
                 <th>是否服饰<small>US 费率依据</small></th>
                 <th>MX 类目组<small>留空穷举</small></th>
                 <th>AU 分类<small>6/10后 GL</small></th>
-                <th>低价 GL 大类<small>EU/UK</small></th>
+                <th>低价 GL 大类<small>仅 EU/UK 低价用</small></th>
                 <th>SIPP<small>留空穷举</small></th>
                 <th>30天供货<small>与90天共同判断</small></th>
                 <th>90天供货<small>两项空才穷举</small></th>
@@ -550,7 +550,8 @@
             <h3>输入列</h3>
             <p><span class="inline-code">country</span>、<span class="inline-code">sku</span>、<span class="inline-code">product_name</span>、<span class="inline-code">length_cm</span>、<span class="inline-code">width_cm</span>、<span class="inline-code">height_cm</span>、<span class="inline-code">weight_kg</span>、<span class="inline-code">sale_price_local</span></p>
             <p class="hint"><strong>尺寸与重量请填写包装后的单件商品数据</strong>；Seller Central 将“商品重量”定义为包装后的单件商品实际重量。工具不会在输入重量之外另加固定包装重量。</p>
-            <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 会按 sale price / your price ÷ 1.1 倒推不含 10% GST 的海关完税价值；完税价值超过 1,000 AUD 时不叠加低价值进口商品 GST，售价留空时会穷举 GST 适用/不适用可能性。US 使用 <span class="inline-code">is_apparel</span>；MX 可填写 <span class="inline-code">mx_fee_group</span>；AU 2026-06-10 后可填写 <span class="inline-code">au_fee_category</span>；EU/UK 低价资格可填写 <span class="inline-code">low_price_category</span> 作为 GL 大类分组：<span class="inline-code">general</span> 或 <span class="inline-code">restricted</span>，留空时按两组阈值穷举。</p>
+            <p class="hint"><span class="inline-code">sale_price_local</span> 按站点币种填写有效的 sale price / your price：US 为 USD，MX 为 MXN，CA 为 CAD，JP 为 JPY，AU 为 AUD，SA 为 SAR，AE 为 AED，UK 为 GBP，DE/FR/IT/ES/NL/BE 为 EUR，SE 为 SEK，PL 为 PLN。AU 会按 sale price / your price ÷ 1.1 倒推不含 10% GST 的海关完税价值；完税价值超过 1,000 AUD 时不叠加低价值进口商品 GST。</p>
+            <p class="hint"><strong>可选字段建议：</strong>US 建议填 <span class="inline-code">is_apparel</span>，用于服饰/非服饰费率表；MX 建议填 <span class="inline-code">mx_fee_group</span>，用于四价位区间下的类目费率组；AU 2026-06-10 后建议填 <span class="inline-code">au_fee_category</span>，用于 GL 分类列；EU/UK 仅在判断低价配送费资格时建议填 <span class="inline-code">low_price_category</span> 作为 GL 大类分组（<span class="inline-code">general</span> / <span class="inline-code">restricted</span>）。CA、JP、SA、AE 当前不需要填写 <span class="inline-code">low_price_category</span>。可选字段留空时，工具会按政策穷举可成立场景。</p>
           </div>
         </div>
         <label style="margin-top:16px;">
