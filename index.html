@@ -566,6 +566,37 @@
     </section>
 
     <section class="panel">
+      <h2>结果概览</h2>
+      <div id="stats" class="stats"></div>
+    </section>
+
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h2>SKU 摘要</h2>
+          <p>看每个 SKU 的基础费、低价费、SIPP/大件包装政策、低量库存费档位、场景数量、最低/最高可能费用，以及是否已包含燃油附加费。</p>
+        </div>
+        <span class="pill">results</span>
+      </div>
+      <div class="table-wrap">
+        <table id="resultsTable"></table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h2>场景明细</h2>
+          <p>这里会逐条列出每种组合场景，以及其成立条件。</p>
+        </div>
+        <span class="pill">scenarios</span>
+      </div>
+      <div class="table-wrap">
+        <table id="scenariosTable"></table>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>GL 大类填写指南</h2>
       <p><span class="inline-code">category</span> 是默认 GL 大类来源，会影响部分站点的费率分支和穷举范围。能确认 GL 时建议填写；新模板只保留这一列作为分类输入。</p>
       <div class="table-wrap">
@@ -828,37 +859,6 @@
       </div>
       <div class="table-wrap rule-table">
         <table id="logicComparisonTable"></table>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>结果概览</h2>
-      <div id="stats" class="stats"></div>
-    </section>
-
-    <section class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-        <div>
-          <h2>SKU 摘要</h2>
-          <p>看每个 SKU 的基础费、低价费、SIPP/大件包装政策、低量库存费档位、场景数量、最低/最高可能费用，以及是否已包含燃油附加费。</p>
-        </div>
-        <span class="pill">results</span>
-      </div>
-      <div class="table-wrap">
-        <table id="resultsTable"></table>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-        <div>
-          <h2>场景明细</h2>
-          <p>这里会逐条列出每种组合场景，以及其成立条件。</p>
-        </div>
-        <span class="pill">scenarios</span>
-      </div>
-      <div class="table-wrap">
-        <table id="scenariosTable"></table>
       </div>
     </section>
 
