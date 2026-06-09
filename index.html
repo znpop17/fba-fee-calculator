@@ -679,6 +679,17 @@
           <span id="ruleMarketplacePill" class="pill">US · LOCAL FBA</span>
         </div>
       </div>
+      <div class="rule-block">
+        <div class="rule-block-head">
+          <div>
+            <h3>规则依据与生效时间</h3>
+            <p class="hint">这里展示当前站点计算会用到的关键规则、政策生效时间和来源；会随上方国家选择同步切换。</p>
+          </div>
+        </div>
+        <div class="table-wrap rule-table">
+          <table id="ruleReferenceTable"></table>
+        </div>
+      </div>
       <div id="usRulePanel">
       <div class="rule-intro">
         <div class="mini-card alt">
@@ -1578,6 +1589,35 @@
         url: "https://sellercentral.amazon.ae/help/hub/reference/external/G202163020",
         note: "Official Amazon.ae Seller Central source supplied by the user. Calculator applies a mandatory 5% surcharge to every AE FBA fulfillment order, consistent with user case confirmation."
       }
+    ];
+
+    const RULE_REFERENCE_ROWS = [
+      { marketplace: "US", rule: "亚马逊物流配送费用 + 燃油和物流附加相关费", effective: "2026/01/15", source: "https://sellercentral.amazon.com/help/hub/reference/external/GABBX6GZPA8MSZGW" },
+      { marketplace: "US", rule: "尺寸分段", effective: "2026/01/15", source: "https://sellercentral.amazon.com/help/hub/reference/external/GG5KW835AHDJCH8W" },
+      { marketplace: "US", rule: "体积重量", effective: "2026/01/15", source: "https://sellercentral.amazon.com/help/hub/reference/external/G53Z9EKF8VVZVH29" },
+      { marketplace: "US", rule: "自有包装发货亚马逊物流配送费用", effective: "2026/01/15", source: "https://sellercentral.amazon.com/help/hub/reference/external/GFGVB6C7ZF38285W" },
+      { marketplace: "US", rule: "低库存水平费用", effective: "2026/01/15", source: "https://sellercentral.amazon.com/help/hub/reference/external/GV43F6S76Y9DHYRH" },
+      { marketplace: "CA", rule: "亚马逊物流配送费用 + 燃油和物流附加相关费", effective: "2026/01/15", source: "https://sellercentral.amazon.ca/help/hub/reference/external/GABBX6GZPA8MSZGW" },
+      { marketplace: "CA", rule: "低价商品亚马逊物流费", effective: "2026/01/15", source: "https://sellercentral.amazon.ca/help/hub/reference/external/GJTAVU7P2W2VE8Q9" },
+      { marketplace: "CA", rule: "尺寸分段", effective: "2021/09/13", source: "https://sellercentral.amazon.ca/help/hub/reference/external/G201105770" },
+      { marketplace: "CA", rule: "体积重量", effective: "未列明", source: "https://sellercentral.amazon.ca/help/hub/reference/external/G59RXFJCSKH9E9PK" },
+      { marketplace: "CA", rule: "自有包装发货亚马逊物流配送费用", effective: "2026/01/15", source: "https://sellercentral.amazon.ca/help/hub/reference/external/201112670" },
+      { marketplace: "CA", rule: "低库存水平费用", effective: "2024/04/01", source: "https://sellercentral.amazon.ca/help/hub/reference/external/GV43F6S76Y9DHYRH" },
+      { marketplace: "MX", rule: "亚马逊物流配送费用 + 尺寸分段 + 体积重量", effective: "2026/02/17", source: "https://sellercentral.amazon.com.mx/help/hub/reference/external/G200209150" },
+      { marketplace: "MX", rule: "自有包装发货亚马逊物流配送费用", effective: "未列明", source: "https://sellercentral.amazon.com.mx/help/hub/reference/external/GFGVB6C7ZF38285W" },
+      { marketplace: "AU", rule: "亚马逊物流配送费用", effective: "2026/06/10", source: "https://sellercentral.amazon.com.au/help/hub/reference/external/G4UU2ZQNHJNKAG5Y" },
+      { marketplace: "AU", rule: "FBA 配送服务税", effective: "未列明", source: "AU—服务税相关政策（客服内部口径）" },
+      { marketplace: "JP", rule: "商品尺寸分段", effective: "未列明", source: "https://sellercentral.amazon.co.jp/help/hub/reference/external/G201105770" },
+      { marketplace: "JP", rule: "亚马逊物流配送费用", effective: "2026/04/01", source: "https://sellercentral.amazon.co.jp/help/hub/reference/external/GRH54FUTD3C5LWWW" },
+      { marketplace: "JP", rule: "低库存水平费用附加费", effective: "2024/05/01", source: "https://sellercentral.amazon.co.jp/help/hub/reference/external/GV43F6S76Y9DHYRH" },
+      { marketplace: "SA", rule: "亚马逊物流配送费用", effective: "未列明", source: "https://sellercentral.amazon.sa/help/hub/reference/external/201112670" },
+      { marketplace: "SA", rule: "亚马逊物流附加费", effective: "未列明", source: "https://sellercentral.amazon.sa/help/hub/reference/external/G202163020" },
+      { marketplace: "AE", rule: "亚马逊物流配送费", effective: "未列明", source: "https://sellercentral.amazon.ae/help/hub/reference/external/201112670" },
+      { marketplace: "AE", rule: "亚马逊物流附加费", effective: "未列明", source: "https://sellercentral.amazon.ae/help/hub/reference/external/G202163020" },
+      { marketplace: "EU", rule: "亚马逊物流配送费用", effective: "2026/04/17", source: "260410-FBA-Rate-Card-zhCN.pdf" },
+      { marketplace: "EU", rule: "燃油和物流附加相关费", effective: "2026/04/17", source: "https://sellercentral.amazon.co.uk/help/hub/reference/external/G200209150?locale=zh-CN" },
+      { marketplace: "EU", rule: "低价商品亚马逊物流费", effective: "2026/01/05", source: "https://sellercentral.amazon.co.uk/help/hub/reference/external/GJTAVU7P2W2VE8Q9?locale=zh-CN" },
+      { marketplace: "EU", rule: "商品尺寸分段", effective: "未列明", source: "https://sellercentral.amazon.co.uk/help/hub/reference/external/G2CD5P9TSDYZA2XG" }
     ];
 
     const TEMPLATE_HEADERS = [
@@ -3872,7 +3912,7 @@
         });
       });
 
-      const isWrapColumn = key => key.includes("conditions") || key.includes("notes") || key.includes("说明") || key.includes("计费重量") || key.includes("尺寸上限") || key.includes("公式") || key.includes("口径") || key.includes("政策");
+      const isWrapColumn = key => key.includes("conditions") || key.includes("notes") || key.includes("说明") || key.includes("计费重量") || key.includes("尺寸上限") || key.includes("公式") || key.includes("口径") || key.includes("政策") || key.includes("来源");
       const thead = `<thead><tr>${keys.map(key => `<th class="${isWrapColumn(key) ? "wrap" : ""}">${key}</th>`).join("")}</tr></thead>`;
       const tbody = `<tbody>${rows.map(row => `<tr>${keys.map(key => `<td class="${isWrapColumn(key) ? "wrap" : ""}">${row[key] ?? ""}</td>`).join("")}</tr>`).join("")}</tbody>`;
       table.innerHTML = thead + tbody;
@@ -4251,6 +4291,25 @@
       renderCalculationLogicComparison();
     }
 
+    function renderRuleReferences(marketplace = document.getElementById("ruleMarketplace").value) {
+      const euMarkets = ["UK", "DE", "FR", "IT", "ES", "NL", "SE", "PL", "BE", "EU"];
+      const sourceMarketplace = euMarkets.includes(marketplace) ? "EU" : marketplace;
+      const rows = RULE_REFERENCE_ROWS
+        .filter(item => item.marketplace === sourceMarketplace)
+        .map(item => {
+          const source = /^https?:\/\//.test(item.source)
+            ? `<a href="${item.source}" target="_blank" rel="noreferrer">${item.source}</a>`
+            : item.source;
+          return {
+            "站点": item.marketplace,
+            "规则": item.rule,
+            "生效时间": item.effective,
+            "来源": source
+          };
+        });
+      renderTable("ruleReferenceTable", rows, ["站点", "规则", "生效时间", "来源"]);
+    }
+
     function renderSources(marketplace = document.getElementById("ruleMarketplace").value) {
       const container = document.getElementById("sources");
       const sources = marketplace === "US"
@@ -4281,6 +4340,7 @@
       document.getElementById("euRulePanel").hidden = !euMarkets.includes(marketplace);
       document.getElementById("ruleMarketplacePill").textContent = labels[marketplace];
       document.getElementById("sourceMarketplacePill").textContent = `${marketplace} · SOURCES`;
+      renderRuleReferences(marketplace);
       renderSources(marketplace);
     }
 
