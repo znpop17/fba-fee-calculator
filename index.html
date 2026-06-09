@@ -3238,8 +3238,10 @@
       if (tier.policyWeightG > 250000) {
         throw new Error("AU 超大件当前官方表仅覆盖 250 kg 以下商品。");
       }
-      const shippingWeightG = tier.weight_basis === "unit" ? unitWeightG : Math.max(unitWeightG, dimensionalWeightG);
+      const rawShippingWeightG = tier.weight_basis === "unit" ? unitWeightG : Math.max(unitWeightG, dimensionalWeightG);
+      const shippingWeightG = tier.weight_basis === "unit" ? rawShippingWeightG : Math.ceil(rawShippingWeightG / 1000 - 1e-9) * 1000;
       const shippingWeightKg = round3(shippingWeightG / 1000);
+      const rawShippingWeightKg = round3(rawShippingWeightG / 1000);
       const ratePeriod = getAuRatePeriod();
       const priceOptions = getAuPriceOptions(row.salePriceLocal, ratePeriod);
       const scenarios = [];
@@ -3266,7 +3268,7 @@
               shipping_weight_g: shippingWeightG,
               base_fee_type: "au_local_fba",
               base_fee_local_currency: feeMatch.fee.toFixed(2),
-              base_fee_match: `${tier.label}: ${shippingWeightG} g => ${feeMatch.band}；${priceOption.label}${categoryOption.code === "not_applicable" ? "" : `；${categoryOption.label}`} => AUD ${feeMatch.fee.toFixed(2)}`,
+              base_fee_match: `${tier.label}: raw ${rawShippingWeightKg} kg => chargeable ${shippingWeightKg} kg (${shippingWeightG} g) => ${feeMatch.band}；${priceOption.label}${categoryOption.code === "not_applicable" ? "" : `；${categoryOption.label}`} => AUD ${feeMatch.fee.toFixed(2)}`,
               price_band: priceOption.label,
               au_fee_category: categoryOption.label,
               au_rate_period: ratePeriod,
@@ -3295,7 +3297,7 @@
           rule_pack: AU_POLICY.version,
           size_tier: tier.code,
           size_tier_reason: `${tier.label} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm and product_weight_g=${unitWeightG}; dimensional_weight_g=${dimensionalWeightG} is used only for shipping-weight fee band, not for AU size-tier classification`,
-          measurement_rounding_rule: "AU 尺寸按 cm 四舍五入至 2 位；尺寸分段阶段重量只使用包装后商品实重；体积重量按 kg 四舍五入至 3 位后换算为 g，仅在发货重量/费用重量档阶段与实重取较大值",
+          measurement_rounding_rule: "AU 尺寸按 cm 四舍五入至 2 位；尺寸分段阶段重量只使用包装后商品实重；体积重量按 kg 四舍五入至 3 位后与实重取较大值，若用于费用档匹配则按 kg 向上取整，例如 36.9 kg 按 37 kg",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
@@ -3306,9 +3308,9 @@
           dimensional_weight_kg: dimensionalWeightKg,
           shipping_weight_kg: shippingWeightKg,
           shipping_weight_g: shippingWeightG,
-          shipping_weight_basis: tier.weight_basis === "unit" ? "信封尺寸段仅使用商品重量" : "包裹/大件/超大件使用商品重量与体积重量二者较大值",
-          shipping_weight_policy_unit: "g",
-          shipping_weight_policy_value: shippingWeightG,
+          shipping_weight_basis: tier.weight_basis === "unit" ? "信封尺寸段仅使用商品重量" : "包裹/大件/超大件先取商品重量与体积重量二者较大值，再按 kg 向上取整用于费用档匹配",
+          shipping_weight_policy_unit: tier.weight_basis === "unit" ? "g" : "kg_ceiling",
+          shipping_weight_policy_value: tier.weight_basis === "unit" ? shippingWeightG : `${rawShippingWeightKg} kg => ${shippingWeightKg} kg`,
           shipping_weight_band: [...new Set(scenarios.map(item => item.base_fee_match))].join(" | "),
           sale_price_local: row.salePriceLocal ?? "",
           price_band: row.salePriceLocal === null ? "UNKNOWN / ENUMERATED" : priceOptions.map(item => item.label).join(", "),
@@ -4052,9 +4054,9 @@
           "状态": "已启用",
           "币种": "AUD",
           "价格段": "不影响体积重量",
-          "尺寸/计费重口径": "体积重量 kg = 长 cm x 宽 cm x 高 cm / 4000；计算结果四舍五入到 3 位 kg 后换算 g 入档",
-          "费用政策": "体积重量不用于 AU 尺寸分段跳段；只在包裹、大件和超大件的发货重量/费用重量档匹配时与商品实重取较大值",
-          "计算公式": "shipping_weight_g = round(max(product_weight_kg, dimensional_weight_kg) x 1000)"
+          "尺寸/计费重口径": "体积重量 kg = 长 cm x 宽 cm x 高 cm / 4000；计算结果四舍五入到 3 位 kg。费用档匹配时若使用体积重/较大重量且存在小数 kg，则按 kg 向上取整",
+          "费用政策": "体积重量不用于 AU 尺寸分段跳段；只在包裹、大件和超大件的发货重量/费用重量档匹配时与商品实重取较大值，再向上取整到整 kg。例如 36.9 kg 按 37 kg 计算费用",
+          "计算公式": "chargeable_weight_kg = ceil(max(product_weight_kg, dimensional_weight_kg)); shipping_weight_g = chargeable_weight_kg x 1000"
         }
       ]);
     }
@@ -4146,7 +4148,7 @@
           "当前状态": "已启用计算",
           "基础费": "按澳大利亚 FBA 配送费表、尺寸分段、计费重量和生效日期匹配；2026-06-10 起按 <13 / 13-20 / >=20 三价格段，并在前两个价格段读取 category 对应 GL 分类列",
           "附加/折扣": "当前未内置 AU SIPP、燃油/物流附加费或低库存费；FBA 配送服务费按客服内部口径固定叠加 10% GST，与商品售价无关",
-          "最终费用公式": "先用包装后尺寸 + 商品实重判定尺寸分段；再用发货重量匹配费用档。最终费用 = 基础配送费 + 基础配送费 x 10% GST",
+          "最终费用公式": "先用包装后尺寸 + 商品实重判定尺寸分段；再用发货重量匹配费用档。包裹/大件/超大件费用档重量 = ceil(max(实重, 体积重)) kg。最终费用 = 基础配送费 + 基础配送费 x 10% GST",
           "穷举口径": "category 仅用于识别 AU 特殊费用分类；不填或未命中特殊分类时默认其他费用分类。售价留空时仅穷举价格段；GST 固定适用于 AU FBA 配送服务费"
         },
         {
