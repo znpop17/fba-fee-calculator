@@ -632,8 +632,8 @@
             </tr>
             <tr>
               <td>EU / UK</td>
-              <td>判断低价配送费资格的价格阈值：普通 GL 与受限/特定 GL 阈值不同。</td>
-              <td>只有受限/特定低价 GL 需要填：<span class="inline-code">beauty</span>、<span class="inline-code">health</span>、<span class="inline-code">personal_care</span>、<span class="inline-code">commercial</span>、<span class="inline-code">industrial</span>、<span class="inline-code">scientific</span>、<span class="inline-code">office</span>、<span class="inline-code">grocery</span>、<span class="inline-code">food</span>、<span class="inline-code">books</span>、<span class="inline-code">amazon_device_accessories</span>、<span class="inline-code">kitchen</span>。</td>
+              <td>判断是否不享受低价 FBA：政策写法为“适用于除以下类目以外”的低价轻小商品。</td>
+              <td>只有不享受低价 FBA 的排除 GL 需要填：<span class="inline-code">beauty</span>、<span class="inline-code">health</span>、<span class="inline-code">personal_care</span>、<span class="inline-code">commercial</span>、<span class="inline-code">industrial</span>、<span class="inline-code">scientific</span>、<span class="inline-code">office</span>、<span class="inline-code">grocery</span>、<span class="inline-code">food</span>、<span class="inline-code">books</span>、<span class="inline-code">amazon_device_accessories</span>、<span class="inline-code">kitchen</span>。</td>
               <td>默认按普通低价 GL 处理。</td>
             </tr>
             <tr>
@@ -645,7 +645,7 @@
           </tbody>
         </table>
       </div>
-      <div class="rule-note">填写优先级：只有确认属于上述特殊 GL 时才填写 <span class="inline-code">category</span>；不填或未命中特殊 GL 时，默认按其他/普通 GL 大类计算。不同站点 GL 命名不一致时，请按当前测算站点填写对应特殊 GL。</div>
+      <div class="rule-note">填写优先级：只有确认属于上述特殊/排除 GL 时才填写 <span class="inline-code">category</span>；不填或未命中特殊/排除 GL 时，默认按其他/普通 GL 大类计算。不同站点 GL 命名不一致时，请按当前测算站点填写对应特殊/排除 GL。</div>
     </section>
 
     <section class="panel">
@@ -1327,11 +1327,11 @@
 
     EU_POLICY.lowPriceCategoryThresholds = {
       general: { UK: 20, GB: 20, DE: 20, FR: 20, IT: 20, ES: 20, NL: 20, BE: 20, SE: 230, PL: 85 },
-      restricted: { UK: 10, GB: 10, DE: 11, FR: 12, IT: 12, ES: 12, NL: 12, BE: 12, SE: 140, PL: 55 }
+      excluded: {}
     };
     EU_POLICY.lowPriceCategoryLabels = {
-      general: "普通低价 GL 大类：除美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品以外的低价轻小商品",
-      restricted: "受限/特定低价 GL 大类：美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品"
+      general: "可享受低价 FBA 的普通 GL：除美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品以外的低价轻小商品",
+      excluded: "不享受低价 FBA 的排除 GL：美容、健康和个人护理、商业/工业/科学用品、办公用品、食品、图书、亚马逊设备配件、厨房用品"
     };
 
     const EU_POLICY_SOURCES = [
@@ -1600,7 +1600,7 @@
       ["SA", "SKU-SA-001", "示例沙特普通品", "general", "35.1", "22.9", "1.8", "0.081", "15", "", "", "", ""],
       ["AE", "SKU-AE-001", "示例阿联酋普通品", "general", "32", "16.9", "14", "1.608", "24", "", "", "", ""],
       ["DE", "SKU-DE-001", "示例德国普通低价 GL", "general", "30", "20", "10", "0.3", "19.99", "", "", "", ""],
-      ["UK", "SKU-UK-001", "示例英国受限低价 GL", "grocery", "30", "20", "10", "0.3", "9.99", "", "", "", ""]
+      ["UK", "SKU-UK-001", "示例英国排除低价 GL", "grocery", "30", "20", "10", "0.3", "9.99", "", "", "", ""]
     ];
     const TEMPLATE_CSV = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS].map(row => row.map(escapeCsvCell).join(",")).join("\r\n");
 
@@ -3391,7 +3391,7 @@
 
     function normalizeEuLowPriceCategory(value, fallbackCategory = "") {
       const text = `${value || ""} ${fallbackCategory || ""}`.toLowerCase();
-      if (/restricted|special|excluded|特定|受限|排除|beauty|健康|health|personal\s*care|个人护理|commercial|business|industrial|scientific|商业|工业|科学|office|办公|grocery|food|食品|杂货|book|图书|amazon\s*device|device\s*accessor|设备配件|kitchen|厨房/.test(text)) return "restricted";
+      if (/restricted|special|excluded|特定|受限|排除|不享受|不适用|beauty|健康|health|personal\s*care|个人护理|commercial|business|industrial|scientific|商业|工业|科学|office|办公|grocery|food|食品|杂货|book|图书|amazon\s*device|device\s*accessor|设备配件|kitchen|厨房/.test(text)) return "excluded";
       if (/general|ordinary|standard|normal|eligible|普通|一般|其他|非受限|非特定/.test(text)) return "general";
       return "";
     }
@@ -3411,13 +3411,16 @@
       const threshold = lowPriceCategoryOption?.threshold ?? EU_POLICY.lowPriceThresholds[country];
       const categoryCode = lowPriceCategoryOption?.code || "";
       const categoryLabel = lowPriceCategoryOption?.label || "";
+      const lowPriceExcluded = categoryCode === "excluded";
       const lowPricePossible = threshold !== undefined
+        && !lowPriceExcluded
         && unitWeightKg <= 0.4
         && longestCm <= 35
         && medianCm <= 25
         && shortestCm <= 12
         && ["light_envelope", "standard_envelope", "large_envelope", "extra_large_envelope", "small_parcel"].includes(sizeTier);
       const decorate = option => ({ ...option, lowPriceCategoryCode: categoryCode, lowPriceCategoryLabel: categoryLabel, lowPriceThreshold: threshold });
+      if (lowPriceExcluded) return [decorate({ code: "standard", label: "standard_fba (excluded_gl_not_low_price_eligible)" })];
       if (!lowPricePossible) return [decorate({ code: "standard", label: "standard_fba" })];
       if (salePriceLocal === null) return [
         decorate({ code: "standard", label: `standard_fba (${categoryCode || "low_price_category"} threshold ${threshold})` }),
@@ -3556,7 +3559,7 @@
             low_inventory_band: lowInventory.band_code,
             low_inventory_fee_local_currency: lowInventory.fee,
             final_fee_local_currency: finalFee,
-            conditions: `${euCountry === "DE" ? "DE 默认使用中欧计划费率；" : ""}${row.salePriceLocal === null ? "售价留空，穷举标准/低价可成立场景；" : "按实际售价判断低价资格；"}低价 GL 大类分组：${priceOption.lowPriceCategoryLabel || "不适用"}，阈值 ${countryInfo.currency} ${priceOption.lowPriceThreshold ?? "N/A"}；${lowInventory.reason}；EU/UK 最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣。`
+            conditions: `${euCountry === "DE" ? "DE 默认使用中欧计划费率；" : ""}${row.salePriceLocal === null ? "售价留空，穷举标准/低价可成立场景；" : "按实际售价判断低价资格；"}低价 GL 资格：${priceOption.lowPriceCategoryLabel || "不适用"}${priceOption.lowPriceCategoryCode === "excluded" ? "，该 GL 不享受低价 FBA" : `，低价阈值 ${countryInfo.currency} ${priceOption.lowPriceThreshold ?? "N/A"}`}；${lowInventory.reason}；EU/UK 最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣。`
           });
           scenarioId += 1;
           });
@@ -3613,7 +3616,7 @@
           max_final_fee_local_currency: Math.max(...fees),
           cheapest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency < best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
           highest_scenario: scenarios.reduce((best, item) => item.final_fee_local_currency > best.final_fee_local_currency ? item : best, scenarios[0]).scenario_name,
-          notes: `已按用户提供 Excel 启用 ${euCountry} 标准配送费和 SIPP/大件非 SIPP 包装费；低价 FBA 费率来自 Seller Central 低价商品 FBA 页面，且按普通低价 GL 大类/受限特定低价 GL 大类分别判断适用价格阈值；燃油/物流附加费 1.5%；低量库存成本覆盖费来自 Seller Central 2025 年包裹商品尺寸分段费用变更页。`
+          notes: `已按用户提供 Excel 启用 ${euCountry} 标准配送费和 SIPP/大件非 SIPP 包装费；低价 FBA 费率来自 Seller Central 低价商品 FBA 页面，且按“适用于除排除 GL 以外”的口径判断低价资格；燃油/物流附加费 1.5%；低量库存成本覆盖费来自 Seller Central 2025 年包裹商品尺寸分段费用变更页。`
         },
         scenarios
       };
@@ -4113,14 +4116,14 @@
           "站点": "DE 德国",
           "状态": "已启用计算",
           "配送费口径": "德国需要使用中欧计划（Central Europe Programme）费率，不直接套用其他欧洲站点本地配送费",
-          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 按 low_price_category 这个 GL 大类分组区分普通类目和受限/特定类目阈值",
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 仅适用于排除 GL 以外的低价轻小商品",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣"
         },
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "状态": "已启用计算",
           "配送费口径": "按各站本地配送费列读取；UK 用 GBP，FR/IT/ES/NL/BE 用 EUR，SE 用 SEK，PL 用 PLN",
-          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 按 low_price_category 这个 GL 大类分组区分普通类目和受限/特定类目阈值",
+          "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 仅适用于排除 GL 以外的低价轻小商品",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣；SIPP 仅在 Excel 有列的 UK/DE/FR/IT/ES 启用"
         },
         {
@@ -4193,18 +4196,18 @@
         {
           "站点": "DE",
           "当前状态": "已启用计算",
-          "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列，并按 category 这个 GL 大类分组判断普通/受限类目价格阈值",
+          "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列，并按 category 判断是否属于不享受低价 FBA 的排除 GL",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣；大件非 SIPP 包装费",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
-          "穷举口径": "category 仅用于识别 EU/UK 受限/特定低价 GL；不填或未命中特殊 GL 时默认普通低价 GL。售价、SIPP 留空时按政策穷举；DE 默认不使用“仅限德国”列"
+          "穷举口径": "category 仅用于识别 EU/UK 不享受低价 FBA 的排除 GL；不填或未命中排除 GL 时默认可享受低价 FBA 的普通 GL。售价、SIPP 留空时按政策穷举；DE 默认不使用“仅限德国”列"
         },
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "当前状态": "已启用计算",
-          "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列，并按 category 这个 GL 大类分组判断普通/受限类目价格阈值",
+          "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列，并按 category 判断是否属于不享受低价 FBA 的排除 GL",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣仅 UK/FR/IT/ES；NL/SE/PL/BE 当前无 SIPP 列，不套用",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
-          "穷举口径": "category 仅用于识别 EU/UK 受限/特定低价 GL；不填或未命中特殊 GL 时默认普通低价 GL。售价、SIPP、供货天数留空时按可成立政策穷举"
+          "穷举口径": "category 仅用于识别 EU/UK 不享受低价 FBA 的排除 GL；不填或未命中排除 GL 时默认可享受低价 FBA 的普通 GL。售价、SIPP、供货天数留空时按可成立政策穷举"
         }
       ]);
     }
