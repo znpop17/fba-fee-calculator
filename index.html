@@ -4054,18 +4054,9 @@
           "状态": "已启用",
           "币种": "AUD",
           "价格段": `2026-06-10 前：sale_price_local < ${AU_POLICY.low_price_threshold} / >= ${AU_POLICY.low_price_threshold}；2026-06-10 起：<13 / 13-20 / >=20，售价留空时穷举`,
-          "尺寸/计费重口径": "尺寸分段阶段一律使用包装后尺寸 + 商品实重判断；发货重量/费用重量档阶段：小号/标准/大号信封仅用实重，包裹、小号大件、标准大件、大号大件、超大件使用实重与体积重量二者较大值",
+          "尺寸/计费重口径": "1）尺寸分段阶段一律使用包装后尺寸 + 商品实重判断，不用体积重跳段。2）按尺寸分段确认计费重规则：小号/标准/大号信封仅用实重；包裹、小号大件、标准大件、大号大件、超大件使用实重与体积重量二者较大值。3）体积重量 kg = 长 cm x 宽 cm x 高 cm / 4000，计算结果四舍五入到 3 位 kg。4）只有计费重超过当前尺寸段重量上限，且进入“超过 xx kg，每 kg 加收”公式时，才向上取整到整 kg；例如标准大件 36.9 kg 超过 22 kg，按 37 kg 计算超重部分。",
           "费用政策": "当前日期在 2026-06-10 前时使用旧费率列；到 2026-06-10 起自动切换新表。新表在 <13 和 13-20 价格段按 GL/费用分类区分；category 留空或未命中特殊分类时默认按其他费用分类。sale_price_local 仅用于判断价格段。FBA 配送服务费按客服内部口径固定叠加 10% GST；暂无对应公开帮助页。",
-          "计算公式": "最终费用 = AU 本地基础配送费 + 基础配送费 x 10% GST"
-        },
-        {
-          "站点": "AU 体积重量",
-          "状态": "已启用",
-          "币种": "AUD",
-          "价格段": "不影响体积重量",
-          "尺寸/计费重口径": "体积重量 kg = 长 cm x 宽 cm x 高 cm / 4000；计算结果四舍五入到 3 位 kg。费用档匹配时先取实重/体积重较大值",
-          "费用政策": "体积重量不用于 AU 尺寸分段跳段；只有计费重超过当前尺寸段重量上限，且进入“超过 xx kg，每 kg 加收”公式时，才向上取整到整 kg。例如标准大件 36.9 kg 超过 22 kg，按 37 kg 计算超重部分",
-          "计算公式": "raw_chargeable_weight = max(product_weight_kg, dimensional_weight_kg)；若 raw_chargeable_weight > 当前尺寸段增量阈值，则 chargeable_weight_kg = ceil(raw_chargeable_weight)，否则保留原重量入档"
+          "计算公式": "raw_chargeable_weight = max(product_weight_kg, dimensional_weight_kg)；若 raw_chargeable_weight > 当前尺寸段增量阈值，则 chargeable_weight_kg = ceil(raw_chargeable_weight)，否则保留原重量入档。最终费用 = AU 本地基础配送费 + 基础配送费 x 10% GST"
         }
       ]);
     }
