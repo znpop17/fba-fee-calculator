@@ -3417,14 +3417,29 @@
     function computeEuFeeFromTable(table, increments, sizeTier, shippingWeightG, feeCol) {
       const rows = table.filter(item => item.t === sizeTier);
       const band = rows.find(item => shippingWeightG <= item.g + 1e-9 && item.v[feeCol] !== null);
-      if (band) return { fee: Number(band.v[feeCol]), band: `<= ${band.g} g` };
+      if (band) return {
+        fee: Number(band.v[feeCol]),
+        band: `<= ${band.g} g`,
+        usesKgIncrement: false,
+        thresholdG: band.g,
+        excessKgRaw: 0,
+        chargeableExcessKg: 0
+      };
       const base = rows[rows.length - 1];
       const increment = increments?.[sizeTier]?.[feeCol];
       if (!base || increment === null || increment === undefined || base.v[feeCol] === null) {
         throw new Error(`EU/UK 找不到 ${feeCol} ${sizeTier} ${shippingWeightG}g 的费率`);
       }
-      const steps = ceilIntervals((shippingWeightG - base.g) / 1000, 1);
-      return { fee: round2(Number(base.v[feeCol]) + steps * Number(increment)), band: `> ${base.g} g, ${steps} x increment` };
+      const excessKgRaw = (shippingWeightG - base.g) / 1000;
+      const steps = ceilIntervals(excessKgRaw, 1);
+      return {
+        fee: round2(Number(base.v[feeCol]) + steps * Number(increment)),
+        band: `> ${base.g} g；${Number(base.v[feeCol]).toFixed(2)} + ceil(${round3(excessKgRaw)} kg) x ${Number(increment).toFixed(2)}/kg = ${steps} kg 增量`,
+        usesKgIncrement: true,
+        thresholdG: base.g,
+        excessKgRaw: round3(excessKgRaw),
+        chargeableExcessKg: steps
+      };
     }
 
     function getEuSippDiscount(countryInfo, baseFeeType, sizeTier, shippingWeightG) {
@@ -3561,7 +3576,7 @@
           rule_pack: "EU_UK_2026_excel_official_sources",
           size_tier: sizeTier,
           size_tier_reason: `${sizeTier} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, product_weight_kg=${unitWeightKg}, dimensional_weight_kg=${dimensionalWeightKg}`,
-          measurement_rounding_rule: "EU/UK 尺寸按 cm 四舍五入至 2 位；体积重量=长x宽x高/5000 kg，四舍五入至 3 位；信封/特殊大件/低价 FBA 使用商品重量，其他包裹和大件使用商品重量与体积重量较大值",
+          measurement_rounding_rule: "EU/UK 尺寸按 cm 四舍五入至 2 位；体积重量=长x宽x高/5000 kg，四舍五入至 3 位；信封/特殊大件/低价 FBA 使用商品重量，其他包裹和大件使用商品重量与体积重量较大值；若超过当前分段上限并进入“+xx/千克”公式，超出部分按 kg 向上取整",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
@@ -3573,9 +3588,9 @@
           dimensional_weight_kg: dimensionalWeightKg,
           shipping_weight_kg: [...new Set(scenarios.map(item => item.shipping_weight_kg))].join(", "),
           shipping_weight_g: [...new Set(scenarios.map(item => item.shipping_weight_g))].join(", "),
-          shipping_weight_basis: "信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值",
-          shipping_weight_policy_unit: "g",
-          shipping_weight_policy_value: [...new Set(scenarios.map(item => item.shipping_weight_g))].join(", "),
+          shipping_weight_basis: "信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值；超过分段上限后的每 kg 加收部分按 kg 向上取整",
+          shipping_weight_policy_unit: "g / kg_increment",
+          shipping_weight_policy_value: [...new Set(scenarios.map(item => `${item.shipping_weight_g} g`))].join(", "),
           shipping_weight_band: [...new Set(scenarios.map(item => item.base_fee_match))].join(" | "),
           sale_price_local: row.salePriceLocal ?? "",
           price_band: row.salePriceLocal === null ? "UNKNOWN / ENUMERATED" : priceOptions.map(item => item.label).join(", "),
@@ -4090,6 +4105,7 @@
           "站点": "DE 德国",
           "状态": "已启用计算",
           "配送费口径": "德国需要使用中欧计划（Central Europe Programme）费率，不直接套用其他欧洲站点本地配送费",
+          "计费重口径": "按尺寸分段确认使用商品重量或商品重量/体积重量较大值；体积重量=长x宽x高/5000 kg。若计费重超过该分段表格上限，并进入“+xx/千克”公式，则超出部分按 kg 向上取整后计算增量费用。",
           "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 仅适用于排除 GL 以外的低价轻小商品",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣"
         },
@@ -4097,6 +4113,7 @@
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "状态": "已启用计算",
           "配送费口径": "按各站本地配送费列读取；UK 用 GBP，FR/IT/ES/NL/BE 用 EUR，SE 用 SEK，PL 用 PLN",
+          "计费重口径": "按尺寸分段确认使用商品重量或商品重量/体积重量较大值；体积重量=长x宽x高/5000 kg。若计费重超过该分段表格上限，并进入“+xx/千克”公式，则超出部分按 kg 向上取整后计算增量费用。",
           "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 仅适用于排除 GL 以外的低价轻小商品",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣；SIPP 仅在 Excel 有列的 UK/DE/FR/IT/ES 启用"
         },
@@ -4170,7 +4187,7 @@
         {
           "站点": "DE",
           "当前状态": "已启用计算",
-          "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列，并按 category 判断是否属于不享受低价 FBA 的排除 GL",
+          "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列，并按 category 判断是否属于不享受低价 FBA 的排除 GL；超过分段上限的“+xx/千克”部分按 kg 向上取整",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣；大件非 SIPP 包装费",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
           "穷举口径": "category 仅用于识别 EU/UK 不享受低价 FBA 的排除 GL；不填或未命中排除 GL 时默认可享受低价 FBA 的普通 GL。售价、SIPP 留空时按政策穷举；DE 默认不使用“仅限德国”列"
@@ -4178,7 +4195,7 @@
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "当前状态": "已启用计算",
-          "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列，并按 category 判断是否属于不享受低价 FBA 的排除 GL",
+          "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列，并按 category 判断是否属于不享受低价 FBA 的排除 GL；超过分段上限的“+xx/千克”部分按 kg 向上取整",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣仅 UK/FR/IT/ES；NL/SE/PL/BE 当前无 SIPP 列，不套用",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
           "穷举口径": "category 仅用于识别 EU/UK 不享受低价 FBA 的排除 GL；不填或未命中排除 GL 时默认可享受低价 FBA 的普通 GL。售价、SIPP、供货天数留空时按可成立政策穷举"
