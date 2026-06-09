@@ -807,7 +807,7 @@
         <div class="table-wrap rule-table">
           <table id="mxBaseFeeRulesTable"></table>
         </div>
-        <div class="rule-note">MX 官方来源为 Seller Central <span class="inline-code">G200209150</span>。<strong>MX 四步法：</strong>1）先按包装后三边判断 Sobre/Estándar/Tamaño grande，大件额外看长度加围长；2）计费重使用商品重量与体积重量较大值；3）体积重量=长x宽x高/5000 kg；4）Sobre/Estándar <=1 kg 按表格档，Estándar >1 kg 按 0.25 kg 增量向上取整，Tamaño grande >1 kg 按 1 kg 增量向上取整。该站点当前不配置燃油/物流附加费和低库存水平费用；<strong>MX 公式：</strong>最终费用 = MX 本地基础配送费 - SIPP 折扣。</div>
+        <div class="rule-note">MX 官方来源为 Seller Central <span class="inline-code">G200209150</span>。<strong>MX 四步法：</strong>1）先按包装后三边判断 Sobre/Estándar/Tamaño grande，大件额外看长度加围长；2）计费重使用商品重量与体积重量较大值；3）体积重量=长x宽x高/5000 kg；4）Sobre/Estándar <=1 kg 按表格档，Estándar >1 kg 按 0.25 kg 增量向上取整，Tamaño grande >1 kg 按当前内置费率表的 0.5 kg 增量向上取整。该站点当前不配置燃油/物流附加费和低库存水平费用；<strong>MX 公式：</strong>最终费用 = MX 本地基础配送费 - SIPP 折扣。</div>
       </div>
       </div>
 
@@ -2397,6 +2397,32 @@
       return "mx_size_limit_exceeded";
     }
 
+    function getMxWeightPolicySteps(longestCm, medianCm, shortestCm, unitWeightKg) {
+      const lengthPlusGirthCm = round2(longestCm + 2 * (medianCm + shortestCm));
+      const sizeTier = determineMxSizeTier(longestCm, medianCm, shortestCm);
+      const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / MX_POLICY.dimensional_weight_divisor_cm3_per_kg);
+      const shippingWeightKg = sizeTier === "mx_size_limit_exceeded" ? "" : round3(Math.max(unitWeightKg, dimensionalWeightKg));
+      const incrementRule = sizeTier === "standard" && shippingWeightKg > 1
+        ? "standard_above_1kg_0.25kg_increment"
+        : (sizeTier === "large" && shippingWeightKg > 1 ? `large_above_1kg_${MX_POLICY.fee_groups.main.large_above_1kg.interval_kg}kg_increment` : "table_weight_band");
+      return {
+        sizeTier,
+        lengthPlusGirthCm,
+        dimensionalWeightKg,
+        shippingWeightKg,
+        incrementRule,
+        sizeTierPolicyStep: `MX step 1: packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm${sizeTier === "large" ? ` and length_plus_girth ${lengthPlusGirthCm} cm` : ""} => ${sizeTier}`,
+        chargeableWeightPolicyStep: sizeTier === "mx_size_limit_exceeded"
+          ? "MX step 2/3: size exceeds current confirmed MX large-size boundary; no chargeable weight generated"
+          : `MX step 2/3: dimensional_weight=${longestCm}*${medianCm}*${shortestCm}/5000=${dimensionalWeightKg} kg; chargeable_weight=max(unit ${unitWeightKg} kg, dimensional ${dimensionalWeightKg} kg)=${shippingWeightKg} kg`,
+        roundingPolicyStep: sizeTier === "mx_size_limit_exceeded"
+          ? "MX step 4: no rounding because no fee scenario is generated"
+          : (incrementRule === "table_weight_band"
+            ? "MX step 4: use table weight band directly"
+            : `MX step 4: ${incrementRule} uses ceilIntervals() for the overweight increment`)
+      };
+    }
+
     function computeMxBaseFee(sizeTier, shippingWeightKg, groupCode, priceBandIndex) {
       const group = MX_POLICY.fee_groups[groupCode];
       if (sizeTier === "envelope") {
@@ -2453,21 +2479,24 @@
     function calculateMxRow(row) {
       const dimsCm = [row.lengthCm, row.widthCm, row.heightCm].sort((a, b) => b - a).map(round2);
       const [longestCm, medianCm, shortestCm] = dimsCm;
-      const lengthPlusGirthCm = round2(longestCm + 2 * (medianCm + shortestCm));
-      const sizeTier = determineMxSizeTier(longestCm, medianCm, shortestCm);
+      const unitWeightKg = round3(row.weightKg);
+      const mxSteps = getMxWeightPolicySteps(longestCm, medianCm, shortestCm, unitWeightKg);
+      const { lengthPlusGirthCm, sizeTier, dimensionalWeightKg, shippingWeightKg } = mxSteps;
       if (sizeTier === "mx_size_limit_exceeded") {
         return {
           result: {
             row_number: row.rowNumber, country: row.country, sku: row.sku, product_name: row.productName,
             category: row.category, status: "mx_size_limit_exceeded", currency: MX_POLICY.currency,
-            size_tier: sizeTier, notes: "输入尺寸超过当前已确认的 MX Tamaño grande 尺寸边界，未生成费用场景。"
+            size_tier: sizeTier,
+            size_tier_policy_step: mxSteps.sizeTierPolicyStep,
+            chargeable_weight_policy_step: mxSteps.chargeableWeightPolicyStep,
+            rounding_policy_step: mxSteps.roundingPolicyStep,
+            policy_calculation_path: [mxSteps.sizeTierPolicyStep, mxSteps.chargeableWeightPolicyStep, mxSteps.roundingPolicyStep].join(" | "),
+            notes: "输入尺寸超过当前已确认的 MX Tamaño grande 尺寸边界，未生成费用场景。"
           },
           scenarios: []
         };
       }
-      const unitWeightKg = round3(row.weightKg);
-      const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / MX_POLICY.dimensional_weight_divisor_cm3_per_kg);
-      const shippingWeightKg = round3(Math.max(unitWeightKg, dimensionalWeightKg));
       const categoryGroups = getMxFeeGroupOptions(row.mxFeeCategory, row.category);
       const priceBands = getMxPriceBandOptions(row.salePriceLocal);
       const sippOptions = getMxSippOptions(sizeTier, row.sippEligible);
@@ -2515,7 +2544,11 @@
           currency: MX_POLICY.currency,
           rule_pack: MX_POLICY.version,
           size_tier: sizeTier,
-          size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm 和 length_plus_girth_cm=${lengthPlusGirthCm} 匹配 ${sizeTier}。2）计费重规则：当前 MX 规则包按商品重量与体积重量较大值进入该尺寸段费率表。3）体积重量：${longestCm} x ${medianCm} x ${shortestCm} / ${MX_POLICY.dimensional_weight_divisor_cm3_per_kg} = ${dimensionalWeightKg} kg。4）取整/增量：标准尺寸 >1 kg 按 0.25 kg 增量向上取整；大件 >1 kg 按 1 kg 增量向上取整；其他固定重量档按表格上限匹配。`,
+          size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm 和 length_plus_girth_cm=${lengthPlusGirthCm} 匹配 ${sizeTier}。2）计费重规则：当前 MX 规则包按商品重量与体积重量较大值进入该尺寸段费率表。3）体积重量：${longestCm} x ${medianCm} x ${shortestCm} / ${MX_POLICY.dimensional_weight_divisor_cm3_per_kg} = ${dimensionalWeightKg} kg。4）取整/增量：${mxSteps.roundingPolicyStep}。`,
+          size_tier_policy_step: mxSteps.sizeTierPolicyStep,
+          chargeable_weight_policy_step: mxSteps.chargeableWeightPolicyStep,
+          rounding_policy_step: mxSteps.roundingPolicyStep,
+          policy_calculation_path: [mxSteps.sizeTierPolicyStep, mxSteps.chargeableWeightPolicyStep, mxSteps.roundingPolicyStep].join(" | "),
           measurement_rounding_rule: "MX 四步法：先按包装后三边判断尺寸分段；再按该分段确认计费重规则；体积重量=长x宽x高/5000 kg 并四舍五入到 3 位；进入超过 1 kg 增量公式时按对应增量向上取整",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
@@ -2527,7 +2560,7 @@
           length_plus_girth_cm: lengthPlusGirthCm,
           dimensional_weight_kg: dimensionalWeightKg,
           shipping_weight_kg: shippingWeightKg,
-          shipping_weight_basis: `1）尺寸分段已确定为 ${sizeTier}。2）该尺寸段费用匹配使用商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 的较大值。3）原始计费重 ${shippingWeightKg} kg。4）若进入标准 >1 kg 或大件 >1 kg 公式，增量步数在 base_fee_match 中按 0.25 kg / 1 kg 向上取整展示。`,
+          shipping_weight_basis: `1）尺寸分段已确定为 ${sizeTier}。2）该尺寸段费用匹配使用商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 的较大值。3）原始计费重 ${shippingWeightKg} kg。4）若进入标准 >1 kg 或大件 >1 kg 公式，增量步数在 base_fee_match 中按 0.25 kg / ${MX_POLICY.fee_groups.main.large_above_1kg.interval_kg} kg 向上取整展示。`,
           shipping_weight_policy_unit: sizeTier === "standard" && shippingWeightKg > 1 ? "kg / 0.25kg_increment" : (sizeTier === "large" && shippingWeightKg > 1 ? "kg / 1kg_increment" : "kg"),
           shipping_weight_policy_value: shippingWeightKg,
           shipping_weight_band: [...new Set(scenarios.map(item => item.base_fee_match))].join(" | "),
@@ -2579,6 +2612,26 @@
         lengthPlusGirthCm <= tiers.large_oversize.max_length_plus_girth_cm
       ) return "large_oversize";
       return "special_oversize";
+    }
+
+    function getCaWeightPolicySteps(longestCm, medianCm, shortestCm, unitWeightKg) {
+      const lengthPlusGirthCm = round2(longestCm + 2 * (medianCm + shortestCm));
+      const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / CA_POLICY.dimensional_weight_divisor_cm3_per_kg);
+      const shippingWeightKg = round3(Math.max(unitWeightKg, dimensionalWeightKg));
+      const sizeTier = determineCaSizeTier(longestCm, medianCm, shortestCm, shippingWeightKg, lengthPlusGirthCm);
+      const roundingG = CA_POLICY.size_tiers[sizeTier].rounding_g;
+      const billableWeightG = roundUpToGrams(shippingWeightKg, roundingG);
+      return {
+        sizeTier,
+        lengthPlusGirthCm,
+        dimensionalWeightKg,
+        shippingWeightKg,
+        roundingG,
+        billableWeightG,
+        sizeTierPolicyStep: `CA step 1: packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, length_plus_girth ${lengthPlusGirthCm} cm, shipping_weight ${shippingWeightKg} kg => ${CA_POLICY.size_tiers[sizeTier].label}`,
+        chargeableWeightPolicyStep: `CA step 2/3: dimensional_weight=${longestCm}*${medianCm}*${shortestCm}/5000=${dimensionalWeightKg} kg; shipping_weight=max(unit ${unitWeightKg} kg, dimensional ${dimensionalWeightKg} kg)=${shippingWeightKg} kg`,
+        roundingPolicyStep: `CA step 4: round up ${shippingWeightKg} kg to ${roundingG} g billing increment => ${billableWeightG} g`
+      };
     }
 
     function roundUpToGrams(weightKg, intervalG) {
@@ -2692,13 +2745,9 @@
     function calculateCaRow(row) {
       const dimsCm = [row.lengthCm, row.widthCm, row.heightCm].sort((a, b) => b - a).map(round2);
       const [longestCm, medianCm, shortestCm] = dimsCm;
-      const lengthPlusGirthCm = round2(longestCm + 2 * (medianCm + shortestCm));
       const unitWeightKg = round3(row.weightKg);
-      const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / CA_POLICY.dimensional_weight_divisor_cm3_per_kg);
-      const shippingWeightKg = round3(Math.max(unitWeightKg, dimensionalWeightKg));
-      const sizeTier = determineCaSizeTier(longestCm, medianCm, shortestCm, shippingWeightKg, lengthPlusGirthCm);
-      const roundingG = CA_POLICY.size_tiers[sizeTier].rounding_g;
-      const billableWeightG = roundUpToGrams(shippingWeightKg, roundingG);
+      const caSteps = getCaWeightPolicySteps(longestCm, medianCm, shortestCm, unitWeightKg);
+      const { lengthPlusGirthCm, dimensionalWeightKg, shippingWeightKg, sizeTier, roundingG, billableWeightG } = caSteps;
       const priceTypes = getCaPriceTypeOptions(row.salePriceLocal);
       const sippOptions = getCaSippOptions(sizeTier, billableWeightG, row.sippEligible);
       const lowInventoryOptions = getCaLowInventoryOptions(sizeTier, billableWeightG, row.daysOfSupply30, row.daysOfSupply90);
@@ -2792,6 +2841,10 @@
           rule_pack: CA_POLICY.version,
           size_tier: sizeTier,
           size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm、length_plus_girth_cm=${lengthPlusGirthCm}，并使用商品重量/体积重量较大值 ${shippingWeightKg} kg 匹配 ${CA_POLICY.size_tiers[sizeTier].label}。2）计费重规则：该尺寸段按商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 取较大值。3）进位前计费重 ${shippingWeightKg} kg。4）按该尺寸段费用表进位单位 ${roundingG} g 向上取整为 ${billableWeightG} g。`,
+          size_tier_policy_step: caSteps.sizeTierPolicyStep,
+          chargeable_weight_policy_step: caSteps.chargeableWeightPolicyStep,
+          rounding_policy_step: caSteps.roundingPolicyStep,
+          policy_calculation_path: [caSteps.sizeTierPolicyStep, caSteps.chargeableWeightPolicyStep, caSteps.roundingPolicyStep].join(" | "),
           measurement_rounding_rule: "CA 四步法：先按包装后三边、长度加围长和发货重量判断尺寸分段；再按分段使用商品重量/体积重量较大值；体积重量=长x宽x高/5000 kg 并四舍五入到 3 位；信封/标准按 100g 向上取整，大件按 500g 向上取整",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
@@ -2947,6 +3000,9 @@
       const lowInventoryOptions = getJpLowInventoryOptions(feeRow, row.daysOfSupply30, row.daysOfSupply90);
       const scenarios = [];
       let scenarioId = 1;
+      const jpSizeTierPolicyStep = `JP step 1: packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, dimension_sum ${dimensionSumCm} cm, unit_weight ${unitWeightKg} kg => ${feeRow.label}`;
+      const jpChargeableWeightPolicyStep = `JP step 2/3: current JP fee table uses unit weight only; chargeable_weight=${unitWeightKg} kg`;
+      const jpRoundingPolicyStep = "JP step 4: fixed fee band by size/weight/price; no dimensional-weight or kg-increment rounding";
       priceOptions.forEach(priceOption => {
         lowInventoryOptions.forEach(lowInventory => {
         const fee = Number(feeRow[priceOption.field]);
@@ -2989,6 +3045,10 @@
           rule_pack: JP_POLICY.version,
           size_tier: feeRow.code,
           size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm、三边合计 ${dimensionSumCm} cm、商品重量 ${unitWeightKg} kg 匹配 ${feeRow.label}。2）计费重规则：JP 当前表按商品重量匹配，不使用体积重量。3）计费重 ${unitWeightKg} kg。4）无额外 kg 增量取整，直接按对应尺寸/重量/价格段固定费用匹配。`,
+          size_tier_policy_step: jpSizeTierPolicyStep,
+          chargeable_weight_policy_step: jpChargeableWeightPolicyStep,
+          rounding_policy_step: jpRoundingPolicyStep,
+          policy_calculation_path: [jpSizeTierPolicyStep, jpChargeableWeightPolicyStep, jpRoundingPolicyStep].join(" | "),
           measurement_rounding_rule: "JP 四步法：先按包装后三边和三边合计判断尺寸分段；再按分段确认仅使用商品重量；重量按 kg 四舍五入至 3 位；无体积重和增量取整，按固定费用档匹配",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
@@ -3075,6 +3135,11 @@
       const [longestCm, medianCm, shortestCm] = dimsCm;
       const unitWeightKg = round3(row.weightKg);
       const tier = determineMenaSizeTier(policy, longestCm, medianCm, shortestCm, unitWeightKg);
+      const menaSizeTierPolicyStep = `${row.country} step 1: packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, unit_weight ${unitWeightKg} kg => ${tier.label}`;
+      const menaChargeableWeightPolicyStep = `${row.country} step 2/3: current fee table uses unit weight only; chargeable_weight=${unitWeightKg} kg`;
+      const menaRoundingPolicyStep = tier.code === "oversize" && unitWeightKg > 30
+        ? `${row.country} step 4: oversize >30 kg uses ceil(weight - 30 kg) kg increment`
+        : `${row.country} step 4: match fixed weight band; no kg increment`;
       const priceOptions = getMenaPriceOptions(policy, row.salePriceLocal);
       const scenarios = priceOptions.map((priceOption, index) => {
         const fee = computeMenaBaseFee(policy, tier.code, unitWeightKg, priceOption);
@@ -3115,6 +3180,10 @@
           rule_pack: policy.version,
           size_tier: tier.code,
           size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm 和商品重量 ${unitWeightKg} kg 匹配 ${tier.label}。2）计费重规则：${row.country} 当前表按商品重量匹配，不使用体积重量。3）计费重 ${unitWeightKg} kg。4）若大件超过 30 kg，则超过 30 kg 部分按每 kg 向上取整加收；否则直接按重量档匹配。`,
+          size_tier_policy_step: menaSizeTierPolicyStep,
+          chargeable_weight_policy_step: menaChargeableWeightPolicyStep,
+          rounding_policy_step: menaRoundingPolicyStep,
+          policy_calculation_path: [menaSizeTierPolicyStep, menaChargeableWeightPolicyStep, menaRoundingPolicyStep].join(" | "),
           measurement_rounding_rule: `${row.country} 四步法：先按包装后三边和商品重量判断尺寸分段；再按分段确认仅使用商品重量；重量按 kg 四舍五入至 3 位；大件超过 30 kg 时超过部分按 kg 向上取整加收`,
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
@@ -3295,6 +3364,13 @@
       const shippingWeightG = shouldCeilForKgIncrement ? Math.ceil(rawShippingWeightG / 1000 - 1e-9) * 1000 : rawShippingWeightG;
       const shippingWeightKg = round3(shippingWeightG / 1000);
       const rawShippingWeightKg = round3(rawShippingWeightG / 1000);
+      const auSizeTierPolicyStep = `AU step 1: packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm and unit_weight ${unitWeightG} g => ${tier.label}; dimensional weight does not move AU size tier`;
+      const auChargeableWeightPolicyStep = tier.weight_basis === "unit"
+        ? `AU step 2/3: ${tier.label} uses unit weight only => ${unitWeightG} g`
+        : `AU step 2/3: dimensional_weight=${dimensionalWeightG} g; raw_chargeable_weight=max(unit ${unitWeightG} g, dimensional ${dimensionalWeightG} g)=${rawShippingWeightG} g`;
+      const auRoundingPolicyStep = shouldCeilForKgIncrement
+        ? `AU step 4: raw_chargeable_weight ${rawShippingWeightKg} kg exceeds ${round3(incrementThresholdG / 1000)} kg increment threshold; ceil to ${shippingWeightKg} kg`
+        : `AU step 4: no kg-increment ceiling; use ${shippingWeightG} g`;
       const priceOptions = getAuPriceOptions(row.salePriceLocal, ratePeriod);
       const scenarios = [];
       let scenarioId = 1;
@@ -3349,6 +3425,10 @@
           rule_pack: AU_POLICY.version,
           size_tier: tier.code,
           size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm 和商品实重 ${unitWeightG} g 匹配 ${tier.label}，体积重量 ${dimensionalWeightG} g 不用于 AU 尺寸分段跳段。2）计费重规则：${tier.weight_basis === "unit" ? "该尺寸段仅用商品实重" : "该尺寸段使用商品实重与体积重量较大值"}。3）原始计费重 ${rawShippingWeightKg} kg。4）${shouldCeilForKgIncrement ? `超过当前尺寸段增量阈值 ${round3(incrementThresholdG / 1000)} kg，按 kg 向上取整为 ${shippingWeightKg} kg` : "未进入 kg 增量取整，保留原重量入档"}。`,
+          size_tier_policy_step: auSizeTierPolicyStep,
+          chargeable_weight_policy_step: auChargeableWeightPolicyStep,
+          rounding_policy_step: auRoundingPolicyStep,
+          policy_calculation_path: [auSizeTierPolicyStep, auChargeableWeightPolicyStep, auRoundingPolicyStep].join(" | "),
           measurement_rounding_rule: "AU 四步法：先用包装后尺寸 + 商品实重判断尺寸分段，不用体积重跳段；再按分段确认是否使用体积重；体积重量=长x宽x高/4000 kg 并四舍五入到 3 位；只有超过当前尺寸段重量上限并进入“超过 xx kg，每 kg 加收”公式时，才按 kg 向上取整",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
@@ -3552,6 +3632,7 @@
       const dimensionalWeightKg = round3((longestCm * medianCm * shortestCm) / 5000);
       const lengthPlusGirthCm = round2(longestCm + 2 * (medianCm + shortestCm));
       const sizeTier = determineEuSizeTier(longestCm, medianCm, shortestCm, unitWeightKg, dimensionalWeightKg, lengthPlusGirthCm);
+      const euSizeTierPolicyStep = `${euCountry} step 1: packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, length_plus_girth ${lengthPlusGirthCm} cm, unit_weight ${unitWeightKg} kg, dimensional_weight ${dimensionalWeightKg} kg => ${sizeTier}`;
       const lowPriceCategoryOptions = getEuLowPriceCategoryOptions(euCountry, row.lowPriceCategory, row.category);
       const priceOptions = lowPriceCategoryOptions.flatMap(option =>
         getEuPriceOptions(euCountry, row.salePriceLocal, sizeTier, unitWeightKg, longestCm, medianCm, shortestCm, option)
@@ -3560,6 +3641,8 @@
       const lowInventoryOptions = getEuLowInventoryOptions(sizeTier, row.daysOfSupply30, row.daysOfSupply90);
       const scenarios = [];
       let scenarioId = 1;
+      const euChargeableWeightPolicyStep = `EU/UK step 2/3: envelopes/special oversize/low-price FBA use unit weight; other parcels and oversize use max(unit ${unitWeightKg} kg, dimensional ${dimensionalWeightKg} kg)`;
+      const euRoundingPolicyStep = "EU/UK step 4: convert selected chargeable weight to g for table matching; if table falls into +xx/kg row, excess over base threshold is ceiled to whole kg";
       priceOptions.forEach(priceOption => {
         const shippingWeightKg = euUsesProductWeightOnly(sizeTier, priceOption.code) ? unitWeightKg : round3(Math.max(unitWeightKg, dimensionalWeightKg));
         const shippingWeightG = Math.ceil(shippingWeightKg * 1000 - 1e-9);
@@ -3619,6 +3702,10 @@
           rule_pack: "EU_UK_2026_excel_official_sources",
           size_tier: sizeTier,
           size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm、长度加围长 ${lengthPlusGirthCm} cm、商品重量 ${unitWeightKg} kg 和体积重量 ${dimensionalWeightKg} kg 匹配 ${sizeTier}。2）计费重规则：信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值。3）各场景计费重：${[...new Set(scenarios.map(item => `${item.shipping_weight_g} g`))].join(", ")}。4）若超过当前分段表格上限并进入“+xx/千克”公式，超过部分按 kg 向上取整。`,
+          size_tier_policy_step: euSizeTierPolicyStep,
+          chargeable_weight_policy_step: euChargeableWeightPolicyStep,
+          rounding_policy_step: euRoundingPolicyStep,
+          policy_calculation_path: [euSizeTierPolicyStep, euChargeableWeightPolicyStep, euRoundingPolicyStep].join(" | "),
           measurement_rounding_rule: "EU/UK 四步法：先按包装后三边、长度加围长、商品重量和体积重量判断尺寸分段；再按分段确认使用商品重量或商品重量/体积重量较大值；体积重量=长x宽x高/5000 kg 并四舍五入到 3 位；若超过当前分段上限并进入“+xx/千克”公式，超出部分按 kg 向上取整",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
@@ -3665,7 +3752,7 @@
 
     const RESULTS_COLUMNS = [
       "row_number", "country", "sku", "product_name", "category", "status", "currency", "rule_pack", "size_tier",
-      "size_tier_reason", "measurement_rounding_rule", "length_cm", "width_cm", "height_cm", "weight_kg",
+      "size_tier_reason", "size_tier_policy_step", "chargeable_weight_policy_step", "rounding_policy_step", "policy_calculation_path", "measurement_rounding_rule", "length_cm", "width_cm", "height_cm", "weight_kg",
       "longest_cm", "median_cm", "shortest_cm", "length_plus_girth_cm", "dimensional_weight_kg", "shipping_weight_kg", "shipping_weight_g",
       "raw_longest_in", "raw_median_in", "raw_shortest_in",
       "longest_in", "median_in", "shortest_in", "unit_weight_lb", "shipping_weight_lb",
@@ -3790,6 +3877,11 @@
           unitWeightLb,
           dimensionalWeight.weightLb
         );
+        const usSizeTierPolicyStep = `US step 1: packaged dimensions ${longestIn} x ${medianIn} x ${shortestIn} in, unit_weight ${unitWeightLb} lb, length_plus_girth ${round2(lengthPlusGirthIn)} in => ${sizeTier}`;
+        const usChargeableWeightPolicyStep = sizeTier === "small_standard" || sizeTier === "extra_large_150_plus"
+          ? `US step 2/3: ${sizeTier} uses unit weight only => ${shippingWeightLb} lb`
+          : `US step 2/3: dimensional_weight=${dimensionalWeight.weightLb} lb with width/height minimum 2 in; chargeable_weight=max(unit ${unitWeightLb} lb, dimensional ${dimensionalWeight.weightLb} lb)=${shippingWeightLb} lb`;
+        const usRoundingPolicyStep = `US step 4: match ${sizeTier} oz/lb bands or overweight increment formula; selected band shown in shipping_weight_band/base_fee_match`;
         const lowPriceSupported = true;
         const standardFee = computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, "10_50");
         const lowPriceFee = lowPriceSupported ? computeBaseFee(sizeTier, shippingWeightLb, row.isApparel, "under_10") : null;
@@ -3818,6 +3910,10 @@
           rule_pack: POLICY.version,
           size_tier: sizeTier,
           size_tier_reason: sizeTierReason,
+          size_tier_policy_step: usSizeTierPolicyStep,
+          chargeable_weight_policy_step: usChargeableWeightPolicyStep,
+          rounding_policy_step: usRoundingPolicyStep,
+          policy_calculation_path: [usSizeTierPolicyStep, usChargeableWeightPolicyStep, usRoundingPolicyStep].join(" | "),
           measurement_rounding_rule: "费用变量尺寸/商品重量四舍五入取到 2 位小数后判断尺寸；适用体积重量的尺寸分段按宽和高最小 2 in 计算，体积重量及计费重四舍五入取到 3 位小数",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
@@ -4198,7 +4294,7 @@
           "当前状态": "已启用计算",
           "尺寸分段步骤": "先按包装后三边判断 Sobre/Estándar/Tamaño grande；大件额外使用长度加围长边界。",
           "计费重步骤": "体积重量=长x宽x高/5000 kg；当前规则包按商品重量与体积重量较大值进入 MX 费率表。",
-          "取整/进位步骤": "Sobre/Estándar <=1 kg 按表格重量档匹配；Estándar >1 kg 按 0.25 kg 增量向上取整；Tamaño grande >1 kg 按 1 kg 增量向上取整。",
+          "取整/进位步骤": "Sobre/Estándar <=1 kg 按表格重量档匹配；Estándar >1 kg 按 0.25 kg 增量向上取整；Tamaño grande >1 kg 按当前内置费率表的 0.5 kg 增量向上取整。",
           "基础费": "按四个售价区间、MX 费率类目、尺寸分段、计费重量匹配",
           "附加/折扣": "SIPP 折扣；当前无燃油/物流附加费、无低库存水平费用",
           "最终费用公式": "基础配送费 - SIPP 折扣",
