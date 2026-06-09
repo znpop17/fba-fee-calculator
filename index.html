@@ -807,7 +807,7 @@
         <div class="table-wrap rule-table">
           <table id="mxBaseFeeRulesTable"></table>
         </div>
-        <div class="rule-note">MX 官方来源为 Seller Central <span class="inline-code">G200209150</span>；该站点当前不配置燃油/物流附加费和低库存水平费用，已按官方小数费率和 SIPP 折扣计算。<strong>MX 公式：</strong>最终费用 = MX 本地基础配送费 - SIPP 折扣。</div>
+        <div class="rule-note">MX 官方来源为 Seller Central <span class="inline-code">G200209150</span>。<strong>MX 四步法：</strong>1）先按包装后三边判断 Sobre/Estándar/Tamaño grande，大件额外看长度加围长；2）计费重使用商品重量与体积重量较大值；3）体积重量=长x宽x高/5000 kg；4）Sobre/Estándar <=1 kg 按表格档，Estándar >1 kg 按 0.25 kg 增量向上取整，Tamaño grande >1 kg 按 1 kg 增量向上取整。该站点当前不配置燃油/物流附加费和低库存水平费用；<strong>MX 公式：</strong>最终费用 = MX 本地基础配送费 - SIPP 折扣。</div>
       </div>
       </div>
 
@@ -2050,10 +2050,10 @@
 
     function describeShippingWeightBasis(sizeTier, unitWeightLb, dimensionalWeightLb) {
       if (sizeTier === "small_standard" || sizeTier === "extra_large_150_plus") {
-        return `仅商品重量：${round3(unitWeightLb)} lb`;
+        return `1）尺寸分段已确定为 ${sizeTier}。2）该尺寸段仅使用商品重量，不使用体积重量。3）计费重 ${round3(unitWeightLb)} lb。4）后续按该尺寸段 oz/lb 档位匹配费用。`;
       }
       const basis = unitWeightLb >= dimensionalWeightLb ? "商品重量" : "体积重量";
-      return `商品重量 ${round2(unitWeightLb)} lb 与体积重量 ${round3(dimensionalWeightLb)} lb 取较大值：${basis} ${round3(Math.max(unitWeightLb, dimensionalWeightLb))} lb（该尺寸分段适用体积重量，宽和高最小按 2 in）`;
+      return `1）尺寸分段已确定为 ${sizeTier}。2）该尺寸段适用体积重量，宽和高最小按 2 in。3）商品重量 ${round2(unitWeightLb)} lb 与体积重量 ${round3(dimensionalWeightLb)} lb 取较大值：${basis} ${round3(Math.max(unitWeightLb, dimensionalWeightLb))} lb。4）后续按该尺寸段 oz/lb 档或超重增量公式匹配费用。`;
     }
 
     function getBaseFeeTable(isApparel, priceBand) {
@@ -2515,8 +2515,8 @@
           currency: MX_POLICY.currency,
           rule_pack: MX_POLICY.version,
           size_tier: sizeTier,
-          size_tier_reason: `${sizeTier} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm; length_plus_girth_cm=${lengthPlusGirthCm}`,
-          measurement_rounding_rule: "MX 尺寸按输入 cm 四舍五入至 2 位用于尺寸比较；计费重量以 kg 四舍五入至 3 位用于费率匹配",
+          size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm 和 length_plus_girth_cm=${lengthPlusGirthCm} 匹配 ${sizeTier}。2）计费重规则：当前 MX 规则包按商品重量与体积重量较大值进入该尺寸段费率表。3）体积重量：${longestCm} x ${medianCm} x ${shortestCm} / ${MX_POLICY.dimensional_weight_divisor_cm3_per_kg} = ${dimensionalWeightKg} kg。4）取整/增量：标准尺寸 >1 kg 按 0.25 kg 增量向上取整；大件 >1 kg 按 1 kg 增量向上取整；其他固定重量档按表格上限匹配。`,
+          measurement_rounding_rule: "MX 四步法：先按包装后三边判断尺寸分段；再按该分段确认计费重规则；体积重量=长x宽x高/5000 kg 并四舍五入到 3 位；进入超过 1 kg 增量公式时按对应增量向上取整",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
@@ -2527,7 +2527,10 @@
           length_plus_girth_cm: lengthPlusGirthCm,
           dimensional_weight_kg: dimensionalWeightKg,
           shipping_weight_kg: shippingWeightKg,
-          shipping_weight_basis: `商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 取较大值`,
+          shipping_weight_basis: `1）尺寸分段已确定为 ${sizeTier}。2）该尺寸段费用匹配使用商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 的较大值。3）原始计费重 ${shippingWeightKg} kg。4）若进入标准 >1 kg 或大件 >1 kg 公式，增量步数在 base_fee_match 中按 0.25 kg / 1 kg 向上取整展示。`,
+          shipping_weight_policy_unit: sizeTier === "standard" && shippingWeightKg > 1 ? "kg / 0.25kg_increment" : (sizeTier === "large" && shippingWeightKg > 1 ? "kg / 1kg_increment" : "kg"),
+          shipping_weight_policy_value: shippingWeightKg,
+          shipping_weight_band: [...new Set(scenarios.map(item => item.base_fee_match))].join(" | "),
           dimensional_weight_formula_note: MX_POLICY.dimensional_formula_verification,
           sale_price_local: row.salePriceLocal ?? "",
           mx_fee_category: [...new Set(scenarios.map(item => item.mx_fee_category))].join(", "),
@@ -2788,8 +2791,8 @@
           currency: CA_POLICY.currency,
           rule_pack: CA_POLICY.version,
           size_tier: sizeTier,
-          size_tier_reason: `${CA_POLICY.size_tiers[sizeTier].label} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, shipping_weight_kg=${shippingWeightKg}, length_plus_girth_cm=${lengthPlusGirthCm}`,
-          measurement_rounding_rule: "CA 尺寸按 cm 四舍五入至 2 位用于尺寸比较；体积重量=长x宽x高/5000 kg，四舍五入至 3 位；信封/标准计费重向上取整至 100g，大件向上取整至 500g",
+          size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm、length_plus_girth_cm=${lengthPlusGirthCm}，并使用商品重量/体积重量较大值 ${shippingWeightKg} kg 匹配 ${CA_POLICY.size_tiers[sizeTier].label}。2）计费重规则：该尺寸段按商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 取较大值。3）进位前计费重 ${shippingWeightKg} kg。4）按该尺寸段费用表进位单位 ${roundingG} g 向上取整为 ${billableWeightG} g。`,
+          measurement_rounding_rule: "CA 四步法：先按包装后三边、长度加围长和发货重量判断尺寸分段；再按分段使用商品重量/体积重量较大值；体积重量=长x宽x高/5000 kg 并四舍五入到 3 位；信封/标准按 100g 向上取整，大件按 500g 向上取整",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
@@ -2801,7 +2804,7 @@
           dimensional_weight_kg: dimensionalWeightKg,
           shipping_weight_kg: shippingWeightKg,
           shipping_weight_g: billableWeightG,
-          shipping_weight_basis: `商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 取较大值，再按 ${roundingG} g 向上取整`,
+          shipping_weight_basis: `1）尺寸分段已确定为 ${CA_POLICY.size_tiers[sizeTier].label}。2）该尺寸段使用商品重量 ${unitWeightKg} kg 与体积重量 ${dimensionalWeightKg} kg 的较大值。3）原始计费重 ${shippingWeightKg} kg。4）按 ${roundingG} g 向上取整为 ${billableWeightG} g 后匹配费用表。`,
           shipping_weight_policy_unit: "g",
           shipping_weight_policy_value: billableWeightG,
           shipping_weight_band: `${CA_POLICY.size_tiers[sizeTier].label} ${billableWeightG} g`,
@@ -2985,8 +2988,8 @@
           currency: JP_POLICY.currency,
           rule_pack: JP_POLICY.version,
           size_tier: feeRow.code,
-          size_tier_reason: `${feeRow.label} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, dimension_sum_cm=${dimensionSumCm}, weight_kg=${unitWeightKg}`,
-          measurement_rounding_rule: "JP 尺寸按 cm 四舍五入至 2 位；重量按 kg 四舍五入至 3 位；按包装后三边合计尺寸、商品重量和 1,000 日元价格段匹配固定配送费",
+          size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm、三边合计 ${dimensionSumCm} cm、商品重量 ${unitWeightKg} kg 匹配 ${feeRow.label}。2）计费重规则：JP 当前表按商品重量匹配，不使用体积重量。3）计费重 ${unitWeightKg} kg。4）无额外 kg 增量取整，直接按对应尺寸/重量/价格段固定费用匹配。`,
+          measurement_rounding_rule: "JP 四步法：先按包装后三边和三边合计判断尺寸分段；再按分段确认仅使用商品重量；重量按 kg 四舍五入至 3 位；无体积重和增量取整，按固定费用档匹配",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
@@ -2996,7 +2999,7 @@
           shortest_cm: shortestCm,
           length_plus_girth_cm: "",
           shipping_weight_kg: unitWeightKg,
-          shipping_weight_basis: "日本站当前官方表按包装后商品重量和三边合计尺寸匹配固定费用；未使用体积重量",
+          shipping_weight_basis: `1）尺寸分段已确定为 ${feeRow.label}。2）JP 当前官方表使用商品重量，不使用体积重量。3）计费重 ${unitWeightKg} kg。4）不进入增量取整公式，直接按固定费用档匹配。`,
           shipping_weight_policy_unit: "kg",
           shipping_weight_policy_value: unitWeightKg,
           shipping_weight_band: `${feeRow.label}, ${dimensionSumCm} cm / ${unitWeightKg} kg`,
@@ -3111,8 +3114,8 @@
           currency: policy.currency,
           rule_pack: policy.version,
           size_tier: tier.code,
-          size_tier_reason: `${tier.label} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, weight_kg=${unitWeightKg}`,
-          measurement_rounding_rule: `${row.country} 尺寸按 cm 四舍五入至 2 位；重量按 kg 四舍五入至 3 位；按包装后尺寸分段、商品重量和 25 本地币价格段匹配固定配送费`,
+          size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm 和商品重量 ${unitWeightKg} kg 匹配 ${tier.label}。2）计费重规则：${row.country} 当前表按商品重量匹配，不使用体积重量。3）计费重 ${unitWeightKg} kg。4）若大件超过 30 kg，则超过 30 kg 部分按每 kg 向上取整加收；否则直接按重量档匹配。`,
+          measurement_rounding_rule: `${row.country} 四步法：先按包装后三边和商品重量判断尺寸分段；再按分段确认仅使用商品重量；重量按 kg 四舍五入至 3 位；大件超过 30 kg 时超过部分按 kg 向上取整加收`,
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
@@ -3121,8 +3124,8 @@
           median_cm: medianCm,
           shortest_cm: shortestCm,
           shipping_weight_kg: unitWeightKg,
-          shipping_weight_basis: `${row.country} 官方表按商品重量匹配重量档；当前未使用体积重量`,
-          shipping_weight_policy_unit: "kg",
+          shipping_weight_basis: `1）尺寸分段已确定为 ${tier.label}。2）${row.country} 当前费用表使用商品重量，不使用体积重量。3）计费重 ${unitWeightKg} kg。4）${tier.code === "oversize" && unitWeightKg > 30 ? "超过 30 kg 部分按 kg 向上取整加收" : "未进入超过 30 kg 的每 kg 增量公式，直接按重量档匹配"}。`,
+          shipping_weight_policy_unit: tier.code === "oversize" && unitWeightKg > 30 ? "kg / 1kg_increment" : "kg",
           shipping_weight_policy_value: unitWeightKg,
           shipping_weight_band: `${tier.label}, ${unitWeightKg} kg`,
           sale_price_local: row.salePriceLocal ?? "",
@@ -3345,8 +3348,8 @@
           currency: AU_POLICY.currency,
           rule_pack: AU_POLICY.version,
           size_tier: tier.code,
-          size_tier_reason: `${tier.label} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm and product_weight_g=${unitWeightG}; dimensional_weight_g=${dimensionalWeightG} is used only for shipping-weight fee band, not for AU size-tier classification`,
-          measurement_rounding_rule: "AU 尺寸按 cm 四舍五入至 2 位；尺寸分段阶段重量只使用包装后商品实重；体积重量按 kg 四舍五入至 3 位后与实重取较大值；只有超过当前尺寸段重量上限并进入“超过 xx kg，每 kg 加收”公式时，才按 kg 向上取整",
+          size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm 和商品实重 ${unitWeightG} g 匹配 ${tier.label}，体积重量 ${dimensionalWeightG} g 不用于 AU 尺寸分段跳段。2）计费重规则：${tier.weight_basis === "unit" ? "该尺寸段仅用商品实重" : "该尺寸段使用商品实重与体积重量较大值"}。3）原始计费重 ${rawShippingWeightKg} kg。4）${shouldCeilForKgIncrement ? `超过当前尺寸段增量阈值 ${round3(incrementThresholdG / 1000)} kg，按 kg 向上取整为 ${shippingWeightKg} kg` : "未进入 kg 增量取整，保留原重量入档"}。`,
+          measurement_rounding_rule: "AU 四步法：先用包装后尺寸 + 商品实重判断尺寸分段，不用体积重跳段；再按分段确认是否使用体积重；体积重量=长x宽x高/4000 kg 并四舍五入到 3 位；只有超过当前尺寸段重量上限并进入“超过 xx kg，每 kg 加收”公式时，才按 kg 向上取整",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
@@ -3357,7 +3360,7 @@
           dimensional_weight_kg: dimensionalWeightKg,
           shipping_weight_kg: shippingWeightKg,
           shipping_weight_g: shippingWeightG,
-          shipping_weight_basis: tier.weight_basis === "unit" ? "信封尺寸段仅使用商品重量" : "包裹/大件/超大件先取商品重量与体积重量二者较大值；超过当前尺寸段重量上限并进入 kg 增量计费时才向上取整",
+          shipping_weight_basis: `1）尺寸分段已确定为 ${tier.label}。2）${tier.weight_basis === "unit" ? "该尺寸段仅使用商品实重" : "该尺寸段使用商品实重与体积重量较大值"}。3）原始计费重 ${rawShippingWeightKg} kg。4）${shouldCeilForKgIncrement ? `进入 kg 增量公式，向上取整为 ${shippingWeightKg} kg` : "未进入 kg 增量公式，保留原重量入档"}。`,
           shipping_weight_policy_unit: shouldCeilForKgIncrement ? "kg_ceiling" : "g",
           shipping_weight_policy_value: shouldCeilForKgIncrement ? `${rawShippingWeightKg} kg => ${shippingWeightKg} kg` : shippingWeightG,
           shipping_weight_band: [...new Set(scenarios.map(item => item.base_fee_match))].join(" | "),
@@ -3615,8 +3618,8 @@
           currency: countryInfo.currency,
           rule_pack: "EU_UK_2026_excel_official_sources",
           size_tier: sizeTier,
-          size_tier_reason: `${sizeTier} matched with packaged dimensions ${longestCm} x ${medianCm} x ${shortestCm} cm, product_weight_kg=${unitWeightKg}, dimensional_weight_kg=${dimensionalWeightKg}`,
-          measurement_rounding_rule: "EU/UK 尺寸按 cm 四舍五入至 2 位；体积重量=长x宽x高/5000 kg，四舍五入至 3 位；信封/特殊大件/低价 FBA 使用商品重量，其他包裹和大件使用商品重量与体积重量较大值；若超过当前分段上限并进入“+xx/千克”公式，超出部分按 kg 向上取整",
+          size_tier_reason: `1）尺寸分段：按包装后三边 ${longestCm} x ${medianCm} x ${shortestCm} cm、长度加围长 ${lengthPlusGirthCm} cm、商品重量 ${unitWeightKg} kg 和体积重量 ${dimensionalWeightKg} kg 匹配 ${sizeTier}。2）计费重规则：信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值。3）各场景计费重：${[...new Set(scenarios.map(item => `${item.shipping_weight_g} g`))].join(", ")}。4）若超过当前分段表格上限并进入“+xx/千克”公式，超过部分按 kg 向上取整。`,
+          measurement_rounding_rule: "EU/UK 四步法：先按包装后三边、长度加围长、商品重量和体积重量判断尺寸分段；再按分段确认使用商品重量或商品重量/体积重量较大值；体积重量=长x宽x高/5000 kg 并四舍五入到 3 位；若超过当前分段上限并进入“+xx/千克”公式，超出部分按 kg 向上取整",
           length_cm: row.lengthCm,
           width_cm: row.widthCm,
           height_cm: row.heightCm,
@@ -3628,7 +3631,7 @@
           dimensional_weight_kg: dimensionalWeightKg,
           shipping_weight_kg: [...new Set(scenarios.map(item => item.shipping_weight_kg))].join(", "),
           shipping_weight_g: [...new Set(scenarios.map(item => item.shipping_weight_g))].join(", "),
-          shipping_weight_basis: "信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值；超过分段上限后的每 kg 加收部分按 kg 向上取整",
+          shipping_weight_basis: `1）尺寸分段已确定为 ${sizeTier}。2）信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值。3）商品重量 ${unitWeightKg} kg，体积重量 ${dimensionalWeightKg} kg，各场景计费重 ${[...new Set(scenarios.map(item => `${item.shipping_weight_g} g`))].join(", ")}。4）超过表格上限的“+xx/千克”部分按 kg 向上取整。`,
           shipping_weight_policy_unit: "g / kg_increment",
           shipping_weight_policy_value: [...new Set(scenarios.map(item => `${item.shipping_weight_g} g`))].join(", "),
           shipping_weight_band: [...new Set(scenarios.map(item => item.base_fee_match))].join(" | "),
@@ -4049,14 +4052,14 @@
         {
           "站点": "CA 本地 FBA",
           "状态": "已启用",
-          "尺寸/计费重口径": "信封/标准/小号大件/中号大件/大号大件/特殊大件；体积重量=长×宽×高/5000 kg；信封和标准按 100g 进位，大件按 500g 进位",
+          "尺寸/计费重口径": "1）先按包装后三边、长度加围长和发货重量判断信封/标准/小号大件/中号大件/大号大件/特殊大件。2）当前规则包使用商品重量与体积重量较大值作为发货重量。3）体积重量=长×宽×高/5000 kg，四舍五入到 3 位。4）信封/标准按 100g 向上取整，大件按 500g 向上取整。",
           "费用政策": "已启用基础配送费、低价商品 FBA、SIPP 折扣、3.5% 燃油/物流附加费、低库存水平费用",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 3.5% 燃油/物流附加费 + 低库存水平费 - SIPP 折扣"
         },
         {
           "站点": "CA 低价商品",
           "状态": "已启用",
-          "尺寸/计费重口径": "售价 < CAD 14 自动使用低价商品 FBA；售价留空时穷举标准/低价两种价格条件",
+          "尺寸/计费重口径": "沿用 CA 本地 FBA 的四步尺寸/计费重口径；售价 < CAD 14 自动使用低价商品 FBA；售价留空时穷举标准/低价两种价格条件",
           "费用政策": "低价商品费率按官方低价 FBA 表，不再用统一 CAD 0.80 简单扣减"
         },
         {
@@ -4087,7 +4090,7 @@
           "站点": "JP 本地 FBA",
           "状态": "已启用",
           "币种": "JPY",
-          "尺寸/计费重口径": "按包装后三边合计尺寸、商品重量匹配小号/标准/大件/超大件；不使用体积重量",
+          "尺寸/计费重口径": "1）先按包装后三边、三边合计和商品重量匹配小号/标准/大件/超大件。2）JP 当前表按商品重量匹配，不使用体积重量。3）重量按 kg 四舍五入到 3 位。4）无额外 kg 增量取整，直接按固定费用档匹配。",
           "费用政策": "已启用 2026-04-01 起日本本地 FBA 基础配送费；售价留空时穷举 >1000 JPY 与 <=1000 JPY 两个价格段",
           "计算公式": "最终费用 = JP 本地基础配送费 + JP 低库存水平费用"
         },
@@ -4123,7 +4126,7 @@
           "状态": "已启用",
           "币种": "SAR",
           "价格段": "sale_price_local <= 25 / > 25；售价留空时穷举两个价格段",
-          "尺寸/计费重口径": "小号信封、标准信封、大号信封、标准包裹、大件；按包装后尺寸和商品重量匹配",
+          "尺寸/计费重口径": "1）先按包装后三边和商品重量匹配小号信封/标准信封/大号信封/标准包裹/大件。2）当前表按商品重量匹配，不使用体积重量。3）重量按 kg 四舍五入到 3 位。4）大件超过 30 kg 时，超过 30 kg 部分按每 kg 向上取整加收。",
           "费用政策": "FBA 基础配送费每单加收 15% 额外附加费；不包含页面下方预处理服务费",
           "计算公式": "最终费用 = SA 本地基础配送费 + 基础配送费 x 15%"
         },
@@ -4132,7 +4135,7 @@
           "状态": "已启用",
           "币种": "AED",
           "价格段": "sale_price_local <= 25 / > 25；售价留空时穷举两个价格段",
-          "尺寸/计费重口径": "小号信封、标准信封、大号信封、标准包裹、大件；按包装后尺寸和商品重量匹配",
+          "尺寸/计费重口径": "1）先按包装后三边和商品重量匹配小号信封/标准信封/大号信封/标准包裹/大件。2）当前表按商品重量匹配，不使用体积重量。3）重量按 kg 四舍五入到 3 位。4）大件超过 30 kg 时，超过 30 kg 部分按每 kg 向上取整加收。",
           "费用政策": "FBA 基础配送费每单加收 5% 额外附加费；不包含页面下方预处理服务费",
           "计算公式": "最终费用 = AE 本地基础配送费 + 基础配送费 x 5%"
         }
@@ -4145,7 +4148,7 @@
           "站点": "DE 德国",
           "状态": "已启用计算",
           "配送费口径": "德国需要使用中欧计划（Central Europe Programme）费率，不直接套用其他欧洲站点本地配送费",
-          "计费重口径": "按尺寸分段确认使用商品重量或商品重量/体积重量较大值；体积重量=长x宽x高/5000 kg。若计费重超过该分段表格上限，并进入“+xx/千克”公式，则超出部分按 kg 向上取整后计算增量费用。",
+          "计费重口径": "1）先按包装后三边、长度加围长、商品重量和体积重量判断 EU 尺寸分段。2）信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值。3）体积重量=长x宽x高/5000 kg。4）若计费重超过该分段表格上限，并进入“+xx/千克”公式，则超出部分按 kg 向上取整后计算增量费用。",
           "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 仅适用于排除 GL 以外的低价轻小商品",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣"
         },
@@ -4153,7 +4156,7 @@
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "状态": "已启用计算",
           "配送费口径": "按各站本地配送费列读取；UK 用 GBP，FR/IT/ES/NL/BE 用 EUR，SE 用 SEK，PL 用 PLN",
-          "计费重口径": "按尺寸分段确认使用商品重量或商品重量/体积重量较大值；体积重量=长x宽x高/5000 kg。若计费重超过该分段表格上限，并进入“+xx/千克”公式，则超出部分按 kg 向上取整后计算增量费用。",
+          "计费重口径": "1）先按包装后三边、长度加围长、商品重量和体积重量判断 EU/UK 尺寸分段。2）信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值。3）体积重量=长x宽x高/5000 kg。4）若计费重超过该分段表格上限，并进入“+xx/千克”公式，则超出部分按 kg 向上取整后计算增量费用。",
           "已登记政策": "FBA 配送费、燃油和物流相关附加费、低价商品 FBA、尺寸分段、体积重量、商品尺寸/体积、发货重量、商品重量、SIPP、低库存成本覆盖费；低价 FBA 仅适用于排除 GL 以外的低价轻小商品",
           "计算公式": "最终费用 = 基础配送费 + 基础配送费 x 1.5% 燃油/物流附加费 + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣；SIPP 仅在 Excel 有列的 UK/DE/FR/IT/ES 启用"
         },
@@ -4171,6 +4174,9 @@
         {
           "站点": "US",
           "当前状态": "已启用计算",
+          "尺寸分段步骤": "先将包装后尺寸/商品重量换算为 in/lb 并按费用变量取值；小号标准仅用商品重量判断，大号标准/小号大件/大号大件/超大件按商品重量和体积重量较大值判断分段。",
+          "计费重步骤": "小号标准和 >150 lb 超大件仅用商品重量；其他适用分段使用商品重量与体积重量较大值。体积重量=长x宽x高/139，适用分段宽/高最小按 2 in。",
+          "取整/进位步骤": "标准尺寸按 oz/lb 表格档位匹配；大号标准 >3 lb、大小号大件/超大件进入每 4 oz 或每 lb 公式时按公式增量向上取整。",
           "基础费": "按 <$10 / $10-$50 / >$50 三价格段、尺寸分段、计费重量匹配",
           "附加/折扣": "燃油/物流附加费 3.5%；低量库存费；标准尺寸 SIPP 折扣；小号/大号大件非 SIPP 包装费",
           "最终费用公式": "基础配送费 + 基础配送费 x 3.5% + 低量库存费/大件包装费 - SIPP 折扣",
@@ -4179,6 +4185,9 @@
         {
           "站点": "CA",
           "当前状态": "已启用计算",
+          "尺寸分段步骤": "先按包装后三边、长度加围长和发货重量判断信封/标准/小号大件/中号大件/大号大件/特殊大件；当前规则包的发货重量使用商品重量与体积重量较大值。",
+          "计费重步骤": "体积重量=长x宽x高/5000 kg；商品重量与体积重量取较大值后作为进位前计费重。",
+          "取整/进位步骤": "信封/标准按 100 g 向上取整；大件按 500 g 向上取整；再进入 CA 标准/低价/SIPP/低库存对应重量档。",
           "基础费": "按标准/低价商品 FBA、CA 本地尺寸分段、计费重量匹配",
           "附加/折扣": "燃油/物流附加费 3.5%；低库存水平费；SIPP 折扣；BC 运营中心 7% PST 税后可能性",
           "最终费用公式": "未税最终费用 = 基础配送费 + 基础配送费 x 3.5% + 低库存水平费 - SIPP 折扣；BC 税后可能费用 = 未税最终费用 x 1.07",
@@ -4187,6 +4196,9 @@
         {
           "站点": "MX",
           "当前状态": "已启用计算",
+          "尺寸分段步骤": "先按包装后三边判断 Sobre/Estándar/Tamaño grande；大件额外使用长度加围长边界。",
+          "计费重步骤": "体积重量=长x宽x高/5000 kg；当前规则包按商品重量与体积重量较大值进入 MX 费率表。",
+          "取整/进位步骤": "Sobre/Estándar <=1 kg 按表格重量档匹配；Estándar >1 kg 按 0.25 kg 增量向上取整；Tamaño grande >1 kg 按 1 kg 增量向上取整。",
           "基础费": "按四个售价区间、MX 费率类目、尺寸分段、计费重量匹配",
           "附加/折扣": "SIPP 折扣；当前无燃油/物流附加费、无低库存水平费用",
           "最终费用公式": "基础配送费 - SIPP 折扣",
@@ -4195,6 +4207,9 @@
         {
           "站点": "JP",
           "当前状态": "已启用计算",
+          "尺寸分段步骤": "先按包装后三边、三边合计和商品重量匹配小号/标准/大件/超大件。",
+          "计费重步骤": "JP 当前官方表按商品重量匹配，不使用体积重量。",
+          "取整/进位步骤": "重量按 kg 四舍五入到 3 位后直接进入固定费用档；无额外 kg 增量取整。",
           "基础费": "按日本本地尺寸分段、商品重量、1,000 JPY 价格段匹配",
           "附加/折扣": "低库存水平费用；当前未配置 SIPP",
           "最终费用公式": "基础配送费 + 低库存水平费用",
@@ -4203,14 +4218,20 @@
         {
           "站点": "AU",
           "当前状态": "已启用计算",
+          "尺寸分段步骤": "先用包装后尺寸 + 商品实重判定尺寸分段，不用体积重跳段。",
+          "计费重步骤": "小号/标准/大号信封仅用实重；包裹、小号大件、标准大件、大号大件、超大件使用实重与体积重量较大值。体积重量=长x宽x高/4000 kg。",
+          "取整/进位步骤": "只有计费重超过当前尺寸段重量上限且进入“超过 xx kg，每 kg 加收”公式时，才向上取整到整 kg；否则保留原重量入档。",
           "基础费": "按澳大利亚 FBA 配送费表、尺寸分段、计费重量和生效日期匹配；2026-06-10 起按 <13 / 13-20 / >=20 三价格段，并在前两个价格段读取 category 对应 GL 分类列",
           "附加/折扣": "当前未内置 AU SIPP、燃油/物流附加费或低库存费；FBA 配送服务费按客服内部口径固定叠加 10% GST，与商品售价无关",
-          "最终费用公式": "先用包装后尺寸 + 商品实重判定尺寸分段；再按该分段规则确认是否使用体积重并得到计费重；仅在计费重超过当前尺寸段增量阈值时按 kg 向上取整。最终费用 = 基础配送费 + 基础配送费 x 10% GST",
+          "最终费用公式": "基础配送费 + 基础配送费 x 10% GST",
           "穷举口径": "category 仅用于识别 AU 特殊费用分类；不填或未命中特殊分类时默认其他费用分类。售价留空时仅穷举价格段；GST 固定适用于 AU FBA 配送服务费"
         },
         {
           "站点": "SA",
           "当前状态": "已启用计算",
+          "尺寸分段步骤": "先按包装后三边和商品重量匹配小号信封/标准信封/大号信封/标准包裹/大件。",
+          "计费重步骤": "SA 当前表按商品重量匹配，不使用体积重量。",
+          "取整/进位步骤": "按重量档直接匹配；大件超过 30 kg 时，超过 30 kg 部分按每 kg 向上取整加收。",
           "基础费": "按 SA 本地尺寸分段、商品重量、25 SAR 价格段匹配",
           "附加/折扣": "每单基础配送费 x 15% 额外附加费；不含预处理服务费",
           "最终费用公式": "基础配送费 + 基础配送费 x 15%",
@@ -4219,6 +4240,9 @@
         {
           "站点": "AE",
           "当前状态": "已启用计算",
+          "尺寸分段步骤": "先按包装后三边和商品重量匹配小号信封/标准信封/大号信封/标准包裹/大件。",
+          "计费重步骤": "AE 当前表按商品重量匹配，不使用体积重量。",
+          "取整/进位步骤": "按重量档直接匹配；大件超过 30 kg 时，超过 30 kg 部分按每 kg 向上取整加收。",
           "基础费": "按 AE 本地尺寸分段、商品重量、25 AED 价格段匹配",
           "附加/折扣": "每单基础配送费 x 5% 额外附加费；不含预处理服务费",
           "最终费用公式": "基础配送费 + 基础配送费 x 5%",
@@ -4227,6 +4251,9 @@
         {
           "站点": "DE",
           "当前状态": "已启用计算",
+          "尺寸分段步骤": "先按包装后三边、长度加围长、商品重量和体积重量判断 EU 尺寸分段；德国使用中欧计划费率列。",
+          "计费重步骤": "信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值。体积重量=长x宽x高/5000 kg。",
+          "取整/进位步骤": "若计费重超过该分段表格上限，并进入“+xx/千克”公式，则超过部分按 kg 向上取整后计算增量费用。",
           "基础费": "按用户提供 Excel 的中欧计划（德国/波兰/捷克）列计算；低价 FBA 按 Seller Central 低价表中欧计划列，并按 category 判断是否属于不享受低价 FBA 的排除 GL；超过分段上限的“+xx/千克”部分按 kg 向上取整",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣；大件非 SIPP 包装费",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
@@ -4235,6 +4262,9 @@
         {
           "站点": "UK / FR / IT / ES / NL / SE / PL / BE",
           "当前状态": "已启用计算",
+          "尺寸分段步骤": "先按包装后三边、长度加围长、商品重量和体积重量判断 EU/UK 尺寸分段。",
+          "计费重步骤": "信封/特殊大件/低价 FBA 使用商品重量；其他包裹和大件使用商品重量与体积重量较大值。体积重量=长x宽x高/5000 kg。",
+          "取整/进位步骤": "若计费重超过该分段表格上限，并进入“+xx/千克”公式，则超过部分按 kg 向上取整后计算增量费用。",
           "基础费": "按用户提供 Excel 的各站本地配送费列计算；低价 FBA 按 Seller Central 低价表本地列，并按 category 判断是否属于不享受低价 FBA 的排除 GL；超过分段上限的“+xx/千克”部分按 kg 向上取整",
           "附加/折扣": "燃油/物流附加费 1.5%；低量库存成本覆盖费；SIPP 折扣仅 UK/FR/IT/ES；NL/SE/PL/BE 当前无 SIPP 列，不套用",
           "最终费用公式": "基础配送费 + 基础配送费 x 1.5% + 低量库存成本覆盖费 + 大件非 SIPP 包装费 - SIPP 折扣",
